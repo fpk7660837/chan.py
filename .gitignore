@@ -1,5 +1,4 @@
-*.py[co]
-__pycache__
+*.py[co] __pycache__
 *-checkpoint.ipynb
 *.vscode
 *.log
@@ -8,3 +7,4 @@ config.yaml
 OpenConfig.yaml
 gotify_push.py
 cos_config.yaml
+.DS_Store
