@@ -1,0 +1,22 @@
+# Web Application Dependencies
+
+# FastAPI Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.5.0
+pydantic-settings>=2.1.0
+
+# CORS Support
+python-multipart>=0.0.6
+
+# Plotly for interactive charts
+plotly>=5.18.0
+kaleido>=0.2.1
+
+# Data processing
+pandas>=1.4.2
+numpy>=1.23.3
+
+# HTTP Client
+httpx>=0.25.0
+
