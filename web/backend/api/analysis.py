@@ -47,6 +47,13 @@ class AnalysisRequest(BaseModel):
     plot_zs: bool = Field(True, description="Include ZhongShu in results")
     plot_bsp: bool = Field(True, description="Include BuySellPoints in results")
     plot_macd: bool = Field(True, description="Include MACD indicator in results")
+    plot_ma: bool = Field(False, description="Include MA (Moving Average) indicator in results")
+    plot_boll: bool = Field(False, description="Include BOLL (Bollinger Bands) indicator in results")
+    plot_kdj: bool = Field(False, description="Include KDJ indicator in results")
+    plot_rsi: bool = Field(False, description="Include RSI indicator in results")
+    ma_params: Optional[List[int]] = Field([5, 10, 20, 60], description="MA periods")
+    kdj_period: int = Field(9, description="KDJ calculation period")
+    rsi_period: int = Field(14, description="RSI calculation period")
 
 
 class AnalysisResponse(BaseModel):
@@ -59,6 +66,10 @@ class AnalysisResponse(BaseModel):
     zs_list: Optional[List[dict]] = None
     bsp_list: Optional[List[dict]] = None
     macd_data: Optional[List[dict]] = None
+    ma_data: Optional[dict] = None
+    boll_data: Optional[List[dict]] = None
+    kdj_data: Optional[List[dict]] = None
+    rsi_data: Optional[List[dict]] = None
     meta: dict
 
 

@@ -3,20 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <title>缠论分析平台 - Chan Theory Analysis</title>
+    <title>缠论在线分析系统</title>
     
-    <!-- Vue 3 -->
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Ant Design CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/antd@5.11.5/dist/reset.css">
     
-    <!-- Element Plus -->
-    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
-    <script src="https://unpkg.com/element-plus"></script>
+    <!-- React and ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     
-    <!-- TradingView Lightweight Charts - 使用稳定版本3.8.0 -->
-    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+    <!-- Ant Design -->
+    <script src="https://unpkg.com/dayjs@1.11.10/dayjs.min.js"></script>
+    <script src="https://unpkg.com/antd@5.11.5/dist/antd.min.js"></script>
+    
+    <!-- Lightweight Charts -->
+    <script src="https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.js"></script>
+    
+    <!-- Babel Standalone for JSX -->
+    <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
     
     <style>
         * {
@@ -26,1154 +30,1958 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-            background: #ffffff;
-            color: #333333;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+            overflow: hidden;
         }
         
-        #app {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+        #root {
+            width: 100vw;
+            height: 100vh;
         }
         
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
-            padding: 20px 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+        .app-layout {
+            width: 100%;
+            height: 100%;
         }
         
-        .header-content {
-            max-width: 1800px;
-            margin: 0 auto;
+        .app-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0 24px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            height: 64px;
         }
         
-        .logo {
+        .app-logo {
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
         }
         
-        .logo-icon {
-            font-size: 36px;
-        }
-        
-        .logo-text h1 {
-            font-size: 24px;
-            font-weight: 600;
-            color: white;
-            margin: 0;
-        }
-        
-        .logo-text p {
-            font-size: 12px;
-            color: rgba(255,255,255,0.8);
-            margin: 0;
-        }
-        
-        /* Main Content */
-        .main-content {
-            flex: 1;
-            max-width: 1800px;
-            width: 100%;
-            margin: 0 auto;
-            padding: 20px;
+        .app-header-actions {
             display: flex;
-            gap: 20px;
-            background: #f5f5f5;
+            gap: 10px;
+            align-items: center;
         }
         
-        /* Left Panel - Controls */
-        .left-panel {
-            width: 320px;
-            background: #ffffff;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            max-height: calc(100vh - 140px);
+        .left-sidebar {
+            background: #fafafa;
+            padding: 16px;
             overflow-y: auto;
-            border: 1px solid #e5e7eb;
+            border-right: 1px solid #e8e8e8;
         }
         
-        .left-panel::-webkit-scrollbar {
-            width: 6px;
+        .right-sidebar {
+            background: #fafafa;
+            padding: 16px;
+            overflow-y: auto;
+            border-left: 1px solid #e8e8e8;
         }
         
-        .left-panel::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 3px;
+        .main-content {
+            background: #fff;
+            padding: 16px;
+            overflow: hidden;
         }
         
-        /* Right Panel - Chart */
-        .right-panel {
-            flex: 1;
-            background: #ffffff;
+        .chart-grid {
+            display: grid;
+            gap: 16px;
+            height: 100%;
+            width: 100%;
+        }
+        
+        .chart-grid-1x1 {
+            grid-template-columns: 1fr;
+            grid-template-rows: 1fr;
+        }
+        
+        .chart-grid-2x1 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr;
+        }
+        
+        .chart-grid-2x2 {
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: minmax(500px, 1fr) minmax(500px, 1fr);
+        }
+        
+        .chart-grid-3x2 {
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: minmax(500px, 1fr) minmax(500px, 1fr);
+        }
+        
+        .chart-panel {
+            border: 1px solid #e8e8e8;
             border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            background: white;
             display: flex;
             flex-direction: column;
-            border: 1px solid #e5e7eb;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            transition: box-shadow 0.3s;
+            min-height: 400px;
+        }
+
+        .chart-panel:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
         }
         
-        .panel-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1f2937;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #e5e7eb;
+        /* Dynamic height based on enabled indicators */
+        .chart-panel[data-subindicators="1"] {
+            min-height: 500px;
         }
         
-        /* Chart Container */
-        #chart-container {
-            flex: 1;
-            position: relative;
+        .chart-panel[data-subindicators="2"] {
+            min-height: 550px;
+        }
+        
+        .chart-panel[data-subindicators="3"] {
             min-height: 600px;
         }
         
-        #tradingview-chart {
-            width: 100%;
-            height: 100%;
-            min-height: 600px;
-        }
-        
-        /* MACD Chart Container */
-        #macd-container {
-            margin-top: 20px;
-            min-height: 200px;
-            position: relative;
-        }
-        
-        #macd-chart {
-            width: 100%;
-            height: 200px;
-        }
-        
-        /* Stats Bar */
-        .stats-bar {
+        .chart-header {
+            padding: 14px 18px;
+            background: linear-gradient(to right, #f8f9fa, #f5f5f5);
+            border-bottom: 2px solid #e8e8e8;
             display: flex;
-            gap: 20px;
-            padding: 15px;
-            background: #f9fafb;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            border: 1px solid #e5e7eb;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .stat-item {
+        .chart-title {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .chart-title-group {
             display: flex;
             flex-direction: column;
             gap: 4px;
         }
         
-        .stat-label {
+        .chart-meta {
+            display: flex;
+            gap: 12px;
             font-size: 12px;
-            color: #6b7280;
+            align-items: center;
         }
         
-        .stat-value {
-            font-size: 18px;
+        .latest-price {
             font-weight: 600;
-            color: #2962ff;
+            font-size: 16px;
+            color: #333;
         }
         
-        /* Form Styling */
-        .el-input__wrapper {
-            background: #ffffff !important;
-            box-shadow: none !important;
-            border: 1px solid #d1d5db !important;
-        }
-        
-        .el-input__inner {
-            color: #1f2937 !important;
-        }
-        
-        .el-select {
-            width: 100%;
-        }
-        
-        .el-select .el-input__wrapper {
-            background: #ffffff !important;
-        }
-        
-        .el-date-editor {
-            width: 100%;
-        }
-        
-        .el-form-item__label {
-            color: #374151 !important;
+        .price-change {
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 4px;
             font-weight: 500;
         }
         
-        .el-checkbox__label {
-            color: #374151 !important;
+        .price-change.positive {
+            color: #ef5350;
+            background: #ffebee;
         }
         
-        .el-button--primary {
-            background: linear-gradient(135deg, #2962ff 0%, #7c3aed 100%);
-            border: none;
-            font-weight: 600;
+        .price-change.negative {
+            color: #26a69a;
+            background: #e0f2f1;
         }
         
-        .el-button--primary:hover {
-            background: linear-gradient(135deg, #1e4ed8 0%, #6d28d9 100%);
+        .price-change.neutral {
+            color: #666;
+            background: #f5f5f5;
         }
         
-        /* Loading */
-        .loading-overlay {
+        .update-time {
+            color: #999;
+            font-size: 11px;
+        }
+        
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .chart-canvas {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+        
+        .chart-loading {
             position: absolute;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.9);
+        }
+        
+        .chart-empty {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            z-index: 100;
-            border-radius: 8px;
+            color: #999;
         }
         
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #e5e7eb;
-            border-top: 4px solid #2962ff;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .loading-text {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #6b7280;
-        }
-        
-        /* Legend */
-        .legend {
-            display: flex;
-            gap: 20px;
-            margin-top: 15px;
+        .stock-item {
             padding: 12px;
-            background: #f9fafb;
-            border-radius: 6px;
-            flex-wrap: wrap;
-            border: 1px solid #e5e7eb;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #374151;
-        }
-        
-        .legend-color {
-            width: 20px;
-            height: 3px;
-            border-radius: 2px;
-        }
-        
-        /* Empty State */
-        .empty-state {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            color: #9ca3af;
-            padding: 60px 20px;
-        }
-        
-        .empty-icon {
-            font-size: 80px;
-            margin-bottom: 20px;
-            opacity: 0.3;
-        }
-        
-        .empty-text {
-            font-size: 16px;
             margin-bottom: 8px;
-            color: #6b7280;
+            background: white;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            transition: all 0.3s;
         }
         
-        .empty-hint {
-            font-size: 13px;
-            color: #9ca3af;
+        .stock-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+        
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .stock-code {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .stock-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 16px;
+        }
+        
+        .stock-levels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .stock-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 4px;
+            padding-top: 8px;
+            border-top: 1px solid #f0f0f0;
+        }
+        
+        .batch-actions {
+            padding: 12px;
+            background: #fafafa;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .batch-actions-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        
+        .indicator-section {
+            margin-bottom: 24px;
+        }
+        
+        .indicator-section-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+            border-bottom: 1px solid #e8e8e8;
+            padding-bottom: 8px;
+        }
+        
+        .indicator-item {
+            margin-bottom: 12px;
+        }
+        
+        /* Dark theme support */
+        .dark-theme {
+            background: #1f1f1f;
+            color: #e8e8e8;
+        }
+        
+        .dark-theme .left-sidebar,
+        .dark-theme .right-sidebar {
+            background: #252525;
+            border-color: #3a3a3a;
+        }
+        
+        .dark-theme .main-content {
+            background: #1a1a1a;
+        }
+        
+        .dark-theme .chart-panel {
+            background: #2a2a2a;
+            border-color: #3a3a3a;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .dark-theme .chart-panel:hover {
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+        
+        .dark-theme .chart-header {
+            background: linear-gradient(to right, #2e2e2e, #333);
+            border-color: #3a3a3a;
+        }
+        
+        .dark-theme .stock-item {
+            background: #2a2a2a;
+            border-color: #3a3a3a;
+            color: #e8e8e8;
+        }
+
+        .dark-theme .stock-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+        }
+
+        .dark-theme .stock-item-active {
+            background: linear-gradient(135deg, #2a3050 0%, #1f2842 100%);
+        }
+
+        .dark-theme .level-tag {
+            background: linear-gradient(135deg, #3a3a3a, #333);
+            color: #bbb;
+            border-color: #444;
+        }
+
+        /* Scrollbar styling */
+        .left-sidebar::-webkit-scrollbar,
+        .right-sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .left-sidebar::-webkit-scrollbar-thumb,
+        .right-sidebar::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+
+        .dark-theme .left-sidebar::-webkit-scrollbar-thumb,
+        .dark-theme .right-sidebar::-webkit-scrollbar-thumb {
+            background: #555;
+        }
+
+        /* Responsive design */
+        @media (max-width: 1366px) {
+            .chart-grid-3x2 {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: 1fr 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .left-sidebar,
+            .right-sidebar {
+                width: 240px !important;
+            }
+        }
+        
+        /* ============= Additional Responsive Rules ============= */
+        @media (max-width: 1400px) {
+            .left-sidebar {
+                width: 220px;
+            }
+            
+            .right-sidebar {
+                width: 280px;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .chart-grid-3x2 {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: repeat(3, minmax(500px, 1fr));
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .app-header {
+                padding: 0 16px;
+                height: 56px;
+            }
+            
+            .chart-grid {
+                gap: 12px;
+            }
+            
+            .main-content {
+                padding: 12px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .chart-grid-2x2,
+            .chart-grid-3x2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-grid-2x1 {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
         }
     </style>
 </head>
 <body>
-    <div id="app">
-        <!-- Header -->
-        <div class="header">
-            <div class="header-content">
-                <div class="logo">
-                    <div class="logo-icon">📈</div>
-                    <div class="logo-text">
-                        <h1>缠论分析平台</h1>
-                        <p>Chan Theory Analysis Platform · A股实时分析</p>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, createContext, useContext, useMemo, useCallback, memo } = React;
+        const { 
+            Layout, Button, Input, Select, Checkbox, Space, Card, Badge, Tag, 
+            Spin, message, Tooltip, Switch, Divider, DatePicker, InputNumber,
+            Row, Col, Collapse, Radio
+        } = antd;
+        const { Header, Sider, Content } = Layout;
+        const { Option } = Select;
+        const { Panel } = Collapse;
+
+        // ============= Constants =============
+        const API_BASE = 'http://localhost:8000';
         
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Left Panel - Controls -->
-            <div class="left-panel">
-                <div class="panel-title">📊 分析参数</div>
-                
-                <el-form :model="form" label-position="top" size="default">
-                    <!-- Stock Code -->
-                    <el-form-item label="股票代码">
-                        <el-input 
-                            v-model="form.code" 
-                            placeholder="如: sz.000001 或 sh.600000"
-                            clearable>
-                            <template #prefix>🔍</template>
-                        </el-input>
-                    </el-form-item>
-                    
-                    <!-- Date Range -->
-                    <el-form-item label="开始日期">
-                        <el-date-picker 
-                            v-model="form.begin_time" 
-                            type="date" 
-                            placeholder="选择开始日期"
-                            style="width: 100%;">
-                        </el-date-picker>
-                    </el-form-item>
-                    
-                    <!-- Data Source -->
-                    <el-form-item label="数据源">
-                        <el-select v-model="form.data_src">
-                            <el-option label="BaoStock (A股)" value="BAO_STOCK"></el-option>
-                            <el-option label="本地CSV" value="CSV"></el-option>
-                        </el-select>
-                    </el-form-item>
-                    
-                    <!-- K-line Level -->
-                    <el-form-item label="K线级别">
-                        <el-select v-model="form.lv_list" multiple collapse-tags>
-                            <el-option label="日线" value="day"></el-option>
-                            <el-option label="60分钟" value="60m"></el-option>
-                            <el-option label="30分钟" value="30m"></el-option>
-                            <el-option label="15分钟" value="15m"></el-option>
-                            <el-option label="5分钟" value="5m"></el-option>
-                        </el-select>
-                    </el-form-item>
-                    
-                    <!-- Seg Algorithm -->
-                    <el-form-item label="线段算法">
-                        <el-select v-model="form.seg_algo">
-                            <el-option label="缠论特征序列" value="chan"></el-option>
-                            <el-option label="笔破坏" value="break"></el-option>
-                            <el-option label="1+1终结" value="1+1"></el-option>
-                        </el-select>
-                    </el-form-item>
-                    
-                    <!-- ZhongShu Algorithm -->
-                    <el-form-item label="中枢算法">
-                        <el-select v-model="form.zs_algo">
-                            <el-option label="段内中枢" value="normal"></el-option>
-                            <el-option label="跨段中枢" value="over_seg"></el-option>
-                            <el-option label="自动" value="auto"></el-option>
-                        </el-select>
-                    </el-form-item>
-                    
-                    <!-- Display Options -->
-                    <el-form-item label="显示元素">
-                        <el-checkbox-group v-model="form.plotOptions">
-                            <el-checkbox label="bi">笔 (Bi)</el-checkbox>
-                            <el-checkbox label="seg">线段 (Seg)</el-checkbox>
-                            <el-checkbox label="zs">中枢 (ZS)</el-checkbox>
-                            <el-checkbox label="bsp">买卖点 (BSP)</el-checkbox>
-                        </el-checkbox-group>
-                    </el-form-item>
-                    
-                    <!-- Action Buttons -->
-                    <el-form-item>
-                        <el-button 
-                            type="primary" 
-                            @click="analyze" 
-                            :loading="loading" 
-                            style="width: 100%; height: 44px; font-size: 15px;">
-                            <span v-if="!loading">🚀 开始分析</span>
-                            <span v-else>分析中...</span>
-                        </el-button>
-                    </el-form-item>
-                </el-form>
-            </div>
-            
-            <!-- Right Panel - Chart -->
-            <div class="right-panel">
-                <div class="panel-title">📉 K线图表与缠论指标</div>
-                
-                <!-- Stats Bar -->
-                <div v-if="stats" class="stats-bar">
-                    <div class="stat-item">
-                        <div class="stat-label">K线数量</div>
-                        <div class="stat-value">{{ stats.total_klines }}</div>
-                    </div>
-                    <div class="stat-item" v-if="stats.bi_count !== undefined">
-                        <div class="stat-label">笔</div>
-                        <div class="stat-value" style="color: #2196f3;">{{ stats.bi_count }}</div>
-                    </div>
-                    <div class="stat-item" v-if="stats.seg_count !== undefined">
-                        <div class="stat-label">线段</div>
-                        <div class="stat-value" style="color: #9c27b0;">{{ stats.seg_count }}</div>
-                    </div>
-                    <div class="stat-item" v-if="stats.zs_count !== undefined">
-                        <div class="stat-label">中枢</div>
-                        <div class="stat-value" style="color: #ff9800;">{{ stats.zs_count }}</div>
-                    </div>
-                    <div class="stat-item" v-if="stats.bsp_count !== undefined">
-                        <div class="stat-label">买卖点</div>
-                        <div class="stat-value" style="color: #f44336;">{{ stats.bsp_count }}</div>
-                    </div>
-                </div>
-                
-                <!-- Chart Container -->
-                <div id="chart-container">
-                    <div v-if="loading" class="loading-overlay">
-                        <div class="loading-spinner"></div>
-                        <div class="loading-text">正在计算缠论指标...</div>
-                    </div>
-                    
-                    <div v-if="!chartData && !loading" class="empty-state">
-                        <div class="empty-icon">📊</div>
-                        <div class="empty-text">暂无数据</div>
-                        <div class="empty-hint">请输入股票代码并点击"开始分析"</div>
-                    </div>
-                    
-                    <div id="tradingview-chart" v-show="chartData && !loading"></div>
-                    
-                    <!-- MACD Chart -->
-                    <div id="macd-container" v-show="chartData && !loading">
-                        <div id="macd-chart"></div>
-                    </div>
-                </div>
-                
-                <!-- Legend -->
-                <div v-if="chartData" class="legend">
-                    <div class="legend-item" v-if="form.plotOptions.includes('bi')">
-                        <div class="legend-color" style="background: #2196f3;"></div>
-                        <span>笔 (Bi)</span>
-                    </div>
-                    <div class="legend-item" v-if="form.plotOptions.includes('seg')">
-                        <div class="legend-color" style="background: #9c27b0; height: 4px;"></div>
-                        <span>线段 (Seg)</span>
-                    </div>
-                    <div class="legend-item" v-if="form.plotOptions.includes('zs')">
-                        <div class="legend-color" style="background: #ff9800; height: 8px;"></div>
-                        <span>中枢 (ZS)</span>
-                    </div>
-                    <div class="legend-item" v-if="form.plotOptions.includes('bsp')">
-                        <div class="legend-color" style="background: #f44336;"></div>
-                        <span>买点</span>
-                    </div>
-                    <div class="legend-item" v-if="form.plotOptions.includes('bsp')">
-                        <div class="legend-color" style="background: #4caf50;"></div>
-                        <span>卖点</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        const { createApp } = Vue;
+        const LEVEL_OPTIONS = [
+            { label: '日线', value: 'day' },
+            { label: '60分', value: '60m' },
+            { label: '30分', value: '30m' },
+            { label: '15分', value: '15m' },
+            { label: '5分', value: '5m' },
+            { label: '1分', value: '1m' },
+        ];
         
-        createApp({
-            data() {
-                return {
-                    form: {
-                        code: 'sz.000001',
-                        begin_time: new Date('2023-01-01'),
-                        data_src: 'BAO_STOCK',
-                        lv_list: ['day'],
-                        seg_algo: 'chan',
-                        zs_algo: 'normal',
-                        bi_strict: true,
-                        plotOptions: ['bi', 'seg', 'zs', 'bsp']
-                    },
-                    loading: false,
-                    stats: null,
-                    chartData: null,
-                    chart: null,
-                    macdChart: null,
-                    series: {},
-                    apiBase: 'http://localhost:8000'
-                }
-            },
-            methods: {
-                async analyze() {
-                    if (!this.form.code) {
-                        ElementPlus.ElMessage.warning('请输入股票代码');
-                        return;
-                    }
-                    
-                    this.loading = true;
-                    this.chartData = null;
-                    
-                    try {
-                        const beginTime = this.form.begin_time.toISOString().split('T')[0];
-                        
-                        const request = {
-                            code: this.form.code,
-                            begin_time: beginTime,
-                            end_time: null,
-                            data_src: this.form.data_src,
-                            lv_list: this.form.lv_list,
-                            seg_algo: this.form.seg_algo,
-                            zs_algo: this.form.zs_algo,
-                            bi_strict: this.form.bi_strict,
-                            plot_bi: this.form.plotOptions.includes('bi'),
-                            plot_seg: this.form.plotOptions.includes('seg'),
-                            plot_zs: this.form.plotOptions.includes('zs'),
-                            plot_bsp: this.form.plotOptions.includes('bsp'),
-                            plot_macd: true  // Always show MACD
-                        };
-                        
-                        console.log('📤 Sending request with lv_list:', request.lv_list);
-                        
-                        const response = await fetch(`${this.apiBase}/api/analysis/calculate`, {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify(request)
-                        });
-                        
-                        if (!response.ok) {
-                            const error = await response.json();
-                            throw new Error(error.detail || 'Analysis failed');
-                        }
-                        
-                        this.chartData = await response.json();
-                        this.stats = this.chartData.meta;
-                        
-                        console.log('📦 Chart data received:', {
-                            hasData: !!this.chartData,
-                            klines: this.chartData.kline_data?.length || 0,
-                            bis: this.chartData.bi_list?.length || 0,
-                            segs: this.chartData.seg_list?.length || 0,
-                            bsps: this.chartData.bsp_list?.length || 0,
-                            macd: this.chartData.macd_data?.length || 0
-                        });
-                        
-                        // Log sample raw data
-                        if (this.chartData.kline_data?.length > 0) {
-                            console.log('🔍 Sample raw K-line data (first 2):', this.chartData.kline_data.slice(0, 2));
-                        }
-                        if (this.chartData.bi_list?.length > 0) {
-                            console.log('🔍 Sample raw Bi data (first 2):', this.chartData.bi_list.slice(0, 2));
-                        }
-                        if (this.chartData.macd_data?.length > 0) {
-                            console.log('🔍 Sample raw MACD data (first 2):', this.chartData.macd_data.slice(0, 2));
-                        }
-                        
-                        // Wait for Vue to update DOM
-                        await this.$nextTick();
-                        
-                        // Give additional time for v-show to take effect
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                        
-                        console.log('🎯 About to render chart...');
-                        this.renderChart();
-                        
-                        ElementPlus.ElMessage.success('分析完成！');
-                        
-                    } catch (error) {
-                        console.error(error);
-                        ElementPlus.ElMessage.error('分析失败: ' + error.message);
-                    } finally {
-                        this.loading = false;
-                    }
-                },
-                
-                renderChart() {
-                    // Check if LightweightCharts is loaded
-                    if (typeof LightweightCharts === 'undefined') {
-                        console.error('❌ LightweightCharts is not loaded!');
-                        ElementPlus.ElMessage.error('图表库加载失败，请刷新页面重试');
-                        return;
-                    }
-                    
-                    console.log('✅ LightweightCharts loaded:', typeof LightweightCharts);
-                    console.log('✅ LightweightCharts.createChart:', typeof LightweightCharts.createChart);
-                    
-                    const container = document.getElementById('tradingview-chart');
-                    if (!container || !this.chartData) {
-                        console.log('❌ Cannot render chart:', { 
-                            container: !!container, 
-                            chartData: !!this.chartData 
-                        });
-                        return;
-                    }
-                    
-                    console.log('📊 Rendering chart with data:', {
-                        klines: this.chartData.kline_data?.length,
-                        bis: this.chartData.bi_list?.length,
-                        segs: this.chartData.seg_list?.length,
-                        containerWidth: container.clientWidth,
-                        containerHeight: container.clientHeight
-                    });
-                    
-                    // Clear existing chart
-                    if (this.chart) {
-                        this.chart.remove();
-                        this.chart = null;
-                    }
-                    container.innerHTML = '';
-                    
-                    // Get container dimensions
-                    const width = container.clientWidth || container.parentElement.clientWidth || 1000;
-                    const height = 600;
-                    
-                    console.log('📏 Chart dimensions:', { width, height });
-                    
-                    // Create chart with white theme
-                    this.chart = LightweightCharts.createChart(container, {
-                        width: width,
-                        height: height,
-                        layout: {
-                            background: { color: '#ffffff' },
-                            textColor: '#333333',
-                        },
-                        grid: {
-                            vertLines: { color: '#e5e7eb' },
-                            horzLines: { color: '#e5e7eb' },
-                        },
-                        crosshair: {
-                            mode: LightweightCharts.CrosshairMode.Normal,
-                        },
-                        rightPriceScale: {
-                            borderColor: '#d1d5db',
-                        },
-                        timeScale: {
-                            borderColor: '#d1d5db',
-                            timeVisible: true,
-                            secondsVisible: true,
-                        },
-                        localization: {
-                            timeFormatter: (timestamp) => {
-                                // timestamp is Unix timestamp in seconds
-                                const date = new Date(timestamp * 1000);
-                                // Format as China time (should already be in local timezone)
-                                const hours = String(date.getHours()).padStart(2, '0');
-                                const minutes = String(date.getMinutes()).padStart(2, '0');
-                                const month = date.getMonth() + 1;
-                                const day = date.getDate();
-                                return `${month}/${day} ${hours}:${minutes}`;
-                            },
-                        },
-                    });
-                    
-                    console.log('✅ Chart created successfully');
-                    console.log('📋 Chart object type:', typeof this.chart);
-                    console.log('📋 Chart methods:', Object.keys(this.chart));
-                    console.log('📋 Has addCandlestickSeries?', typeof this.chart.addCandlestickSeries);
-                    
-                    // Add candlestick series
-                    const candlestickSeries = this.chart.addCandlestickSeries({
-                        upColor: '#ef5350',
-                        downColor: '#26a69a',
-                        borderVisible: false,
-                        wickUpColor: '#ef5350',
-                        wickDownColor: '#26a69a',
-                    });
-                    
-                    // Prepare candlestick data - convert time format based on K-line type
-                    const candleData = [];
-                    
-                    // Debug: log first raw K-line time
-                    if (this.chartData.kline_data.length > 0) {
-                        const firstKl = this.chartData.kline_data[0];
-                        console.log('🕐 Raw time from backend:', firstKl.time);
-                        const convertedTime = this.convertTime(firstKl.time);
-                        console.log('🕐 Converted time:', convertedTime);
-                        console.log('🕐 Converted time type:', typeof convertedTime);
-                        if (typeof convertedTime === 'number') {
-                            const date = new Date(convertedTime * 1000);
-                            console.log('🕐 Date object (browser timezone):', date.toString());
-                            console.log('🕐 Date UTC:', date.toUTCString());
-                            console.log('🕐 Date China (UTC+8):', new Date(date.getTime() + 8*60*60*1000).toUTCString());
-                        }
-                    }
-                    
-                    this.chartData.kline_data.forEach(kl => {
-                        // Check null/undefined BEFORE parseFloat
-                        if (!kl.time || 
-                            kl.open === null || kl.open === undefined ||
-                            kl.high === null || kl.high === undefined ||
-                            kl.low === null || kl.low === undefined ||
-                            kl.close === null || kl.close === undefined) {
-                            return;
-                        }
-                        
-                        // Convert time based on K-line type
-                        let time;
-                        const timeStr = kl.time.replace(/\//g, '-'); // 2023/01/03 09:30 → 2023-01-03 09:30
-                        
-                        // Check if it's a day-level K-line (no time part or time is 00:00)
-                        if (!timeStr.includes(' ') || timeStr.includes(' 00:00')) {
-                            // Day-level: use date string format YYYY-MM-DD
-                            time = timeStr.split(' ')[0];
-                        } else {
-                            // Minute-level: convert to Unix timestamp (seconds)
-                            time = Math.floor(new Date(timeStr).getTime() / 1000);
-                        }
-                        
-                        const open = parseFloat(kl.open);
-                        const high = parseFloat(kl.high);
-                        const low = parseFloat(kl.low);
-                        const close = parseFloat(kl.close);
-                        
-                        // Check if valid numbers
-                        if (isNaN(open) || isNaN(high) || isNaN(low) || isNaN(close)) {
-                            console.warn('⚠️  Filtered invalid K-line:', { time, open, high, low, close });
-                            return;
-                        }
-                        
-                        // For minute-level, also check if timestamp is valid
-                        if (typeof time === 'number' && (isNaN(time) || time <= 0)) {
-                            console.warn('⚠️  Invalid timestamp:', timeStr);
-                            return;
-                        }
-                        
-                        candleData.push({ time, open, high, low, close });
-                    });
-                    
-                    // Sort by time (works for both string dates and timestamps)
-                    candleData.sort((a, b) => {
-                        if (typeof a.time === 'string') {
-                            return a.time < b.time ? -1 : a.time > b.time ? 1 : 0;
-                        } else {
-                            return a.time - b.time;
-                        }
-                    });
-                    
-                    const timeFormat = typeof candleData[0]?.time === 'string' ? 'Date String (Day)' : 'Unix Timestamp (Minute)';
-                    
-                    console.log('📈 K-line data processing:');
-                    console.log(`  - Total: ${candleData.length} K-lines`);
-                    console.log(`  - Time format: ${timeFormat}`);
-                    console.log('First candle:', candleData[0]);
-                    console.log('Last candle:', candleData[candleData.length - 1]);
-                    
-                    // Debug: Check what time Lightweight Charts will display
-                    if (candleData[0] && typeof candleData[0].time === 'number') {
-                        const firstTimestamp = candleData[0].time;
-                        const date = new Date(firstTimestamp * 1000);
-                        console.log('🕐 First K-line timestamp:', firstTimestamp);
-                        console.log('🕐 Browser will display:', date.toString());
-                        console.log('🕐 Expected display time:', `${date.getMonth()+1}/${date.getDate()} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`);
-                    }
-                    
-                    // Check for any null values in sample data
-                    console.log('🔍 Checking sample K-line data for null values...');
-                    const sampleCandles = candleData.slice(0, 5);
-                    sampleCandles.forEach((c, i) => {
-                        console.log(`  Candle ${i}:`, {
-                            time: c.time,
-                            open: c.open,
-                            high: c.high,
-                            low: c.low,
-                            close: c.close,
-                            hasNull: Object.values(c).some(v => v === null || v === undefined || (typeof v === 'number' && isNaN(v)))
-                        });
-                    });
-                    
-                    candlestickSeries.setData(candleData);
-                    console.log('✅ K-line data set successfully');
-                    
-                    // Add Bi lines
-                    if (this.form.plotOptions.includes('bi') && this.chartData.bi_list) {
-                        this.addBiLines();
-                    }
-                    
-                    // Add Seg lines
-                    if (this.form.plotOptions.includes('seg') && this.chartData.seg_list) {
-                        this.addSegLines();
-                    }
-                    
-                    // Add markers for buy/sell points
-                    if (this.form.plotOptions.includes('bsp') && this.chartData.bsp_list) {
-                        this.addBspMarkers(candlestickSeries);
-                    }
-                    
-                    // Fit content
-                    this.chart.timeScale().fitContent();
-                    
-                    // Render MACD chart
-                    this.renderMacdChart();
-                    
-                    // Handle resize
-                    const resizeHandler = () => {
-                        if (this.chart && container) {
-                            this.chart.applyOptions({ width: container.clientWidth });
-                        }
-                        if (this.macdChart) {
-                            const macdContainer = document.getElementById('macd-chart');
-                            if (macdContainer) {
-                                this.macdChart.applyOptions({ width: macdContainer.clientWidth || container.clientWidth });
-                            }
-                        }
-                    };
-                    
-                    // Remove old listener if exists
-                    window.removeEventListener('resize', this.resizeHandler);
-                    this.resizeHandler = resizeHandler;
-                    window.addEventListener('resize', this.resizeHandler);
-                },
-                
-                convertTime(timeStr) {
-                    // Helper function to convert time based on K-line type
-                    const normalized = timeStr.replace(/\//g, '-');
-                    
-                    // Check if it's day-level K-line
-                    if (!normalized.includes(' ') || normalized.includes(' 00:00')) {
-                        return normalized.split(' ')[0]; // Date string
-                    } else {
-                        // Minute-level: convert to Unix timestamp (seconds) with China timezone (UTC+8)
-                        // Parse as China time (local interpretation as UTC+8)
-                        const [datePart, timePart] = normalized.split(' ');
-                        const [year, month, day] = datePart.split('-').map(Number);
-                        const [hour, minute, second = 0] = timePart.split(':').map(Number);
-                        
-                        // Create date in UTC, then subtract 8 hours to get correct timestamp
-                        // (because we want to treat the input as UTC+8)
-                        const utcDate = Date.UTC(year, month - 1, day, hour, minute, second);
-                        const chinaOffset = 8 * 60 * 60 * 1000; // 8 hours in milliseconds
-                        const timestamp = Math.floor((utcDate - chinaOffset) / 1000);
-                        
-                        return timestamp;
-                    }
-                },
-                
-                addBiLines() {
-                    console.log('📊 Adding Bi lines:', this.chartData.bi_list.length);
-                    for (let i = 0; i < this.chartData.bi_list.length; i++) {
-                        const bi = this.chartData.bi_list[i];
-                        
-                        // Validate bi data - check null/undefined FIRST, then NaN
-                        if (!bi.begin_time || !bi.end_time || 
-                            bi.begin_price === null || bi.begin_price === undefined ||
-                            bi.end_price === null || bi.end_price === undefined ||
-                            isNaN(parseFloat(bi.begin_price)) || isNaN(parseFloat(bi.end_price))) {
-                            console.warn('⚠️  Skipping invalid Bi:', bi);
-                            continue;
-                        }
-                        
-                        const beginPrice = parseFloat(bi.begin_price);
-                        const endPrice = parseFloat(bi.end_price);
-                        const beginTime = this.convertTime(bi.begin_time);
-                        const endTime = this.convertTime(bi.end_time);
-                        
-                        // Double check after conversion
-                        if ((typeof beginTime === 'string' && !beginTime) || 
-                            (typeof endTime === 'string' && !endTime) ||
-                            (typeof beginTime === 'number' && (isNaN(beginTime) || beginTime <= 0)) ||
-                            (typeof endTime === 'number' && (isNaN(endTime) || endTime <= 0)) ||
-                            isNaN(beginPrice) || isNaN(endPrice)) {
-                            console.warn('⚠️  Skipping invalid Bi after conversion:', { beginTime, endTime, beginPrice, endPrice });
-                            continue;
-                        }
-                        
-                        const biData = [
-                            { time: beginTime, value: beginPrice },
-                            { time: endTime, value: endPrice }
-                        ];
-                        
-                        console.log(`  📍 Bi ${i}:`, {
-                            beginTime, beginPrice, 
-                            endTime, endPrice,
-                            hasNull: beginTime === null || beginPrice === null || endTime === null || endPrice === null
-                        });
-                        
-                        const lineSeries = this.chart.addLineSeries({
-                            color: '#2196f3',
-                            lineWidth: 2,
-                            priceLineVisible: false,
-                            lastValueVisible: false,
-                        });
-                        
-                        lineSeries.setData(biData);
-                    }
-                    console.log('✅ Bi lines added');
-                },
-                
-                addSegLines() {
-                    console.log('📊 Adding Seg lines:', this.chartData.seg_list.length);
-                    for (let i = 0; i < this.chartData.seg_list.length; i++) {
-                        const seg = this.chartData.seg_list[i];
-                        
-                        // Validate seg data - check null/undefined FIRST, then NaN
-                        if (!seg.begin_time || !seg.end_time || 
-                            seg.begin_price === null || seg.begin_price === undefined ||
-                            seg.end_price === null || seg.end_price === undefined ||
-                            isNaN(parseFloat(seg.begin_price)) || isNaN(parseFloat(seg.end_price))) {
-                            console.warn('⚠️  Skipping invalid Seg:', seg);
-                            continue;
-                        }
-                        
-                        const beginPrice = parseFloat(seg.begin_price);
-                        const endPrice = parseFloat(seg.end_price);
-                        const beginTime = this.convertTime(seg.begin_time);
-                        const endTime = this.convertTime(seg.end_time);
-                        
-                        // Double check after conversion
-                        if ((typeof beginTime === 'string' && !beginTime) || 
-                            (typeof endTime === 'string' && !endTime) ||
-                            (typeof beginTime === 'number' && (isNaN(beginTime) || beginTime <= 0)) ||
-                            (typeof endTime === 'number' && (isNaN(endTime) || endTime <= 0)) ||
-                            isNaN(beginPrice) || isNaN(endPrice)) {
-                            console.warn('⚠️  Skipping invalid Seg after conversion:', { beginTime, endTime, beginPrice, endPrice });
-                            continue;
-                        }
-                        
-                        const segData = [
-                            { time: beginTime, value: beginPrice },
-                            { time: endTime, value: endPrice }
-                        ];
-                        
-                        console.log(`  📍 Seg ${i}:`, {
-                            beginTime, beginPrice, 
-                            endTime, endPrice,
-                            hasNull: beginTime === null || beginPrice === null || endTime === null || endPrice === null
-                        });
-                        
-                        const lineSeries = this.chart.addLineSeries({
-                            color: '#9c27b0',
-                            lineWidth: 3,
-                            priceLineVisible: false,
-                            lastValueVisible: false,
-                        });
-                        
-                        lineSeries.setData(segData);
-                    }
-                    console.log('✅ Seg lines added');
-                },
-                
-                addBspMarkers(series) {
-                    console.log('📊 Adding BSP markers:', this.chartData.bsp_list.length);
-                    const markers = this.chartData.bsp_list
-                        .filter(bsp => {
-                            // Validate BSP data - check null/undefined FIRST, then NaN
-                            const isValid = bsp.time && 
-                                           bsp.price !== null && bsp.price !== undefined && 
-                                           !isNaN(parseFloat(bsp.price));
-                            if (!isValid) {
-                                console.warn('⚠️  Skipping invalid BSP:', bsp);
-                            }
-                            return isValid;
-                        })
-                        .map(bsp => {
-                            const price = parseFloat(bsp.price);
-                            const time = this.convertTime(bsp.time);
-                            
-                            // Final validation
-                            if ((typeof time === 'string' && !time) ||
-                                (typeof time === 'number' && (isNaN(time) || time <= 0)) ||
-                                isNaN(price)) {
-                                console.warn('⚠️  Invalid BSP after conversion:', { time, price });
-                                return null;
-                            }
-                            
-                            return {
-                                time: time,
-                                position: bsp.is_buy ? 'belowBar' : 'aboveBar',
-                                color: bsp.is_buy ? '#f44336' : '#4caf50',
-                                shape: bsp.is_buy ? 'arrowUp' : 'arrowDown',
-                                text: bsp.type
-                            };
-                        })
-                        .filter(marker => marker !== null);
-                    
-                    console.log('🔍 Sample BSP markers (first 3):', markers.slice(0, 3));
-                    series.setMarkers(markers);
-                    console.log('✅ BSP markers added:', markers.length);
-                },
-                
-                renderMacdChart() {
-                    if (!this.chartData || !this.chartData.macd_data || !this.chartData.macd_data.length) {
-                        console.log('⚠️  No MACD data available');
-                        return;
-                    }
-                    
-                    const macdContainer = document.getElementById('macd-chart');
-                    if (!macdContainer) {
-                        console.error('❌ MACD container not found');
-                        return;
-                    }
-                    
-                    console.log('📊 Rendering MACD chart...');
-                    
-                    // Clear existing MACD chart
-                    if (this.macdChart) {
-                        this.macdChart.remove();
-                        this.macdChart = null;
-                    }
-                    macdContainer.innerHTML = '';
-                    
-                    // Get container dimensions
-                    const width = macdContainer.clientWidth || macdContainer.parentElement.clientWidth || 1000;
-                    const height = 200;
-                    
-                    // Create MACD chart
-                    this.macdChart = LightweightCharts.createChart(macdContainer, {
-                        width: width,
-                        height: height,
-                        layout: {
-                            background: { color: '#ffffff' },
-                            textColor: '#333333',
-                        },
-                        grid: {
-                            vertLines: { color: '#e5e7eb' },
-                            horzLines: { color: '#e5e7eb' },
-                        },
-                        crosshair: {
-                            mode: LightweightCharts.CrosshairMode.Normal,
-                        },
-                        rightPriceScale: {
-                            borderColor: '#d1d5db',
-                        },
-                        timeScale: {
-                            borderColor: '#d1d5db',
-                            timeVisible: true,
-                            secondsVisible: true,
-                            visible: true,
-                        },
-                        localization: {
-                            timeFormatter: (timestamp) => {
-                                const date = new Date(timestamp * 1000);
-                                const hours = String(date.getHours()).padStart(2, '0');
-                                const minutes = String(date.getMinutes()).padStart(2, '0');
-                                const month = date.getMonth() + 1;
-                                const day = date.getDate();
-                                return `${month}/${day} ${hours}:${minutes}`;
-                            },
-                        },
-                    });
-                    
-                    // Add MACD histogram (bar chart)
-                    const histogramSeries = this.macdChart.addHistogramSeries({
-                        color: '#26a69a',
-                        priceFormat: {
-                            type: 'price',
-                            precision: 4,
-                            minMove: 0.0001,
-                        },
-                    });
-                    
-                    // Filter and prepare valid MACD data - check null/undefined FIRST
-                    const validMacdData = this.chartData.macd_data.filter(item => {
-                        const isValid = item.time && 
-                                       item.macd !== null && item.macd !== undefined &&
-                                       item.dif !== null && item.dif !== undefined &&
-                                       item.dea !== null && item.dea !== undefined &&
-                                       !isNaN(parseFloat(item.macd)) && 
-                                       !isNaN(parseFloat(item.dif)) && 
-                                       !isNaN(parseFloat(item.dea));
-                        if (!isValid) {
-                            console.warn('⚠️  Filtered invalid MACD:', item);
-                        }
-                        return isValid;
-                    });
-                    
-                    // Prepare histogram data (MACD bar)
-                    const histogramData = validMacdData.map(item => ({
-                        time: this.convertTime(item.time),
-                        value: parseFloat(item.macd),
-                        color: parseFloat(item.macd) >= 0 ? '#ef5350' : '#26a69a'
-                    }));
-                    
-                    console.log('🔍 Sample MACD histogram (first 3):', histogramData.slice(0, 3));
-                    console.log('🔍 Sample MACD histogram (last 3):', histogramData.slice(-3));
-                    
-                    // Check for null values in histogram data
-                    const invalidHistogram = histogramData.filter(d => d.time === null || d.value === null || isNaN(d.value));
-                    if (invalidHistogram.length > 0) {
-                        console.error('❌ Found invalid histogram data:', invalidHistogram);
-                    }
-                    
-                    histogramSeries.setData(histogramData);
-                    
-                    // Add DIF line
-                    const difSeries = this.macdChart.addLineSeries({
-                        color: '#2962ff',
-                        lineWidth: 2,
-                        title: 'DIF',
-                    });
-                    
-                    const difData = validMacdData.map(item => ({
-                        time: this.convertTime(item.time),
-                        value: parseFloat(item.dif)
-                    }));
-                    
-                    console.log('🔍 Sample DIF data (first 3):', difData.slice(0, 3));
-                    difSeries.setData(difData);
-                    
-                    // Add DEA line
-                    const deaSeries = this.macdChart.addLineSeries({
-                        color: '#ff9800',
-                        lineWidth: 2,
-                        title: 'DEA',
-                    });
-                    
-                    const deaData = validMacdData.map(item => ({
-                        time: this.convertTime(item.time),
-                        value: parseFloat(item.dea)
-                    }));
-                    
-                    console.log('🔍 Sample DEA data (first 3):', deaData.slice(0, 3));
-                    deaSeries.setData(deaData);
-                    
-                    // Synchronize time scales
-                    this.macdChart.timeScale().fitContent();
-                    
-                    // Sync time scale with main chart
-                    if (this.chart) {
-                        this.chart.timeScale().subscribeVisibleTimeRangeChange((timeRange) => {
-                            if (timeRange && this.macdChart) {
-                                this.macdChart.timeScale().setVisibleRange(timeRange);
-                            }
-                        });
-                        
-                        this.macdChart.timeScale().subscribeVisibleTimeRangeChange((timeRange) => {
-                            if (timeRange && this.chart) {
-                                this.chart.timeScale().setVisibleRange(timeRange);
-                            }
-                        });
-                    }
-                    
-                    console.log('✅ MACD chart rendered successfully');
-                }
-            },
-            mounted() {
-                ElementPlus.ElMessage({
-                    message: '欢迎使用缠论分析平台！',
-                    type: 'success',
-                    duration: 2000
-                });
+        const LAYOUT_OPTIONS = [
+            { label: '自动', value: 'auto', cols: 2, rows: 2 },
+            { label: '1×1', value: '1x1', cols: 1, rows: 1 },
+            { label: '2×1', value: '2x1', cols: 2, rows: 1 },
+            { label: '2×2', value: '2x2', cols: 2, rows: 2 },
+            { label: '3×2', value: '3x2', cols: 3, rows: 2 },
+        ];
+
+        // ============= Context for Global State =============
+        const AppContext = createContext();
+
+        const useApp = () => useContext(AppContext);
+
+        // ============= Version & Debug Info =============
+        console.log('🚀 Chan.py Web v3.2.0 - Ultimate Edition');
+        console.log('📅 Loaded at:', new Date().toISOString());
+        console.log('✨ Complete: Layout optimization, batch operations, time range selector, responsive design');
+
+        // ============= Utility Functions =============
+        // Debounce function
+        const debounce = (func, wait) => {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        };
+
+        /**
+         * Convert time string from backend to Lightweight Charts format
+         * Backend format: "2021/09/13" or "2021/09/13 14:30"
+         * Lightweight Charts format: "2021-09-13" (strict requirement!)
+         * @param {string} timeStr - Time string from backend
+         * @returns {string|null} - Converted time string or null
+         */
+        const convertTime = (timeStr) => {
+            if (!timeStr) {
+                console.warn('⚠️  convertTime: received null/undefined time');
+                return null;
             }
-        }).use(ElementPlus).mount('#app');
+            
+            if (typeof timeStr !== 'string') {
+                console.warn('⚠️  convertTime: received non-string time:', typeof timeStr, timeStr);
+                return null;
+            }
+            
+            try {
+                // Replace slashes with hyphens for Lightweight Charts compatibility
+                // "2021/09/13" -> "2021-09-13"
+                // "2021/09/13 14:30" -> "2021-09-13" (for day level, only keep date)
+                const normalizedTime = timeStr.replace(/\//g, '-').split(' ')[0];
+                
+                // Validate format YYYY-MM-DD
+                if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedTime)) {
+                    console.error('❌ convertTime: invalid format after conversion:', timeStr, '->', normalizedTime);
+                    return null;
+                }
+                
+                return normalizedTime;
+            } catch (e) {
+                console.error('❌ convertTime: exception:', timeStr, e);
+                return null;
+            }
+        };
+
+        // Cache management for chart data
+        const DataCache = {
+            get(key) {
+                try {
+                    const cached = sessionStorage.getItem(`chart_data_${key}`);
+                    if (cached) {
+                        const { data, timestamp } = JSON.parse(cached);
+                        // Cache valid for 5 minutes
+                        if (Date.now() - timestamp < 5 * 60 * 1000) {
+                            console.log(`Cache hit for ${key}`);
+                            return data;
+                        }
+                    }
+                } catch (e) {
+                    console.error('Cache get error:', e);
+                }
+                return null;
+            },
+            set(key, data) {
+                try {
+                    sessionStorage.setItem(`chart_data_${key}`, JSON.stringify({
+                        data,
+                        timestamp: Date.now(),
+                    }));
+                    console.log(`Cache set for ${key}`);
+                } catch (e) {
+                    console.error('Cache set error:', e);
+                }
+            },
+            clear() {
+                try {
+                    const keys = Object.keys(sessionStorage);
+                    keys.forEach(key => {
+                        if (key.startsWith('chart_data_')) {
+                            sessionStorage.removeItem(key);
+                        }
+                    });
+                    console.log('Cache cleared');
+                } catch (e) {
+                    console.error('Cache clear error:', e);
+                }
+            }
+        };
+
+        // ============= API Service =============
+        const api = {
+            async calculateChan(params) {
+                console.log('🌐 [API] Sending request with params:', params);
+                const response = await fetch(`${API_BASE}/api/analysis/calculate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(params),
+                });
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+                const result = await response.json();
+                console.log('🌐 [API] Received response:', {
+                    code: result.code,
+                    kline_count: result.kline_data?.length,
+                    bi_count: result.bi_list?.length,
+                    seg_count: result.seg_list?.length,
+                    has_ma: !!result.ma_data,
+                    has_macd: !!result.macd_data,
+                    has_boll: !!result.boll_data,
+                    has_kdj: !!result.kdj_data,
+                    has_rsi: !!result.rsi_data,
+                });
+                return result;
+            }
+        };
+
+        // ============= Stock Manager Component =============
+        const StockManager = memo(() => {
+            const { stocks, addStock, removeStock, setStocks, loadingCharts, chartData, refreshAllCharts } = useApp();
+            const [inputCode, setInputCode] = useState('');
+            const [inputLevels, setInputLevels] = useState(['day']);
+            const [selectedStocks, setSelectedStocks] = useState([]);
+
+            const handleAdd = () => {
+                if (!inputCode.trim()) {
+                    message.warning('请输入股票代码');
+                    return;
+                }
+                if (inputLevels.length === 0) {
+                    message.warning('请选择至少一个周期');
+                    return;
+                }
+                
+                addStock({
+                    code: inputCode.trim(),
+                    levels: inputLevels,
+                });
+                
+                setInputCode('');
+                message.success('添加成功');
+            };
+
+            return (
+                <div>
+                    <div style={{ marginBottom: 16 }}>
+                        <Input
+                            placeholder="股票代码 (如: sz.000001)"
+                            value={inputCode}
+                            onChange={(e) => setInputCode(e.target.value)}
+                            onPressEnter={handleAdd}
+                            style={{ marginBottom: 8 }}
+                        />
+                        <Select
+                            mode="multiple"
+                            placeholder="选择周期"
+                            value={inputLevels}
+                            onChange={setInputLevels}
+                            style={{ width: '100%', marginBottom: 8 }}
+                        >
+                            {LEVEL_OPTIONS.map(opt => (
+                                <Option key={opt.value} value={opt.value}>{opt.label}</Option>
+                            ))}
+                        </Select>
+                        <Button type="primary" block onClick={handleAdd}>
+                            添加股票
+                        </Button>
+                    </div>
+                    
+                    <Divider style={{ margin: '16px 0' }}>快速添加</Divider>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 16 }}>
+                        <Button size="small" onClick={() => {
+                            addStock({ code: 'sz.000001', levels: ['day'] });
+                            message.success('已添加平安银行');
+                        }}>平安银行</Button>
+                        <Button size="small" onClick={() => {
+                            addStock({ code: 'sh.600000', levels: ['day'] });
+                            message.success('已添加浦发银行');
+                        }}>浦发银行</Button>
+                        <Button size="small" onClick={() => {
+                            addStock({ code: 'sz.000001', levels: ['day', '60m'] });
+                            message.success('已添加多周期');
+                        }}>多周期</Button>
+                        <Button size="small" onClick={() => {
+                            addStock({ code: 'sh.000300', levels: ['day'] });
+                            message.success('已添加沪深300');
+                        }}>沪深300</Button>
+                    </div>
+                    
+                    <Divider style={{ margin: '16px 0' }}>已添加图表 ({stocks.reduce((sum, s) => sum + s.levels.length, 0)})</Divider>
+                    
+                    {stocks.length > 0 && (
+                        <div className="batch-actions">
+                            <Checkbox
+                                checked={selectedStocks.length === stocks.length && stocks.length > 0}
+                                indeterminate={selectedStocks.length > 0 && selectedStocks.length < stocks.length}
+                                onChange={(e) => {
+                                    if (e.target.checked) {
+                                        setSelectedStocks(stocks.map(s => s.id));
+                                    } else {
+                                        setSelectedStocks([]);
+                                    }
+                                }}
+                            >
+                                全选 ({selectedStocks.length}/{stocks.length})
+                            </Checkbox>
+                            {selectedStocks.length > 0 && (
+                                <div className="batch-actions-buttons">
+                                    <Button 
+                                        size="small"
+                                        onClick={() => {
+                                            selectedStocks.forEach(id => {
+                                                const stock = stocks.find(s => s.id === id);
+                                                if (stock) {
+                                                    stock.levels.forEach(level => {
+                                                        const key = `${stock.code}-${level}`;
+                                                        if (loadingCharts[key]) return;
+                                                        refreshAllCharts();
+                                                    });
+                                                }
+                                            });
+                                            message.success(`正在刷新${selectedStocks.length}个图表`);
+                                        }}
+                                        icon={<span>🔄</span>}
+                                    >
+                                        批量刷新
+                                    </Button>
+                                    <Button 
+                                        size="small"
+                                        danger
+                                        onClick={() => {
+                                            setStocks(prev => prev.filter(s => !selectedStocks.includes(s.id)));
+                                            setSelectedStocks([]);
+                                            message.success(`已删除${selectedStocks.length}个股票`);
+                                        }}
+                                        icon={<span>🗑️</span>}
+                                    >
+                                        批量删除
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    
+                    <div>
+                        {stocks.map(stock => {
+                            // Check loading status for this stock
+                            const isLoading = stock.levels.some(lv => loadingCharts[`${stock.code}-${lv}`]);
+                            const hasData = stock.levels.every(lv => chartData[`${stock.code}-${lv}`]);
+                            
+                            return (
+                                <div key={stock.id} className="stock-item">
+                                    <div className="stock-header">
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                            <Checkbox
+                                                checked={selectedStocks.includes(stock.id)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedStocks(prev => [...prev, stock.id]);
+                                                    } else {
+                                                        setSelectedStocks(prev => prev.filter(id => id !== stock.id));
+                                                    }
+                                                }}
+                                            />
+                                            <span className="stock-code">{stock.code}</span>
+                                        </div>
+                                        <div className="stock-status">
+                                            {isLoading && <Spin size="small" />}
+                                            {!isLoading && hasData && <span style={{ color: '#52c41a' }}>✓</span>}
+                                            {!isLoading && !hasData && <span style={{ color: '#ff4d4f' }}>!</span>}
+                                        </div>
+                                    </div>
+                                    <div className="stock-levels">
+                                        {stock.levels.map(lv => (
+                                            <Tag key={lv} color="blue" style={{ margin: 0 }}>
+                                                {LEVEL_OPTIONS.find(o => o.value === lv)?.label || lv}
+                                            </Tag>
+                                        ))}
+                                    </div>
+                                    <div className="stock-actions">
+                                        <Button
+                                            type="text"
+                                            size="small"
+                                            onClick={() => {
+                                                stock.levels.forEach(lv => {
+                                                    const key = `${stock.code}-${lv}`;
+                                                    if (!loadingCharts[key]) {
+                                                        refreshAllCharts();
+                                                    }
+                                                });
+                                                message.info(`正在刷新 ${stock.code}`);
+                                            }}
+                                            icon={<span style={{ fontSize: 12 }}>🔄</span>}
+                                        >
+                                            刷新
+                                        </Button>
+                                        <Button
+                                            type="text"
+                                            danger
+                                            size="small"
+                                            onClick={() => {
+                                                removeStock(stock.id);
+                                                setSelectedStocks(prev => prev.filter(id => id !== stock.id));
+                                            }}
+                                            icon={<span style={{ fontSize: 12 }}>🗑️</span>}
+                                        >
+                                            删除
+                                        </Button>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {stocks.length === 0 && (
+                            <div style={{ textAlign: 'center', color: '#999', padding: 20 }}>
+                                暂无图表，请添加股票
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        });
+
+        // ============= Indicator Config Component =============
+        const IndicatorConfig = memo(() => {
+            const { indicators, setIndicators, refreshAllCharts } = useApp();
+            const [timeRange, setTimeRange] = useState('1y');
+
+            const handleChange = (key, value) => {
+                setIndicators(prev => ({ ...prev, [key]: value }));
+            };
+
+            const handleTimeRangeChange = (range) => {
+                setTimeRange(range);
+                
+                // Calculate begin_time based on range
+                const now = new Date();
+                let beginTime;
+                
+                switch(range) {
+                    case '1m':
+                        beginTime = new Date(now.setMonth(now.getMonth() - 1));
+                        break;
+                    case '3m':
+                        beginTime = new Date(now.setMonth(now.getMonth() - 3));
+                        break;
+                    case '6m':
+                        beginTime = new Date(now.setMonth(now.getMonth() - 6));
+                        break;
+                    case '1y':
+                        beginTime = new Date(now.setFullYear(now.getFullYear() - 1));
+                        break;
+                    case '3y':
+                        beginTime = new Date(now.setFullYear(now.getFullYear() - 3));
+                        break;
+                    case 'all':
+                        beginTime = new Date('2020-01-01');
+                        break;
+                    default:
+                        beginTime = new Date(now.setFullYear(now.getFullYear() - 1));
+                }
+                
+                const beginTimeStr = beginTime.toISOString().split('T')[0];
+                handleChange('begin_time', beginTimeStr);
+                
+                // Auto refresh all charts
+                setTimeout(() => refreshAllCharts(), 100);
+                message.info(`已切换到"${LEVEL_OPTIONS.find(o => o.value === range)?.label || range}"时间范围`);
+            };
+
+            return (
+                <div>
+                    <div style={{ marginBottom: 16, padding: '12px', background: '#f5f5f5', borderRadius: 8 }}>
+                        <div style={{ marginBottom: 8, fontWeight: 600, fontSize: 13 }}>时间范围</div>
+                        <Radio.Group 
+                            value={timeRange} 
+                            onChange={e => handleTimeRangeChange(e.target.value)}
+                            size="small"
+                            buttonStyle="solid"
+                        >
+                            <Radio.Button value="1m">近1月</Radio.Button>
+                            <Radio.Button value="3m">近3月</Radio.Button>
+                            <Radio.Button value="6m">近6月</Radio.Button>
+                            <Radio.Button value="1y">近1年</Radio.Button>
+                            <Radio.Button value="3y">近3年</Radio.Button>
+                            <Radio.Button value="all">全部</Radio.Button>
+                        </Radio.Group>
+                    </div>
+                    
+                    <Collapse defaultActiveKey={['chan', 'tech']} ghost>
+                        <Panel header="缠论指标" key="chan">
+                            <div className="indicator-item">
+                                <Checkbox
+                                    checked={indicators.plot_bi}
+                                    onChange={e => handleChange('plot_bi', e.target.checked)}
+                                >
+                                    笔 (Bi)
+                                </Checkbox>
+                            </div>
+                            <div className="indicator-item">
+                                <Checkbox
+                                    checked={indicators.plot_seg}
+                                    onChange={e => handleChange('plot_seg', e.target.checked)}
+                                >
+                                    线段 (Seg)
+                                </Checkbox>
+                            </div>
+                            <div className="indicator-item">
+                                <Checkbox
+                                    checked={indicators.plot_zs}
+                                    onChange={e => handleChange('plot_zs', e.target.checked)}
+                                >
+                                    中枢 (ZhongShu)
+                                </Checkbox>
+                            </div>
+                            <div className="indicator-item">
+                                <Checkbox
+                                    checked={indicators.plot_bsp}
+                                    onChange={e => handleChange('plot_bsp', e.target.checked)}
+                                >
+                                    买卖点 (BSP)
+                                </Checkbox>
+                            </div>
+                        </Panel>
+
+                        <Panel header="技术指标" key="tech">
+                            <div className="indicator-item">
+                                <Checkbox
+                                    checked={indicators.plot_ma}
+                                    onChange={e => handleChange('plot_ma', e.target.checked)}
+                                >
+                                    均线 (MA)
+                                </Checkbox>
+                                {indicators.plot_ma && (
+                                    <Input
+                                        placeholder="周期，如: 5,10,20,60"
+                                        size="small"
+                                        style={{ marginTop: 4 }}
+                                        defaultValue="5,10,20,60"
+                                        onChange={e => {
+                                            const params = e.target.value.split(',').map(v => parseInt(v.trim())).filter(v => !isNaN(v));
+                                            handleChange('ma_params', params);
+                                        }}
+                                    />
+                                )}
+                            </div>
+                            <div className="indicator-item">
+                                <Checkbox
+                                    checked={indicators.plot_macd}
+                                    onChange={e => handleChange('plot_macd', e.target.checked)}
+                                >
+                                    MACD
+                                </Checkbox>
+                            </div>
+                            <div className="indicator-item">
+                                <Checkbox
+                                    checked={indicators.plot_boll}
+                                    onChange={e => handleChange('plot_boll', e.target.checked)}
+                                >
+                                    布林带 (BOLL)
+                                </Checkbox>
+                            </div>
+                            <div className="indicator-item">
+                                <Checkbox
+                                    checked={indicators.plot_kdj}
+                                    onChange={e => handleChange('plot_kdj', e.target.checked)}
+                                >
+                                    KDJ
+                                </Checkbox>
+                                {indicators.plot_kdj && (
+                                    <InputNumber
+                                        size="small"
+                                        min={3}
+                                        max={30}
+                                        defaultValue={9}
+                                        style={{ marginTop: 4, width: '100%' }}
+                                        addonBefore="周期"
+                                        onChange={v => handleChange('kdj_period', v)}
+                                    />
+                                )}
+                            </div>
+                            <div className="indicator-item">
+                                <Checkbox
+                                    checked={indicators.plot_rsi}
+                                    onChange={e => handleChange('plot_rsi', e.target.checked)}
+                                >
+                                    RSI
+                                </Checkbox>
+                                {indicators.plot_rsi && (
+                                    <InputNumber
+                                        size="small"
+                                        min={3}
+                                        max={30}
+                                        defaultValue={14}
+                                        style={{ marginTop: 4, width: '100%' }}
+                                        addonBefore="周期"
+                                        onChange={v => handleChange('rsi_period', v)}
+                                    />
+                                )}
+                            </div>
+                            <div className="indicator-item">
+                                <Checkbox
+                                    checked={indicators.plot_volume}
+                                    onChange={e => handleChange('plot_volume', e.target.checked)}
+                                >
+                                    成交量 (Volume)
+                                </Checkbox>
+                            </div>
+                        </Panel>
+
+                        <Panel header="参数配置" key="config">
+                            <div className="indicator-item">
+                                <div style={{ marginBottom: 8 }}>线段算法</div>
+                                <Select
+                                    value={indicators.seg_algo}
+                                    onChange={v => handleChange('seg_algo', v)}
+                                    style={{ width: '100%' }}
+                                    size="small"
+                                >
+                                    <Option value="chan">缠论</Option>
+                                    <Option value="break">笔破笔</Option>
+                                </Select>
+                            </div>
+                            <div className="indicator-item">
+                                <div style={{ marginBottom: 8 }}>中枢算法</div>
+                                <Select
+                                    value={indicators.zs_algo}
+                                    onChange={v => handleChange('zs_algo', v)}
+                                    style={{ width: '100%' }}
+                                    size="small"
+                                >
+                                    <Option value="normal">标准</Option>
+                                    <Option value="strict">严格</Option>
+                                </Select>
+                            </div>
+                            <div className="indicator-item">
+                                <Checkbox
+                                    checked={indicators.bi_strict}
+                                    onChange={e => handleChange('bi_strict', e.target.checked)}
+                                >
+                                    严格笔
+                                </Checkbox>
+                            </div>
+                            <div className="indicator-item">
+                                <div style={{ marginBottom: 8 }}>开始日期</div>
+                                <Input
+                                    type="date"
+                                    size="small"
+                                    defaultValue="2023-01-01"
+                                    onChange={e => handleChange('begin_time', e.target.value)}
+                                />
+                            </div>
+                        </Panel>
+                    </Collapse>
+                </div>
+            );
+        });
+
+        // ============= Chart Panel Component =============
+        const ChartPanel = memo(({ stockCode, level, data, loading }) => {
+            const chartContainerRef = useRef(null);
+            const chartRef = useRef(null);
+            const { indicators, theme, analyzeStock } = useApp();
+
+            useEffect(() => {
+                if (!chartContainerRef.current || !data) return;
+
+                // Use theme from context
+                const isDark = theme === 'dark';
+
+                // Create chart with theme-aware colors
+                const chart = LightweightCharts.createChart(chartContainerRef.current, {
+                    width: chartContainerRef.current.clientWidth,
+                    height: chartContainerRef.current.clientHeight,
+                    layout: {
+                        background: { color: isDark ? '#1f1f1f' : '#ffffff' },
+                        textColor: isDark ? '#e8e8e8' : '#333',
+                    },
+                    grid: {
+                        vertLines: { color: isDark ? '#333' : '#f0f0f0' },
+                        horzLines: { color: isDark ? '#333' : '#f0f0f0' },
+                    },
+                    timeScale: {
+                        borderColor: isDark ? '#3a3a3a' : '#e0e0e0',
+                    },
+                    rightPriceScale: {
+                        borderColor: isDark ? '#3a3a3a' : '#e0e0e0',
+                    },
+                });
+
+                chartRef.current = chart;
+
+                // Add candlestick series
+                let candlestickSeries = null;
+                if (data.kline_data && data.kline_data.length > 0) {
+                    try {
+                        console.log('📊 [Candlestick] Processing K-line data, total:', data.kline_data.length);
+                        console.log('📊 [Candlestick] First K-line:', data.kline_data[0]);
+                        
+                        candlestickSeries = chart.addCandlestickSeries({
+                            upColor: '#ef5350',
+                            downColor: '#26a69a',
+                            borderVisible: false,
+                            wickUpColor: '#ef5350',
+                            wickDownColor: '#26a69a',
+                        });
+                        
+                        const candleData = data.kline_data
+                            .map((k, idx) => {
+                                const converted = {
+                                    time: convertTime(k.time),
+                                    open: parseFloat(k.open),
+                                    high: parseFloat(k.high),
+                                    low: parseFloat(k.low),
+                                    close: parseFloat(k.close),
+                                };
+                                
+                                // Log first conversion
+                                if (idx === 0) {
+                                    console.log('✅ [Candlestick] First K-line converted:', k.time, '->', converted.time);
+                                    console.log('✅ [Candlestick] First K-line values:', converted);
+                                }
+                                
+                                return converted;
+                            })
+                            .filter((k, idx) => {
+                                const valid = k.time !== null && !isNaN(k.open) && !isNaN(k.high) && !isNaN(k.low) && !isNaN(k.close);
+                                if (!valid && idx < 5) {
+                                    console.warn('⚠️  [Candlestick] Filtered out invalid K-line at index', idx, k);
+                                }
+                                return valid;
+                            });
+
+                        console.log('📊 [Candlestick] Valid candle data count:', candleData.length);
+                        if (candleData.length > 0) {
+                            console.log('📊 [Candlestick] Setting candle data, sample:', candleData.slice(0, 3));
+                            candlestickSeries.setData(candleData);
+                            console.log('✅ [Candlestick] Data set successfully');
+                        } else {
+                            console.warn('⚠️  [Candlestick] No valid candle data after filtering');
+                        }
+                    } catch (e) {
+                        console.error('❌ [Candlestick] Error:', e);
+                        console.error('❌ [Candlestick] Stack:', e.stack);
+                    }
+
+                    // Calculate layout: Main(60%) + Volume(10%) + SubIndicators(30%)
+                    const subIndicators = [];
+                    if (indicators.plot_macd) subIndicators.push('macd');
+                    if (indicators.plot_kdj) subIndicators.push('kdj');
+                    if (indicators.plot_rsi) subIndicators.push('rsi');
+                    
+                    const mainChartHeight = 0.60;  // Main chart fixed 60%
+                    const volumeHeight = 0.10;     // Volume pane 10%
+                    const subIndicatorSpace = 0.30; // Sub-indicators share 30%
+                    const subIndicatorCount = subIndicators.length;
+                    const subIndicatorHeight = subIndicatorCount > 0 ? subIndicatorSpace / subIndicatorCount : 0;
+                    
+                    console.log(`📊 Layout: Main=60%, Volume=10%, ${subIndicatorCount} subs @ ${(subIndicatorHeight*100).toFixed(0)}% each`);
+
+                    // Add volume if enabled - independent pane below main chart
+                    if (indicators.plot_volume) {
+                        try {
+                            console.log('📊 [Volume] Processing volume data...');
+                            const volumeSeries = chart.addHistogramSeries({
+                                priceFormat: { type: 'volume' },
+                                priceScaleId: 'volume',
+                                scaleMargins: { 
+                                    top: mainChartHeight,  // Start at 60%
+                                    bottom: subIndicatorSpace  // Leave 30% for sub-indicators
+                                },
+                            });
+
+                            const volumeData = data.kline_data.map(k => ({
+                                time: convertTime(k.time),
+                                value: parseFloat(k.volume || 0),
+                                color: k.close >= k.open ? '#ef535080' : '#26a69a80',
+                            })).filter(k => k.time !== null && !isNaN(k.value));
+
+                            console.log(`📊 [Volume] Setting ${volumeData.length} data points, first:`, volumeData[0]);
+                            volumeSeries.setData(volumeData);
+                            console.log('✅ [Volume] Data set successfully');
+                        } catch (e) {
+                            console.error('❌ [Volume] Error:', e);
+                        }
+                    }
+
+                    // Add MA lines
+                    if (indicators.plot_ma && data.ma_data) {
+                        try {
+                            console.log('📊 [MA] Processing MA data...');
+                            const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7'];
+                            let colorIdx = 0;
+
+                            Object.keys(data.ma_data).forEach(period => {
+                                const maData = data.ma_data[period];
+                                if (maData && maData.length > 0) {
+                                    const maSeries = chart.addLineSeries({
+                                        color: colors[colorIdx % colors.length],
+                                        lineWidth: 1.5,
+                                        title: `MA${period}`,
+                                        priceLineVisible: false,
+                                        lastValueVisible: false,
+                                    });
+
+                                    const processedData = maData.map(m => ({
+                                        time: convertTime(m.time),
+                                        value: parseFloat(m.value),
+                                    })).filter(m => m.time !== null && !isNaN(m.value));
+
+                                    console.log(`📊 [MA-${period}] Setting ${processedData.length} data points, first:`, processedData[0]);
+                                    maSeries.setData(processedData);
+                                    console.log(`✅ [MA-${period}] Data set successfully`);
+                                    colorIdx++;
+                                }
+                            });
+                        } catch (e) {
+                            console.error('❌ [MA] Error:', e);
+                        }
+                    }
+
+                    // Add Bi lines - Each Bi as a separate line series
+                    if (indicators.plot_bi && data.bi_list && data.bi_list.length > 0) {
+                        try {
+                            console.log(`📊 [Bi] Processing ${data.bi_list.length} Bi segments...`);
+                            
+                            data.bi_list.forEach((bi, idx) => {
+                                try {
+                                    const beginTime = convertTime(bi.begin_time);
+                                    const endTime = convertTime(bi.end_time);
+                                    
+                                    if (beginTime && endTime && !isNaN(bi.begin_price) && !isNaN(bi.end_price)) {
+                                        const biSeries = chart.addLineSeries({
+                                            color: '#2196F3',
+                                            lineWidth: 2,
+                                            priceLineVisible: false,
+                                            lastValueVisible: false,
+                                        });
+                                        
+                                        const biData = [
+                                            { time: beginTime, value: parseFloat(bi.begin_price) },
+                                            { time: endTime, value: parseFloat(bi.end_price) }
+                                        ];
+                                        
+                                        biSeries.setData(biData);
+                                        
+                                        if (idx === 0) {
+                                            console.log(`📊 [Bi] First segment: ${beginTime} -> ${endTime}`);
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error(`❌ [Bi] Error on segment ${idx}:`, e);
+                                }
+                            });
+                            
+                            console.log(`✅ [Bi] All ${data.bi_list.length} segments added successfully`);
+                        } catch (e) {
+                            console.error('❌ [Bi] Error:', e);
+                        }
+                    }
+
+                    // Add Seg lines - Each Seg as a separate line series
+                    if (indicators.plot_seg && data.seg_list && data.seg_list.length > 0) {
+                        try {
+                            console.log(`📊 [Seg] Processing ${data.seg_list.length} Seg segments...`);
+                            
+                            data.seg_list.forEach((seg, idx) => {
+                                try {
+                                    const beginTime = convertTime(seg.begin_time);
+                                    const endTime = convertTime(seg.end_time);
+                                    
+                                    if (beginTime && endTime && !isNaN(seg.begin_price) && !isNaN(seg.end_price)) {
+                                        const segSeries = chart.addLineSeries({
+                                            color: '#9C27B0',
+                                            lineWidth: 3,
+                                            priceLineVisible: false,
+                                            lastValueVisible: false,
+                                        });
+                                        
+                                        const segData = [
+                                            { time: beginTime, value: parseFloat(seg.begin_price) },
+                                            { time: endTime, value: parseFloat(seg.end_price) }
+                                        ];
+                                        
+                                        segSeries.setData(segData);
+                                        
+                                        if (idx === 0) {
+                                            console.log(`📊 [Seg] First segment: ${beginTime} -> ${endTime}`);
+                                        }
+                                    }
+                                } catch (e) {
+                                    console.error(`❌ [Seg] Error on segment ${idx}:`, e);
+                                }
+                            });
+                            
+                            console.log(`✅ [Seg] All ${data.seg_list.length} segments added successfully`);
+                        } catch (e) {
+                            console.error('❌ [Seg] Error:', e);
+                        }
+                    }
+
+                    // Add buy/sell markers
+                    if (indicators.plot_bsp && data.bsp_list && candlestickSeries) {
+                        try {
+                            console.log('📊 [BSP] Processing buy/sell markers...');
+                            const markers = data.bsp_list
+                                .map(bsp => ({
+                                    time: convertTime(bsp.time),
+                                    position: bsp.is_buy ? 'belowBar' : 'aboveBar',
+                                    color: bsp.is_buy ? '#4CAF50' : '#F44336',
+                                    shape: bsp.is_buy ? 'arrowUp' : 'arrowDown',
+                                    text: bsp.is_buy ? 'B' : 'S',
+                                }))
+                                .filter(m => m.time !== null);
+                            console.log(`📊 [BSP] Setting ${markers.length} markers, first:`, markers[0]);
+                            if (markers.length > 0) {
+                                candlestickSeries.setMarkers(markers);
+                                console.log('✅ [BSP] Markers set successfully');
+                            } else {
+                                console.log('⚠️  [BSP] No markers to set, skipping setMarkers call');
+                            }
+                        } catch (e) {
+                            console.error('❌ [BSP] Error:', e);
+                        }
+                    }
+
+                    // Add BOLL bands
+                    if (indicators.plot_boll && data.boll_data && data.boll_data.length > 0) {
+                        try {
+                            console.log('📊 [BOLL] Processing BOLL bands...');
+                            const upperSeries = chart.addLineSeries({
+                                color: '#EE82EE',
+                                lineWidth: 1,
+                                lineStyle: 2, // dashed
+                                title: 'BOLL Upper',
+                                priceLineVisible: false,
+                                lastValueVisible: false,
+                            });
+                            const middleSeries = chart.addLineSeries({
+                                color: '#9370DB',
+                                lineWidth: 1.5,
+                                title: 'BOLL Mid',
+                                priceLineVisible: false,
+                                lastValueVisible: false,
+                            });
+                            const lowerSeries = chart.addLineSeries({
+                                color: '#EE82EE',
+                                lineWidth: 1,
+                                lineStyle: 2, // dashed
+                                title: 'BOLL Lower',
+                                priceLineVisible: false,
+                                lastValueVisible: false,
+                            });
+
+                            const upperData = data.boll_data.map(b => ({
+                                time: convertTime(b.time),
+                                value: parseFloat(b.upper),
+                            })).filter(b => b.time !== null && !isNaN(b.value));
+                            const middleData = data.boll_data.map(b => ({
+                                time: convertTime(b.time),
+                                value: parseFloat(b.middle),
+                            })).filter(b => b.time !== null && !isNaN(b.value));
+                            const lowerData = data.boll_data.map(b => ({
+                                time: convertTime(b.time),
+                                value: parseFloat(b.lower),
+                            })).filter(b => b.time !== null && !isNaN(b.value));
+
+                            console.log(`📊 [BOLL] Upper: ${upperData.length}, Middle: ${middleData.length}, Lower: ${lowerData.length}, first upper:`, upperData[0]);
+                            upperSeries.setData(upperData);
+                            middleSeries.setData(middleData);
+                            lowerSeries.setData(lowerData);
+                            console.log('✅ [BOLL] Data set successfully');
+                        } catch (e) {
+                            console.error('❌ [BOLL] Error:', e);
+                        }
+                    }
+
+                    // Add MACD indicator
+                    if (indicators.plot_macd && data.macd_data && data.macd_data.length > 0) {
+                        try {
+                            console.log('📊 [MACD] Processing MACD indicator...');
+                            const macdIndex = subIndicators.indexOf('macd');
+                            const macdTop = mainChartHeight + volumeHeight + (macdIndex * subIndicatorHeight);
+                            const macdBottom = 1 - (macdTop + subIndicatorHeight);
+                            
+                            const macdSeries = chart.addHistogramSeries({
+                                priceFormat: { type: 'price', precision: 4, minMove: 0.0001 },
+                                priceScaleId: 'macd',
+                                scaleMargins: { 
+                                    top: macdTop + 0.005,  // Small spacing
+                                    bottom: macdBottom + 0.005
+                                },
+                            });
+
+                            const difSeries = chart.addLineSeries({
+                                color: '#2196F3',
+                                lineWidth: 2,
+                                priceScaleId: 'macd',
+                                lastValueVisible: false,
+                                priceLineVisible: false,
+                            });
+
+                            const deaSeries = chart.addLineSeries({
+                                color: '#FF9800',
+                                lineWidth: 2,
+                                priceScaleId: 'macd',
+                                lastValueVisible: false,
+                                priceLineVisible: false,
+                            });
+
+                            const macdData = data.macd_data.map(m => ({
+                                time: convertTime(m.time),
+                                value: parseFloat(m.macd),
+                                color: parseFloat(m.macd) >= 0 ? '#ef535080' : '#26a69a80',
+                            })).filter(m => m.time !== null && !isNaN(m.value));
+
+                            const difData = data.macd_data.map(m => ({
+                                time: convertTime(m.time),
+                                value: parseFloat(m.dif),
+                            })).filter(m => m.time !== null && !isNaN(m.value));
+
+                            const deaData = data.macd_data.map(m => ({
+                                time: convertTime(m.time),
+                                value: parseFloat(m.dea),
+                            })).filter(m => m.time !== null && !isNaN(m.value));
+
+                            console.log(`📊 [MACD] MACD: ${macdData.length}, DIF: ${difData.length}, DEA: ${deaData.length}, first MACD:`, macdData[0]);
+                            macdSeries.setData(macdData);
+                            difSeries.setData(difData);
+                            deaSeries.setData(deaData);
+                            console.log('✅ [MACD] Data set successfully');
+                        } catch (e) {
+                            console.error('❌ [MACD] Error:', e);
+                        }
+                    }
+
+                    // Add KDJ indicator
+                    if (indicators.plot_kdj && data.kdj_data && data.kdj_data.length > 0) {
+                        try {
+                            console.log('📊 [KDJ] Processing KDJ indicator...');
+                            const kdjIndex = subIndicators.indexOf('kdj');
+                            const kdjTop = mainChartHeight + volumeHeight + (kdjIndex * subIndicatorHeight);
+                            const kdjBottom = 1 - (kdjTop + subIndicatorHeight);
+                            
+                            const kSeries = chart.addLineSeries({
+                                color: '#FF6B6B',
+                                lineWidth: 2,
+                                priceScaleId: 'kdj',
+                                scaleMargins: { 
+                                    top: kdjTop + 0.005,
+                                    bottom: kdjBottom + 0.005
+                                },
+                                lastValueVisible: false,
+                                priceLineVisible: false,
+                            });
+
+                            const dSeries = chart.addLineSeries({
+                                color: '#4ECDC4',
+                                lineWidth: 2,
+                                priceScaleId: 'kdj',
+                                lastValueVisible: false,
+                                priceLineVisible: false,
+                            });
+
+                            const jSeries = chart.addLineSeries({
+                                color: '#95A5A6',
+                                lineWidth: 2,
+                                priceScaleId: 'kdj',
+                                lastValueVisible: false,
+                                priceLineVisible: false,
+                            });
+
+                            const kData = data.kdj_data.map(k => ({
+                                time: convertTime(k.time),
+                                value: parseFloat(k.k),
+                            })).filter(k => k.time !== null && !isNaN(k.value));
+
+                            const dData = data.kdj_data.map(k => ({
+                                time: convertTime(k.time),
+                                value: parseFloat(k.d),
+                            })).filter(k => k.time !== null && !isNaN(k.value));
+
+                            const jData = data.kdj_data.map(k => ({
+                                time: convertTime(k.time),
+                                value: parseFloat(k.j),
+                            })).filter(k => k.time !== null && !isNaN(k.value));
+
+                            console.log(`📊 [KDJ] K: ${kData.length}, D: ${dData.length}, J: ${jData.length}, first K:`, kData[0]);
+                            kSeries.setData(kData);
+                            dSeries.setData(dData);
+                            jSeries.setData(jData);
+                            console.log('✅ [KDJ] Data set successfully');
+                        } catch (e) {
+                            console.error('❌ [KDJ] Error:', e);
+                        }
+                    }
+
+                    // Add RSI indicator
+                    if (indicators.plot_rsi && data.rsi_data && data.rsi_data.length > 0) {
+                        try {
+                            console.log('📊 [RSI] Processing RSI indicator...');
+                            const rsiIndex = subIndicators.indexOf('rsi');
+                            const rsiTop = mainChartHeight + volumeHeight + (rsiIndex * subIndicatorHeight);
+                            const rsiBottom = 1 - (rsiTop + subIndicatorHeight);
+                            
+                            const rsiSeries = chart.addLineSeries({
+                                color: '#9B59B6',
+                                lineWidth: 2,
+                                priceScaleId: 'rsi',
+                                scaleMargins: { 
+                                    top: rsiTop + 0.005,
+                                    bottom: rsiBottom + 0.005
+                                },
+                                lastValueVisible: false,
+                                priceLineVisible: false,
+                            });
+
+                            const rsiData = data.rsi_data.map(r => ({
+                                time: convertTime(r.time),
+                                value: parseFloat(r.rsi),
+                            })).filter(r => r.time !== null && !isNaN(r.value));
+
+                            console.log(`📊 [RSI] Setting ${rsiData.length} data points, first:`, rsiData[0]);
+                            rsiSeries.setData(rsiData);
+                            console.log('✅ [RSI] Data set successfully');
+
+                            // Add RSI reference lines (30 and 70)
+                            const rsi30Series = chart.addLineSeries({
+                                color: '#e74c3c',
+                                lineWidth: 1,
+                                lineStyle: 2, // dashed
+                                priceScaleId: 'rsi',
+                                crosshairMarkerVisible: false,
+                                lastValueVisible: false,
+                                priceLineVisible: false,
+                            });
+
+                            const rsi70Series = chart.addLineSeries({
+                                color: '#e74c3c',
+                                lineWidth: 1,
+                                lineStyle: 2, // dashed
+                                priceScaleId: 'rsi',
+                                crosshairMarkerVisible: false,
+                                lastValueVisible: false,
+                                priceLineVisible: false,
+                            });
+
+                            if (data.rsi_data.length > 0) {
+                                const firstTime = convertTime(data.rsi_data[0].time);
+                                const lastTime = convertTime(data.rsi_data[data.rsi_data.length - 1].time);
+                                if (firstTime && lastTime) {
+                                    rsi30Series.setData([
+                                        { time: firstTime, value: 30 },
+                                        { time: lastTime, value: 30 }
+                                    ]);
+                                    rsi70Series.setData([
+                                        { time: firstTime, value: 70 },
+                                        { time: lastTime, value: 70 }
+                                    ]);
+                                    console.log('✅ [RSI] Reference lines set successfully');
+                                }
+                            }
+                        } catch (e) {
+                            console.error('❌ [RSI] Error:', e);
+                        }
+                    }
+                }
+
+                // Fit content
+                chart.timeScale().fitContent();
+
+                // Handle resize
+                const handleResize = () => {
+                    if (chartContainerRef.current && chartRef.current) {
+                        chartRef.current.applyOptions({
+                            width: chartContainerRef.current.clientWidth,
+                            height: chartContainerRef.current.clientHeight,
+                        });
+                    }
+                };
+
+                window.addEventListener('resize', handleResize);
+
+                return () => {
+                    window.removeEventListener('resize', handleResize);
+                    if (chartRef.current) {
+                        chartRef.current.remove();
+                        chartRef.current = null;
+                    }
+                };
+            }, [data, indicators, theme]);
+
+            const levelLabel = LEVEL_OPTIONS.find(o => o.value === level)?.label || level;
+            
+            // Calculate number of sub-indicators for dynamic height
+            const subIndicatorCount = [
+                indicators.plot_macd,
+                indicators.plot_kdj,
+                indicators.plot_rsi
+            ].filter(Boolean).length;
+
+            return (
+                <div className="chart-panel" data-subindicators={subIndicatorCount}>
+                    <div className="chart-header">
+                        <div className="chart-title-group">
+                            <div className="chart-title">
+                                {stockCode} - {levelLabel}
+                            </div>
+                            {data && data.kline_data && data.kline_data.length > 0 && (
+                                <div className="chart-meta">
+                                    <span className="latest-price">
+                                        {parseFloat(data.kline_data[data.kline_data.length - 1].close).toFixed(2)}
+                                    </span>
+                                    <span className={`price-change ${
+                                        data.kline_data.length > 1 
+                                            ? (parseFloat(data.kline_data[data.kline_data.length - 1].close) >= parseFloat(data.kline_data[data.kline_data.length - 1].open)
+                                                ? 'positive'
+                                                : 'negative')
+                                            : 'neutral'
+                                    }`}>
+                                        {data.kline_data.length > 1 && (() => {
+                                            const lastClose = parseFloat(data.kline_data[data.kline_data.length - 1].close);
+                                            const lastOpen = parseFloat(data.kline_data[data.kline_data.length - 1].open);
+                                            const change = ((lastClose - lastOpen) / lastOpen * 100).toFixed(2);
+                                            return `${change >= 0 ? '+' : ''}${change}%`;
+                                        })()}
+                                    </span>
+                                    <span className="update-time">
+                                        {data.kline_data[data.kline_data.length - 1].time}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
+                        <div className="chart-actions">
+                            {data && (
+                                <Tag color="blue">{data.kline_data?.length || 0} K线</Tag>
+                            )}
+                            <Button 
+                                size="small" 
+                                type="text"
+                                loading={loading}
+                                onClick={() => analyzeStock(stockCode, level, true)}
+                                icon={<span style={{ fontSize: 14 }}>🔄</span>}
+                                title="刷新此图表"
+                            />
+                        </div>
+                    </div>
+                    <div className="chart-canvas">
+                        <div ref={chartContainerRef} style={{ width: '100%', height: '100%' }} />
+                        {loading && (
+                            <div className="chart-loading">
+                                <Spin tip="加载中..." />
+                            </div>
+                        )}
+                        {!loading && !data && (
+                            <div className="chart-empty">
+                                <div style={{ fontSize: 48, marginBottom: 8 }}>📊</div>
+                                <div>暂无数据</div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        });
+
+        // ============= Chart Grid Component =============
+        const ChartGrid = () => {
+            const { stocks, gridLayout, chartData, loadingCharts } = useApp();
+
+            // Auto-determine layout based on number of charts
+            let actualLayout = gridLayout;
+            if (gridLayout === 'auto') {
+                const totalCharts = stocks.reduce((sum, s) => sum + s.levels.length, 0);
+                if (totalCharts === 1) actualLayout = '1x1';
+                else if (totalCharts === 2) actualLayout = '2x1';
+                else if (totalCharts <= 4) actualLayout = '2x2';
+                else actualLayout = '3x2';
+            }
+
+            const layout = LAYOUT_OPTIONS.find(o => o.value === actualLayout) || LAYOUT_OPTIONS[0];
+            const maxCharts = layout.cols * layout.rows;
+
+            // Generate chart slots - show all added stocks
+            const chartSlots = [];
+            
+            stocks.forEach(stock => {
+                stock.levels.forEach(level => {
+                    if (chartSlots.length < maxCharts) {
+                        const key = `${stock.code}-${level}`;
+                        chartSlots.push({ stockCode: stock.code, level, key });
+                    }
+                });
+            });
+
+            // Fill empty slots
+            while (chartSlots.length < maxCharts) {
+                chartSlots.push({ key: `empty-${chartSlots.length}`, empty: true });
+            }
+
+            return (
+                <div className={`chart-grid chart-grid-${actualLayout}`}>
+                    {chartSlots.map(slot => {
+                        if (slot.empty) {
+                            return (
+                                <div key={slot.key} className="chart-panel">
+                                    <div className="chart-canvas">
+                                        <div className="chart-empty">
+                                            <div style={{ fontSize: 48, marginBottom: 8 }}>➕</div>
+                                            <div>点击左侧添加股票</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        }
+
+                        const data = chartData[slot.key];
+                        const loading = loadingCharts[slot.key];
+
+                        return (
+                            <ChartPanel
+                                key={slot.key}
+                                stockCode={slot.stockCode}
+                                level={slot.level}
+                                data={data}
+                                loading={loading}
+                            />
+                        );
+                    })}
+                </div>
+            );
+        };
+
+        // ============= Main App Component =============
+        const App = () => {
+            // Load from localStorage on init
+            const loadConfig = () => {
+                try {
+                    const saved = localStorage.getItem('chanlun_config');
+                    if (saved) {
+                        const config = JSON.parse(saved);
+                        return {
+                            stocks: config.stocks || [],
+                            indicators: config.indicators || null,
+                            gridLayout: config.gridLayout || '2x2',
+                            theme: config.theme || 'light',
+                        };
+                    }
+                } catch (e) {
+                    console.error('Failed to load config:', e);
+                }
+                return null;
+            };
+
+            const savedConfig = loadConfig();
+
+            const [stocks, setStocks] = useState(savedConfig?.stocks || []);
+            const [indicators, setIndicators] = useState(savedConfig?.indicators || {
+                plot_bi: true,
+                plot_seg: true,
+                plot_zs: false,
+                plot_bsp: true,
+                plot_ma: false,
+                plot_macd: false,
+                plot_boll: false,
+                plot_kdj: false,
+                plot_rsi: false,
+                plot_volume: true,
+                seg_algo: 'chan',
+                zs_algo: 'normal',
+                bi_strict: true,
+                begin_time: '2023-01-01',
+                ma_params: [5, 10, 20, 60],
+                kdj_period: 9,
+                rsi_period: 14,
+            });
+            const [gridLayout, setGridLayout] = useState(savedConfig?.gridLayout || 'auto');
+            const [chartData, setChartData] = useState({});
+            const [loadingCharts, setLoadingCharts] = useState({});
+            const [theme, setTheme] = useState(savedConfig?.theme || 'light');
+            
+            // Auto-adjust grid layout based on number of charts
+            useEffect(() => {
+                if (gridLayout === 'auto') {
+                    const totalCharts = stocks.reduce((sum, s) => sum + s.levels.length, 0);
+                    let newLayout = '2x2'; // default
+                    
+                    if (totalCharts === 1) newLayout = '1x1';
+                    else if (totalCharts === 2) newLayout = '2x1';
+                    else if (totalCharts <= 4) newLayout = '2x2';
+                    else newLayout = '3x2';
+                    
+                    // Only update if changed to avoid infinite loops
+                    if (gridLayout !== newLayout && savedConfig?.gridLayout === 'auto') {
+                        // We don't actually change gridLayout here to keep it as 'auto'
+                        // Just note: the ChartGrid component will handle the auto logic
+                    }
+                }
+            }, [stocks, gridLayout]);
+
+            // Save config to localStorage whenever it changes
+            useEffect(() => {
+                try {
+                    const config = {
+                        stocks,
+                        indicators,
+                        gridLayout,
+                        theme,
+                    };
+                    localStorage.setItem('chanlun_config', JSON.stringify(config));
+                    console.log('Config saved to localStorage');
+                } catch (e) {
+                    console.error('Failed to save config:', e);
+                }
+            }, [stocks, indicators, gridLayout, theme]);
+
+            const addStock = (stockInfo) => {
+                // Check if stock with same code already exists
+                const existingStock = stocks.find(s => s.code === stockInfo.code);
+                
+                if (existingStock) {
+                    // Merge levels and remove duplicates
+                    const mergedLevels = [...new Set([...existingStock.levels, ...stockInfo.levels])];
+                    
+                    setStocks(prev => prev.map(s => 
+                        s.code === stockInfo.code 
+                            ? { ...s, levels: mergedLevels }
+                            : s
+                    ));
+                    
+                    // Only analyze new levels
+                    const newLevels = stockInfo.levels.filter(lv => !existingStock.levels.includes(lv));
+                    newLevels.forEach(level => {
+                        analyzeStock(stockInfo.code, level);
+                    });
+                    
+                    if (newLevels.length > 0) {
+                        message.success(`已添加 ${stockInfo.code} 的新周期`);
+                    } else {
+                        message.info(`${stockInfo.code} 已存在,无需重复添加`);
+                    }
+                } else {
+                    // Add new stock
+                    const newStock = {
+                        id: Date.now(),
+                        code: stockInfo.code,
+                        levels: stockInfo.levels,
+                    };
+                    setStocks(prev => [...prev, newStock]);
+                    
+                    // Trigger analysis for all levels
+                    stockInfo.levels.forEach(level => {
+                        analyzeStock(stockInfo.code, level);
+                    });
+                }
+            };
+
+            const removeStock = (stockId) => {
+                setStocks(prev => prev.filter(s => s.id !== stockId));
+            };
+
+            const analyzeStock = async (code, level, forceRefresh = false) => {
+                const key = `${code}-${level}`;
+                
+                // Check cache first if not forcing refresh
+                if (!forceRefresh) {
+                    const cachedData = DataCache.get(key);
+                    if (cachedData) {
+                        setChartData(prev => ({ ...prev, [key]: cachedData }));
+                        message.success(`${code} ${level} 数据已从缓存加载`, 1);
+                        return;
+                    }
+                }
+
+                setLoadingCharts(prev => ({ ...prev, [key]: true }));
+
+                try {
+                    const params = {
+                        code,
+                        lv_list: [level],
+                        data_src: 'BAO_STOCK',
+                        ...indicators,
+                    };
+
+                    const result = await api.calculateChan(params);
+                    setChartData(prev => ({ ...prev, [key]: result }));
+                    
+                    // Cache the result
+                    DataCache.set(key, result);
+                    
+                    message.success(`${code} ${level} 分析完成`);
+                } catch (error) {
+                    console.error('Analysis failed:', error);
+                    message.error(`${code} ${level} 分析失败: ${error.message}`);
+                } finally {
+                    setLoadingCharts(prev => ({ ...prev, [key]: false }));
+                }
+            };
+
+            // Debounced version for performance
+            const debouncedAnalyze = useCallback(
+                debounce((code, level, forceRefresh) => analyzeStock(code, level, forceRefresh), 300),
+                [indicators]
+            );
+
+            const refreshAllCharts = () => {
+                // Clear cache and force refresh
+                DataCache.clear();
+                stocks.forEach(stock => {
+                    stock.levels.forEach(level => {
+                        analyzeStock(stock.code, level, true);
+                    });
+                });
+                message.info('正在刷新所有图表...');
+            };
+
+            const contextValue = {
+                stocks,
+                setStocks,
+                addStock,
+                removeStock,
+                indicators,
+                setIndicators,
+                gridLayout,
+                chartData,
+                loadingCharts,
+                analyzeStock,
+                refreshAllCharts,
+                theme,
+            };
+
+            return (
+                <AppContext.Provider value={contextValue}>
+                    <Layout className={`app-layout ${theme === 'dark' ? 'dark-theme' : ''}`}>
+                        <Header className="app-header">
+                            <div className="app-logo">
+                                <span>📈</span>
+                                <span>缠论在线分析系统</span>
+                            </div>
+                            <div className="app-header-actions">
+                                <Select
+                                    value={gridLayout}
+                                    onChange={setGridLayout}
+                                    style={{ width: 100 }}
+                                >
+                                    {LAYOUT_OPTIONS.map(opt => (
+                                        <Option key={opt.value} value={opt.value}>{opt.label}</Option>
+                                    ))}
+                                </Select>
+                                <Tooltip title="刷新所有图表">
+                                    <Button type="primary" onClick={refreshAllCharts}>
+                                        🔄 刷新
+                                    </Button>
+                                </Tooltip>
+                                <Tooltip title={theme === 'light' ? '切换到深色主题' : '切换到浅色主题'}>
+                                    <Button
+                                        type="default"
+                                        onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
+                                    >
+                                        {theme === 'light' ? '🌙' : '☀️'}
+                                    </Button>
+                                </Tooltip>
+                            </div>
+                        </Header>
+                        <Layout>
+                            <Sider width={280} className="left-sidebar" theme="light">
+                                <StockManager />
+                            </Sider>
+                            <Content className="main-content">
+                                <ChartGrid />
+                            </Content>
+                            <Sider width={280} className="right-sidebar" theme="light">
+                                <IndicatorConfig />
+                            </Sider>
+                        </Layout>
+                    </Layout>
+                </AppContext.Provider>
+            );
+        };
+
+        // Render app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
     </script>
 </body>
 </html>

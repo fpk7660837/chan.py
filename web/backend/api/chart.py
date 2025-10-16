@@ -19,6 +19,8 @@ class ChartRequest(BaseModel):
     seg_list: Optional[List[dict]] = None
     zs_list: Optional[List[dict]] = None
     bsp_list: Optional[List[dict]] = None
+    ma_data: Optional[dict] = None
+    boll_data: Optional[List[dict]] = None
     
     # Chart config
     plot_bi: bool = True
@@ -26,6 +28,8 @@ class ChartRequest(BaseModel):
     plot_zs: bool = True
     plot_bsp: bool = True
     plot_macd: bool = False
+    plot_ma: bool = False
+    plot_boll: bool = False
     width: int = 1200
     height: int = 800
 

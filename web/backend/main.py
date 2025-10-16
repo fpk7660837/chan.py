@@ -53,6 +53,14 @@ async def root():
         return FileResponse(index_file)
     return {"message": "Chan.py Web API is running. Visit /docs for API documentation."}
 
+@app.get("/simple")
+async def simple_chart():
+    """Serve simplified chart page"""
+    simple_file = frontend_path / "simple_chart.html"
+    if simple_file.exists():
+        return FileResponse(simple_file)
+    return {"error": "Simple chart page not found"}
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""

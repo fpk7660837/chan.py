@@ -9,6 +9,8 @@ from Chan import CChan
 from ChanConfig import CChanConfig
 from Common.CEnum import AUTYPE, DATA_SRC, KL_TYPE
 from Math.MACD import CMACD
+from Math.KDJ import KDJ
+from Math.RSI import RSI
 
 
 class ChanService:
@@ -53,12 +55,16 @@ class ChanService:
         
         print(f"🔧 Creating CChanConfig...")
         # Build Chan config
-        chan_config = CChanConfig({
+        config_dict = {
             "bi_strict": params.get("bi_strict", True),
             "seg_algo": params.get("seg_algo", "chan"),
             "zs_algo": params.get("zs_algo", "normal"),
             "print_warning": False,  # Disable warnings for cleaner API response
-        })
+            "boll_n": 20,  # Enable BOLL calculation with 20 periods
+        }
+        
+        print(f"🔧 Config dict: {config_dict}")
+        chan_config = CChanConfig(config_dict)
         
         print(f"🔧 Executing CChan calculation for {code}...")
         # Execute Chan calculation
@@ -112,6 +118,49 @@ class ChanService:
             result["macd_data"] = macd_result
             print(f"📊 Added MACD data to result: {len(macd_result)} points")
         
+        # Add MA indicator
+        print(f"🔍 Checking MA: plot_ma={params.get('plot_ma', False)}")
+        if params.get("plot_ma", False):
+            ma_params = params.get("ma_params", [5, 10, 20, 60])
+            print(f"📊 Extracting MA data with params: {ma_params}")
+            ma_result = self._extract_ma_data(chan, ma_params)
+            result["ma_data"] = ma_result
+            print(f"📊 Added MA data to result: {ma_result.keys() if ma_result else 'Empty'}")
+        else:
+            print(f"⚠️  MA not requested in params")
+        
+        # Add BOLL indicator
+        print(f"🔍 Checking BOLL: plot_boll={params.get('plot_boll', False)}")
+        if params.get("plot_boll", False):
+            print(f"📊 Extracting BOLL data...")
+            boll_result = self._extract_boll_data(chan)
+            result["boll_data"] = boll_result
+            print(f"📊 Added BOLL data to result: {len(boll_result)} points")
+        else:
+            print(f"⚠️  BOLL not requested in params")
+        
+        # Add KDJ indicator
+        print(f"🔍 Checking KDJ: plot_kdj={params.get('plot_kdj', False)}")
+        if params.get("plot_kdj", False):
+            kdj_period = params.get("kdj_period", 9)
+            print(f"📊 Calculating KDJ data with period={kdj_period}...")
+            kdj_result = self._calculate_kdj(chan, kdj_period)
+            result["kdj_data"] = kdj_result
+            print(f"📊 Added KDJ data to result: {len(kdj_result)} points")
+        else:
+            print(f"⚠️  KDJ not requested in params")
+        
+        # Add RSI indicator
+        print(f"🔍 Checking RSI: plot_rsi={params.get('plot_rsi', False)}")
+        if params.get("plot_rsi", False):
+            rsi_period = params.get("rsi_period", 14)
+            print(f"📊 Calculating RSI data with period={rsi_period}...")
+            rsi_result = self._calculate_rsi(chan, rsi_period)
+            result["rsi_data"] = rsi_result
+            print(f"📊 Added RSI data to result: {len(rsi_result)} points")
+        else:
+            print(f"⚠️  RSI not requested in params")
+        
         print(f"📦 Final result keys: {list(result.keys())}")
         print(f"📦 Has macd_data in result: {'macd_data' in result}")
         
@@ -129,19 +178,46 @@ class ChanService:
                 
                 if first_klu and last_klu:
                     time_str = str(klc.time_begin)
-                    # Debug: log first K-line time
-                    if idx == 0:
-                        print(f"🕐 Backend: First K-line time_begin = {time_str}")
-                        print(f"🕐 Backend: time_begin type = {type(klc.time_begin)}")
                     
-                    klines.append({
-                        "time": time_str,
-                        "open": float(first_klu.open),
-                        "high": float(klc.high),
-                        "low": float(klc.low),
-                        "close": float(last_klu.close),
-                        "volume": float(first_klu.trade_info.volume) if first_klu.trade_info and hasattr(first_klu.trade_info, 'volume') else 0,
-                    })
+                    # Validate and convert price data
+                    try:
+                        open_price = float(first_klu.open)
+                        high_price = float(klc.high)
+                        low_price = float(klc.low)
+                        close_price = float(last_klu.close)
+                        volume = float(first_klu.trade_info.volume) if first_klu.trade_info and hasattr(first_klu.trade_info, 'volume') else 0
+                        
+                        # Validate all prices are positive numbers
+                        if not all([open_price > 0, high_price > 0, low_price > 0, close_price > 0]):
+                            print(f"⚠️  Warning: Invalid prices at idx {idx}: open={open_price}, high={high_price}, low={low_price}, close={close_price}")
+                            continue
+                        
+                        # Validate high >= low
+                        if high_price < low_price:
+                            print(f"⚠️  Warning: high < low at idx {idx}: high={high_price}, low={low_price}, swapping")
+                            high_price, low_price = low_price, high_price
+                        
+                        # Ensure high is the maximum and low is the minimum
+                        actual_high = max(high_price, low_price, open_price, close_price)
+                        actual_low = min(high_price, low_price, open_price, close_price)
+                        
+                        # Debug: log first K-line
+                        if idx == 0:
+                            print(f"🕐 Backend: First K-line time_begin = {time_str}")
+                            print(f"🕐 Backend: time_begin type = {type(klc.time_begin)}")
+                            print(f"💰 Backend: First K-line prices: open={open_price}, high={actual_high}, low={actual_low}, close={close_price}")
+                        
+                        klines.append({
+                            "time": time_str,
+                            "open": open_price,
+                            "high": actual_high,
+                            "low": actual_low,
+                            "close": close_price,
+                            "volume": max(0, volume),  # Ensure volume is non-negative
+                        })
+                    except (ValueError, TypeError) as e:
+                        print(f"⚠️  Warning: Failed to convert prices at idx {idx}: {e}")
+                        continue
         except Exception as e:
             print(f"⚠️  Warning extracting K-line data: {e}")
             import traceback
@@ -149,6 +225,8 @@ class ChanService:
         
         if klines:
             print(f"📊 Backend: Extracted {len(klines)} K-lines, first time = {klines[0]['time']}, last time = {klines[-1]['time']}")
+            # Log sample data
+            print(f"📊 Backend: First 3 K-lines: {klines[:3]}")
         
         return klines
     
@@ -253,4 +331,174 @@ class ChanService:
             traceback.print_exc()
         
         return macd_data
+    
+    def _extract_ma_data(self, chan: CChan, ma_params: List[int] = [5, 10, 20, 60]) -> Dict[str, List[Dict]]:
+        """
+        Extract Moving Average data from K-line
+        
+        Args:
+            chan: CChan object
+            ma_params: List of MA periods (e.g., [5, 10, 20, 60])
+            
+        Returns:
+            Dict with MA data for each period
+        """
+        print(f"📊 Starting MA calculation with periods: {ma_params}...")
+        ma_data = {f"ma{period}": [] for period in ma_params}
+        
+        try:
+            # Use simple moving average calculation for each period
+            from collections import deque
+            ma_queues = {period: deque(maxlen=period) for period in ma_params}
+            
+            for klc in chan[0]:
+                last_klu = klc.lst[-1] if klc.lst else None
+                if last_klu:
+                    close_price = float(last_klu.close)
+                    time_str = str(klc.time_begin)
+                    
+                    for period in ma_params:
+                        ma_queues[period].append(close_price)
+                        
+                        # Calculate MA (only if we have enough data points)
+                        if len(ma_queues[period]) >= period:
+                            ma_value = sum(ma_queues[period]) / len(ma_queues[period])
+                        else:
+                            # For initial periods, use available data
+                            ma_value = sum(ma_queues[period]) / len(ma_queues[period]) if len(ma_queues[period]) > 0 else close_price
+                        
+                        ma_data[f"ma{period}"].append({
+                            "time": time_str,
+                            "value": float(ma_value)
+                        })
+            
+            # Build status string
+            ma_status = ', '.join([f'MA{p}={len(ma_data[f"ma{p}"])} points' for p in ma_params])
+            print(f"✅ MA calculation complete: {ma_status}")
+        except Exception as e:
+            print(f"⚠️  Warning calculating MA: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        return ma_data
+    
+    def _extract_boll_data(self, chan: CChan) -> List[Dict]:
+        """
+        Extract Bollinger Bands data from K-line
+        BOLL data should already be calculated if boll_n is set in CChanConfig
+        
+        Returns:
+            List of dicts with time, upper, middle, lower bands
+        """
+        print(f"📊 Starting BOLL extraction...")
+        boll_data = []
+        
+        try:
+            for klc in chan[0]:
+                last_klu = klc.lst[-1] if klc.lst else None
+                if last_klu and hasattr(last_klu, 'boll') and last_klu.boll:
+                    time_str = str(klc.time_begin)
+                    
+                    boll_data.append({
+                        "time": time_str,
+                        "upper": float(last_klu.boll.UP),
+                        "middle": float(last_klu.boll.MID),
+                        "lower": float(last_klu.boll.DOWN)
+                    })
+            
+            print(f"✅ BOLL extraction complete: {len(boll_data)} points")
+            if boll_data:
+                print(f"   First BOLL: {boll_data[0]}")
+                print(f"   Last BOLL: {boll_data[-1]}")
+        except Exception as e:
+            print(f"⚠️  Warning extracting BOLL: {e}")
+            print(f"   Make sure boll_n is configured in CChanConfig")
+            import traceback
+            traceback.print_exc()
+        
+        return boll_data
+    
+    def _calculate_kdj(self, chan: CChan, period: int = 9) -> List[Dict]:
+        """
+        Calculate KDJ indicator from K-line data
+        
+        Args:
+            chan: CChan object
+            period: KDJ calculation period (default: 9)
+            
+        Returns:
+            List of dicts with time, k, d, j values
+        """
+        print(f"📊 Starting KDJ calculation with period={period}...")
+        kdj_calculator = KDJ(period=period)
+        kdj_data = []
+        
+        try:
+            for klc in chan[0]:
+                # Get high, low, close from the merged K-line
+                last_klu = klc.lst[-1] if klc.lst else None
+                if last_klu:
+                    high = float(klc.high)
+                    low = float(klc.low)
+                    close = float(last_klu.close)
+                    
+                    kdj_item = kdj_calculator.add(high, low, close)
+                    time_str = str(klc.time_begin)
+                    
+                    kdj_data.append({
+                        "time": time_str,
+                        "k": float(kdj_item.k),
+                        "d": float(kdj_item.d),
+                        "j": float(kdj_item.j),
+                    })
+            
+            print(f"✅ KDJ calculation complete: {len(kdj_data)} points")
+            if kdj_data:
+                print(f"   First KDJ: {kdj_data[0]}")
+                print(f"   Last KDJ: {kdj_data[-1]}")
+        except Exception as e:
+            print(f"⚠️  Warning calculating KDJ: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        return kdj_data
+    
+    def _calculate_rsi(self, chan: CChan, period: int = 14) -> List[Dict]:
+        """
+        Calculate RSI indicator from K-line data
+        
+        Args:
+            chan: CChan object
+            period: RSI calculation period (default: 14)
+            
+        Returns:
+            List of dicts with time, rsi values
+        """
+        print(f"📊 Starting RSI calculation with period={period}...")
+        rsi_calculator = RSI(period=period)
+        rsi_data = []
+        
+        try:
+            for klc in chan[0]:
+                last_klu = klc.lst[-1] if klc.lst else None
+                if last_klu:
+                    close = float(last_klu.close)
+                    rsi_value = rsi_calculator.add(close)
+                    time_str = str(klc.time_begin)
+                    
+                    rsi_data.append({
+                        "time": time_str,
+                        "rsi": float(rsi_value),
+                    })
+            
+            print(f"✅ RSI calculation complete: {len(rsi_data)} points")
+            if rsi_data:
+                print(f"   First RSI: {rsi_data[0]}")
+                print(f"   Last RSI: {rsi_data[-1]}")
+        except Exception as e:
+            print(f"⚠️  Warning calculating RSI: {e}")
+            import traceback
+            traceback.print_exc()
+        
+        return rsi_data
 
