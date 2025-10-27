@@ -271,12 +271,22 @@ class ChanService:
                         begin_time = str(zs.begin.time_begin) if hasattr(zs.begin, 'time_begin') else str(zs.begin.time)
                         end_time = str(zs.end.time_end) if hasattr(zs.end, 'time_end') else str(zs.end.time)
                         
+                        level = getattr(zs, "level", None)
+                        if hasattr(level, "name"):
+                            level = level.name
+                        elif hasattr(level, "value"):
+                            level = level.value
+                        if level is None and hasattr(zs, "lv"):
+                            level = getattr(zs, "lv", None)
+                            if hasattr(level, "name"):
+                                level = level.name
                         zs_list.append({
                             "low": float(zs.low),
                             "high": float(zs.high),
                             "begin_time": begin_time,
                             "end_time": end_time,
                             "bi_count": len(zs.bi_lst),
+                            "level": level,
                         })
         return zs_list
     
@@ -501,4 +511,3 @@ class ChanService:
             traceback.print_exc()
         
         return rsi_data
-
