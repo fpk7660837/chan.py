@@ -54,17 +54,61 @@ class ChanService:
         print(f"📊 Mapped lv_list for CChan: {lv_list}")
         
         print(f"🔧 Creating CChanConfig...")
-        # Build Chan config
-        config_dict = {
-            "bi_strict": params.get("bi_strict", True),
-            "seg_algo": params.get("seg_algo", "chan"),
-            "zs_algo": params.get("zs_algo", "normal"),
-            "print_warning": False,  # Disable warnings for cleaner API response
-            "boll_n": 20,  # Enable BOLL calculation with 20 periods
-        }
-        
-        print(f"🔧 Config dict: {config_dict}")
-        chan_config = CChanConfig(config_dict)
+        chan_config_data = dict(params.get("chan_config") or {})
+
+        # Backwards compatibility with legacy top-level parameters
+        legacy_keys = [
+            "bi_strict",
+            "seg_algo",
+            "zs_algo",
+            "print_warning",
+            "boll_n",
+        ]
+        for key in legacy_keys:
+            if key in params and key not in chan_config_data:
+                chan_config_data[key] = params[key]
+
+        # Ensure nested defaults exist
+        for array_key in ("mean_metrics", "trend_metrics"):
+            if array_key in chan_config_data and chan_config_data[array_key] is not None:
+                chan_config_data[array_key] = [int(v) for v in chan_config_data[array_key] if v is not None]
+        if "skip_step" in chan_config_data and chan_config_data["skip_step"] is not None:
+            chan_config_data["skip_step"] = int(chan_config_data["skip_step"])
+        if "boll_n" in chan_config_data and chan_config_data["boll_n"] is not None:
+            chan_config_data["boll_n"] = int(chan_config_data["boll_n"])
+        if "macd" not in chan_config_data:
+            chan_config_data["macd"] = {"fast": 12, "slow": 26, "signal": 9}
+        else:
+            macd_conf = chan_config_data["macd"] or {}
+            chan_config_data["macd"] = {
+                "fast": int(macd_conf.get("fast", 12)),
+                "slow": int(macd_conf.get("slow", 26)),
+                "signal": int(macd_conf.get("signal", 9)),
+            }
+        if "demark" not in chan_config_data:
+            chan_config_data["demark"] = {
+                "demark_len": 9,
+                "setup_bias": 4,
+                "countdown_bias": 2,
+                "max_countdown": 13,
+                "tiaokong_st": True,
+                "setup_cmp2close": True,
+                "countdown_cmp2close": True,
+            }
+        else:
+            demark_conf = chan_config_data["demark"] or {}
+            chan_config_data["demark"] = {
+                "demark_len": int(demark_conf.get("demark_len", 9)),
+                "setup_bias": int(demark_conf.get("setup_bias", 4)),
+                "countdown_bias": int(demark_conf.get("countdown_bias", 2)),
+                "max_countdown": int(demark_conf.get("max_countdown", 13)),
+                "tiaokong_st": bool(demark_conf.get("tiaokong_st", True)),
+                "setup_cmp2close": bool(demark_conf.get("setup_cmp2close", True)),
+                "countdown_cmp2close": bool(demark_conf.get("countdown_cmp2close", True)),
+            }
+
+        print(f"🔧 Config dict: {chan_config_data}")
+        chan_config = CChanConfig(chan_config_data)
         
         print(f"🔧 Executing CChan calculation for {code}...")
         # Execute Chan calculation
@@ -122,6 +166,8 @@ class ChanService:
         print(f"🔍 Checking MA: plot_ma={params.get('plot_ma', False)}")
         if params.get("plot_ma", False):
             ma_params = params.get("ma_params", [5, 10, 20, 60])
+            if isinstance(ma_params, list):
+                ma_params = [int(v) for v in ma_params if v is not None]
             print(f"📊 Extracting MA data with params: {ma_params}")
             ma_result = self._extract_ma_data(chan, ma_params)
             result["ma_data"] = ma_result
@@ -143,6 +189,10 @@ class ChanService:
         print(f"🔍 Checking KDJ: plot_kdj={params.get('plot_kdj', False)}")
         if params.get("plot_kdj", False):
             kdj_period = params.get("kdj_period", 9)
+            try:
+                kdj_period = int(kdj_period)
+            except (TypeError, ValueError):
+                kdj_period = 9
             print(f"📊 Calculating KDJ data with period={kdj_period}...")
             kdj_result = self._calculate_kdj(chan, kdj_period)
             result["kdj_data"] = kdj_result
@@ -154,6 +204,10 @@ class ChanService:
         print(f"🔍 Checking RSI: plot_rsi={params.get('plot_rsi', False)}")
         if params.get("plot_rsi", False):
             rsi_period = params.get("rsi_period", 14)
+            try:
+                rsi_period = int(rsi_period)
+            except (TypeError, ValueError):
+                rsi_period = 14
             print(f"📊 Calculating RSI data with period={rsi_period}...")
             rsi_result = self._calculate_rsi(chan, rsi_period)
             result["rsi_data"] = rsi_result

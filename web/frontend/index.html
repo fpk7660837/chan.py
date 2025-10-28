@@ -80,6 +80,48 @@
             padding: 16px;
             overflow-y: auto;
             box-shadow: 2px 0 8px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .sidebar-resizer {
+            width: 6px;
+            cursor: col-resize;
+            background: transparent;
+            position: relative;
+        }
+
+        .sidebar-resizer::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 2px;
+            width: 2px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 1px;
+        }
+
+        .sidebar-resizer:hover::after,
+        .sidebar-resizer.dragging::after {
+            background: rgba(24, 144, 255, 0.5);
+        }
+
+        .sidebar .ant-tabs,
+        .sidebar .ant-tabs-content-holder {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar .ant-tabs-content-holder .ant-tabs-content,
+        .sidebar .ant-tabs-tabpane {
+            flex: 1;
+        }
+
+        .sidebar .ant-tabs-tabpane {
+            overflow-y: auto;
         }
 
         .left-sidebar {
@@ -95,6 +137,28 @@
             padding: 16px;
             overflow-y: auto;
             background: #f0f2f5;
+        }
+
+        .config-section {
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 12px;
+            background: #fafafa;
+        }
+
+        .config-section + .config-section {
+            margin-top: 12px;
+        }
+
+        .config-section-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #262626;
+        }
+
+        .dark-theme .config-section {
+            background: #141414;
+            border-color: #333;
         }
 
         /* Stock Manager Styles */
@@ -399,7 +463,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { Layout, Button, Input, Select, Checkbox, message, Spin, Tag, Space, Tooltip, Radio, InputNumber, Slider, Switch } = antd;
+        const { Layout, Button, Input, Select, Checkbox, message, Spin, Tag, Space, Tooltip, Radio, InputNumber, Slider, Switch, Tabs, Collapse, Divider, Popover } = antd;
         const { Header, Sider, Content } = Layout;
         const { useState, useEffect, useCallback, useContext, createContext, useRef, memo } = React;
 
@@ -477,6 +541,58 @@
         };
 
         const MA_OPTIONS = [5, 10, 20, 30, 45, 60, 120, 250];
+
+        const DEFAULT_CHAN_CONFIG = {
+            bi_algo: 'normal',
+            bi_strict: true,
+            bi_fx_check: 'strict',
+            gap_as_kl: false,
+            bi_end_is_peak: true,
+            bi_allow_sub_peak: true,
+            seg_algo: 'chan',
+            left_seg_method: 'peak',
+            zs_combine: true,
+            zs_combine_mode: 'zs',
+            one_bi_zs: false,
+            zs_algo: 'normal',
+            trigger_step: false,
+            skip_step: 0,
+            kl_data_check: true,
+            max_kl_misalgin_cnt: 2,
+            max_kl_inconsistent_cnt: 5,
+            auto_skip_illegal_sub_lv: false,
+            print_warning: false,
+            print_err_time: true,
+            mean_metrics: [],
+            trend_metrics: [],
+            macd: { fast: 12, slow: 26, signal: 9 },
+            boll_n: 20,
+            cal_rsi: false,
+            rsi_cycle: 14,
+            cal_kdj: false,
+            kdj_cycle: 9,
+            cal_demark: false,
+            demark: {
+                demark_len: 9,
+                setup_bias: 4,
+                countdown_bias: 2,
+                max_countdown: 13,
+                tiaokong_st: true,
+                setup_cmp2close: true,
+                countdown_cmp2close: true,
+            },
+        };
+
+        const BI_ALGO_OPTIONS = [
+            { value: 'normal', label: 'normal' },
+            { value: 'fx', label: 'fx' },
+        ];
+
+        const SEG_ALGO_OPTIONS = [
+            { value: 'chan', label: 'chan' },
+            { value: '1+1', label: '1+1 (deprecated)' },
+            { value: 'break', label: 'break (deprecated)' },
+        ];
 
         // ============= Data Cache =============
         const DataCache = {
@@ -561,6 +677,8 @@
                 timeout = setTimeout(later, wait);
             };
         };
+
+        const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
         // ============= Config Management =============
         const loadConfig = () => {
@@ -672,6 +790,21 @@
                     candle: {
                         type: 'candle_solid',
                         bar: {
+                            upColor: '#ef5350',
+                            downColor: '#26a69a',
+                            noChangeColor: '#888888',
+                            upBorderColor: 'transparent',
+                            downBorderColor: 'transparent',
+                            noChangeBorderColor: 'transparent',
+                            border: false,
+                            borderColor: {
+                                up: 'transparent',
+                                down: 'transparent',
+                                noChange: 'transparent',
+                            },
+                            borderSize: 0,
+                        },
+                        wick: {
                             upColor: '#ef5350',
                             downColor: '#26a69a',
                             noChangeColor: '#888888',
@@ -1109,6 +1242,15 @@
 
         const LOWER_INDICATOR_KEYS = ['macd', 'kdj', 'rsi'];
 
+        const LabelWithTip = ({ label, tip }) => (
+            <Tooltip title={tip}>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                    {label}
+                    <span style={{ fontSize: 10, color: '#bbb' }}>i</span>
+                </span>
+            </Tooltip>
+        );
+
         const StockChartGroup = memo(({ stock }) => {
             const {
                 chartData,
@@ -1360,6 +1502,71 @@
             const { indicators, setIndicators, refreshAllCharts } = useApp();
             const [timeRange, setTimeRange] = useState('1y');
 
+            const PRESET_INDICATORS = [
+                {
+                    key: 'standard',
+                    name: '标准',
+                    description: '展示笔/线段/买卖点 + MACD + 5/10/20/60 均线',
+                    apply: () => {
+                        setIndicators(prev => ({
+                            ...prev,
+                            plot_bi: true,
+                            plot_seg: true,
+                            plot_zs: true,
+                            plot_bsp: true,
+                            plot_macd: true,
+                            plot_volume: true,
+                            plot_kdj: false,
+                            plot_rsi: false,
+                            plot_boll: false,
+                            plot_ma: true,
+                            ma_params: [5, 10, 20, 60],
+                        }));
+                    }
+                },
+                {
+                    key: 'trend',
+                    name: '趋势',
+                    description: '只看K线 + 均线，与MACD, KDJ 辅助',
+                    apply: () => {
+                        setIndicators(prev => ({
+                            ...prev,
+                            plot_bi: false,
+                            plot_seg: false,
+                            plot_zs: false,
+                            plot_bsp: false,
+                            plot_macd: true,
+                            plot_kdj: true,
+                            plot_rsi: false,
+                            plot_boll: false,
+                            plot_volume: true,
+                            plot_ma: true,
+                            ma_params: [20, 60, 120],
+                        }));
+                    }
+                },
+                {
+                    key: 'minimal',
+                    name: '简洁',
+                    description: '只显示K线、笔和买卖点',
+                    apply: () => {
+                        setIndicators(prev => ({
+                            ...prev,
+                            plot_bi: true,
+                            plot_seg: false,
+                            plot_zs: false,
+                            plot_bsp: true,
+                            plot_macd: false,
+                            plot_kdj: false,
+                            plot_rsi: false,
+                            plot_boll: false,
+                            plot_volume: false,
+                            plot_ma: false,
+                        }));
+                    }
+                }
+            ];
+
             const handleChange = (key, value) => {
                 if (key === 'ma_params') {
                     const sanitized = (value || [])
@@ -1445,7 +1652,30 @@
                     </div>
 
                     <div className="indicator-section">
-                        <div className="indicator-section-title">缠论样式</div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+                            <div className="indicator-section-title" style={{ marginBottom: 0 }}>缠论样式</div>
+                            <Popover
+                                placement="bottomRight"
+                                trigger="click"
+                                content={
+                                    <Space direction="vertical" style={{ maxWidth: 260 }}>
+                                        {PRESET_INDICATORS.map(preset => (
+                                            <Button
+                                                key={preset.key}
+                                                block
+                                                size="small"
+                                                onClick={() => preset.apply()}
+                                            >
+                                                {preset.name}
+                                                <div style={{ fontSize: 11, color: '#888' }}>{preset.description}</div>
+                                            </Button>
+                                        ))}
+                                    </Space>
+                                }
+                            >
+                                <Button size="small" type="link">预设</Button>
+                            </Popover>
+                        </div>
                         <div className="indicator-item" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                             <div style={{ fontWeight: 500 }}>笔样式</div>
                             <Space size="small" wrap>
@@ -1624,6 +1854,341 @@
             );
         });
 
+        const ChanConfigPanel = memo(() => {
+            const { chanConfig, setChanConfig } = useApp();
+
+            const mergeConfig = useCallback((patch) => {
+                setChanConfig(prev => ({ ...prev, ...patch }));
+            }, [setChanConfig]);
+
+            const handleBoolean = useCallback((key) => (e) => {
+                mergeConfig({ [key]: e.target.checked });
+            }, [mergeConfig]);
+
+            const handleNumber = useCallback((key) => (value) => {
+                if (value === null || value === undefined) {
+                    return;
+                }
+                const numeric = Number(value);
+                if (Number.isFinite(numeric)) {
+                    mergeConfig({ [key]: numeric });
+                }
+            }, [mergeConfig]);
+
+            const handleSelect = useCallback((key) => (value) => {
+                mergeConfig({ [key]: value });
+            }, [mergeConfig]);
+
+            const handleMacdChange = useCallback((field) => (value) => {
+                if (value === null || value === undefined) return;
+                const numeric = Number(value);
+                if (!Number.isFinite(numeric)) return;
+                setChanConfig(prev => ({
+                    ...prev,
+                    macd: {
+                        ...prev.macd,
+                        [field]: numeric,
+                    },
+                }));
+            }, [setChanConfig]);
+
+            const handleDemarkChange = useCallback((field) => (value) => {
+                if (value === null || value === undefined) return;
+                const numeric = Number(value);
+                if (!Number.isFinite(numeric)) return;
+                setChanConfig(prev => ({
+                    ...prev,
+                    demark: {
+                        ...prev.demark,
+                        [field]: numeric,
+                    },
+                }));
+            }, [setChanConfig]);
+
+            const handleDemarkToggle = useCallback((field) => (e) => {
+                setChanConfig(prev => ({
+                    ...prev,
+                    demark: {
+                        ...prev.demark,
+                        [field]: e.target.checked,
+                    },
+                }));
+            }, [setChanConfig]);
+
+            const handleMeanMetricsChange = useCallback((values) => {
+                const sanitized = Array.from(new Set((values || []).map(v => Number(v)).filter(Number.isFinite))).sort((a, b) => a - b);
+                mergeConfig({ mean_metrics: sanitized });
+            }, [mergeConfig]);
+
+            const handleTrendMetricsChange = useCallback((values) => {
+                const sanitized = Array.from(new Set((values || []).map(v => Number(v)).filter(Number.isFinite))).sort((a, b) => a - b);
+                mergeConfig({ trend_metrics: sanitized });
+            }, [mergeConfig]);
+
+            const basicContent = (
+                <Space direction="vertical" size={16} style={{ width: '100%' }}>
+                    <div className="config-section">
+                        <div className="config-section-title">核心参数</div>
+                        <Space size="small" wrap>
+                            <LabelWithTip label="笔算法" tip="笔的识别逻辑，normal 为标准笔" />
+                            <Select
+                                size="small"
+                                value={chanConfig.bi_algo}
+                                onChange={handleSelect('bi_algo')}
+                                options={BI_ALGO_OPTIONS}
+                            />
+                            <LabelWithTip label="线段算法" tip="线段生成方式，chan 为默认算法" />
+                            <Select
+                                size="small"
+                                value={chanConfig.seg_algo}
+                                onChange={handleSelect('seg_algo')}
+                                options={SEG_ALGO_OPTIONS}
+                            />
+                        </Space>
+                        <Space size="small" wrap style={{ marginTop: 8 }}>
+                            <Checkbox checked={chanConfig.bi_strict} onChange={handleBoolean('bi_strict')}>
+                                <LabelWithTip label="严格笔" tip="开启后只有严格顶/底的笔会被识别" />
+                            </Checkbox>
+                            <Checkbox checked={chanConfig.zs_combine} onChange={handleBoolean('zs_combine')}>
+                                <LabelWithTip label="合并中枢" tip="允许相邻中枢自动合并" />
+                            </Checkbox>
+                            <Checkbox checked={chanConfig.one_bi_zs} onChange={handleBoolean('one_bi_zs')}>
+                                <LabelWithTip label="单笔中枢" tip="允许单笔构成中枢，适合低级别走势" />
+                            </Checkbox>
+                            <LabelWithTip label="中枢算法" tip="选择中枢计算方式" />
+                            <Select
+                                size="small"
+                                value={chanConfig.zs_algo}
+                                onChange={handleSelect('zs_algo')}
+                                options={[
+                                    { value: 'normal', label: '标准' },
+                                    { value: 'over_seg', label: '跨段' },
+                                    { value: 'auto', label: '自动' },
+                                ]}
+                            />
+                        </Space>
+                    </div>
+
+                    <div className="config-section">
+                        <div className="config-section-title">运行控制</div>
+                        <Space size="small" wrap>
+                            <Checkbox checked={chanConfig.trigger_step} onChange={handleBoolean('trigger_step')}>
+                                <LabelWithTip label="增量触发" tip="增量方式计算，适合实时更新" />
+                            </Checkbox>
+                            <Checkbox checked={chanConfig.kl_data_check} onChange={handleBoolean('kl_data_check')}>
+                                <LabelWithTip label="检查K线一致性" tip="自动比对子级别数据" />
+                            </Checkbox>
+                            <Checkbox checked={chanConfig.print_warning} onChange={handleBoolean('print_warning')}>
+                                <LabelWithTip label="打印警告" tip="输出运行警告信息" />
+                            </Checkbox>
+                        </Space>
+                        <Space size="small" wrap style={{ marginTop: 8 }}>
+                            <LabelWithTip label="跳过步长" tip="增量模式下每次跳过的笔数，0 表示逐笔" />
+                            <InputNumber size="small" min={0} value={chanConfig.skip_step} onChange={handleNumber('skip_step')} />
+                            <LabelWithTip label="布林N" tip="布林带窗口长度" />
+                            <InputNumber size="small" min={1} value={chanConfig.boll_n} onChange={handleNumber('boll_n')} />
+                        </Space>
+                    </div>
+
+                    <div className="config-section">
+                        <div className="config-section-title">指标</div>
+                        <Space size="small" wrap>
+                            <LabelWithTip label="MACD" tip="调整快慢线与信号线周期" />
+                            <InputNumber size="small" min={1} value={chanConfig.macd.fast} onChange={handleMacdChange('fast')} />
+                            <InputNumber size="small" min={1} value={chanConfig.macd.slow} onChange={handleMacdChange('slow')} />
+                            <InputNumber size="small" min={1} value={chanConfig.macd.signal} onChange={handleMacdChange('signal')} />
+                        </Space>
+                        <Space size="small" wrap style={{ marginTop: 8 }}>
+                            <Checkbox checked={chanConfig.cal_rsi} onChange={handleBoolean('cal_rsi')}>
+                                <LabelWithTip label="RSI" tip="开启后计算 RSI 指标" />
+                            </Checkbox>
+                            <Checkbox checked={chanConfig.cal_kdj} onChange={handleBoolean('cal_kdj')}>
+                                <LabelWithTip label="KDJ" tip="开启后计算 KDJ 指标" />
+                            </Checkbox>
+                            <Checkbox checked={chanConfig.cal_demark} onChange={handleBoolean('cal_demark')}>
+                                <LabelWithTip label="DeMark" tip="开启后计算 DeMark 指标" />
+                            </Checkbox>
+                        </Space>
+                    </div>
+                </Space>
+            );
+
+            const advancedItems = [
+                {
+                    key: 'bi',
+                    label: '笔参数',
+                    children: (
+                        <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                            <Space size="small" wrap>
+                                <LabelWithTip label="分型判定" tip="决定分型确认方式，影响笔识别的严格程度" />
+                                <Select
+                                    size="small"
+                                    value={chanConfig.bi_fx_check}
+                                    onChange={handleSelect('bi_fx_check')}
+                                    options={[
+                                        { value: 'strict', label: '严格' },
+                                        { value: 'half', label: '半严格' },
+                                        { value: 'loss', label: '松弛' },
+                                        { value: 'totally', label: '全量' },
+                                    ]}
+                                />
+                            </Space>
+                            <Space size="small" wrap>
+                                <Checkbox checked={chanConfig.gap_as_kl} onChange={handleBoolean('gap_as_kl')}>
+                                    <LabelWithTip label="缺口视作K线" tip="将价格跳空视作独立K线处理" />
+                                </Checkbox>
+                                <Checkbox checked={chanConfig.bi_end_is_peak} onChange={handleBoolean('bi_end_is_peak')}>
+                                    <LabelWithTip label="笔尾必须顶/底" tip="笔结束时必须满足顶/底条件" />
+                                </Checkbox>
+                                <Checkbox checked={chanConfig.bi_allow_sub_peak} onChange={handleBoolean('bi_allow_sub_peak')}>
+                                    <LabelWithTip label="允许次级别顶底" tip="允许使用次级别的顶底完成笔" />
+                                </Checkbox>
+                            </Space>
+                        </Space>
+                    ),
+                },
+                {
+                    key: 'seg',
+                    label: '线段 & 中枢',
+                    children: (
+                        <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                            <Space size="small" wrap>
+                                <LabelWithTip label="线段左端" tip="决定线段起点的计算方式" />
+                                <Select
+                                    size="small"
+                                    value={chanConfig.left_seg_method}
+                                    onChange={handleSelect('left_seg_method')}
+                                    options={[
+                                        { value: 'peak', label: '峰值' },
+                                        { value: 'all', label: '全量' },
+                                    ]}
+                                />
+                                <LabelWithTip label="合并模式" tip="中枢合并后的结果以中枢自身或线段替代" />
+                                <Select
+                                    size="small"
+                                    value={chanConfig.zs_combine_mode}
+                                    onChange={handleSelect('zs_combine_mode')}
+                                    options={[
+                                        { value: 'zs', label: '中枢' },
+                                        { value: 'seg', label: '线段' },
+                                    ]}
+                                    disabled={!chanConfig.zs_combine}
+                                />
+                            </Space>
+                        </Space>
+                    ),
+                },
+                {
+                    key: 'runtime',
+                    label: '运行与校验',
+                    children: (
+                        <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                            <Space size="small" wrap>
+                                <Checkbox checked={chanConfig.auto_skip_illegal_sub_lv} onChange={handleBoolean('auto_skip_illegal_sub_lv')}>
+                                    <LabelWithTip label="自动跳过非法子级别" tip="遇到不合法的子级别数据时自动跳过" />
+                                </Checkbox>
+                                <Checkbox checked={chanConfig.print_err_time} onChange={handleBoolean('print_err_time')}>
+                                    <LabelWithTip label="打印异常时间" tip="输出异常发生的时间信息" />
+                                </Checkbox>
+                            </Space>
+                            <Space size="small" wrap>
+                                <LabelWithTip label="错位容忍" tip="允许子级别错位的最大次数" />
+                                <InputNumber
+                                    size="small"
+                                    min={0}
+                                    value={chanConfig.max_kl_misalgin_cnt}
+                                    onChange={handleNumber('max_kl_misalgin_cnt')}
+                                />
+                                <LabelWithTip label="不一致容忍" tip="允许子级别不一致的最大次数" />
+                                <InputNumber
+                                    size="small"
+                                    min={0}
+                                    value={chanConfig.max_kl_inconsistent_cnt}
+                                    onChange={handleNumber('max_kl_inconsistent_cnt')}
+                                />
+                            </Space>
+                        </Space>
+                    ),
+                },
+                {
+                    key: 'metrics',
+                    label: '指标参数',
+                    children: (
+                        <Space direction="vertical" size={12} style={{ width: '100%' }}>
+                            <Space size="small" wrap>
+                                <LabelWithTip label="均值窗口" tip="用于均值序列的窗口长度，可输入多个数值" />
+                                <Select
+                                    mode="tags"
+                                    size="small"
+                                    placeholder="如 5,10,20"
+                                    style={{ minWidth: 200 }}
+                                    value={(chanConfig.mean_metrics || []).map(String)}
+                                    onChange={handleMeanMetricsChange}
+                                />
+                            </Space>
+                            <Space size="small" wrap>
+                                <LabelWithTip label="趋势窗口" tip="趋势指标使用的最大/最小窗口长度" />
+                                <Select
+                                    mode="tags"
+                                    size="small"
+                                    placeholder="如 55, 89"
+                                    style={{ minWidth: 200 }}
+                                    value={(chanConfig.trend_metrics || []).map(String)}
+                                    onChange={handleTrendMetricsChange}
+                                />
+                            </Space>
+                            <Space size="small" wrap>
+                                <LabelWithTip label="RSI周期" tip="RSI 指标的周期长度" />
+                                <InputNumber size="small" min={1} value={chanConfig.rsi_cycle} onChange={handleNumber('rsi_cycle')} disabled={!chanConfig.cal_rsi} />
+                                <LabelWithTip label="KDJ周期" tip="KDJ 指标的周期长度" />
+                                <InputNumber size="small" min={1} value={chanConfig.kdj_cycle} onChange={handleNumber('kdj_cycle')} disabled={!chanConfig.cal_kdj} />
+                            </Space>
+                            <Space size="small" wrap>
+                                <LabelWithTip label="DeMark" tip="DeMark 指标参数调整" />
+                                <InputNumber size="small" min={1} value={chanConfig.demark.demark_len} onChange={handleDemarkChange('demark_len')} disabled={!chanConfig.cal_demark} />
+                                <InputNumber size="small" min={0} value={chanConfig.demark.setup_bias} onChange={handleDemarkChange('setup_bias')} disabled={!chanConfig.cal_demark} />
+                                <InputNumber size="small" min={0} value={chanConfig.demark.countdown_bias} onChange={handleDemarkChange('countdown_bias')} disabled={!chanConfig.cal_demark} />
+                                <InputNumber size="small" min={1} value={chanConfig.demark.max_countdown} onChange={handleDemarkChange('max_countdown')} disabled={!chanConfig.cal_demark} />
+                            </Space>
+                            <Space size="small" wrap>
+                                <Checkbox checked={chanConfig.demark.tiaokong_st} onChange={handleDemarkToggle('tiaokong_st')} disabled={!chanConfig.cal_demark}>
+                                    <LabelWithTip label="跳空算 Setup" tip="在 Setup 计数时将跳空视作满足条件" />
+                                </Checkbox>
+                                <Checkbox checked={chanConfig.demark.setup_cmp2close} onChange={handleDemarkToggle('setup_cmp2close')} disabled={!chanConfig.cal_demark}>
+                                    <LabelWithTip label="Setup 比较收盘价" tip="Setup 比较使用收盘价而非最高/最低" />
+                                </Checkbox>
+                                <Checkbox checked={chanConfig.demark.countdown_cmp2close} onChange={handleDemarkToggle('countdown_cmp2close')} disabled={!chanConfig.cal_demark}>
+                                    <LabelWithTip label="Countdown 比较收盘价" tip="Countdown 计数使用收盘价比较" />
+                                </Checkbox>
+                            </Space>
+                        </Space>
+                    ),
+                },
+            ];
+
+            return (
+                <Tabs
+                    size="small"
+                    defaultActiveKey="basic"
+                    items={[
+                        { key: 'basic', label: '基础设置', children: basicContent },
+                        { key: 'advanced', label: '高级设置', children: <Collapse ghost defaultActiveKey={[]} items={advancedItems} /> },
+                    ]}
+                />
+            );
+        });
+
+        const RightSidebar = memo(() => (
+            <Tabs
+                size="small"
+                defaultActiveKey="view"
+                items={[
+                    { key: 'view', label: '显示设置', children: <IndicatorConfig /> },
+                    { key: 'chan', label: '缠论配置', children: <ChanConfigPanel /> },
+                ]}
+            />
+        ));
+
         // ============= Chart Grid Component =============
         const ChartGrid = () => {
             const { stocks } = useApp();
@@ -1673,21 +2238,40 @@
                 ...DEFAULT_INDICATORS,
                 ...(savedConfig?.indicators || {})
             }));
+            const [chanConfig, setChanConfig] = useState(() => {
+                const savedChan = savedConfig?.chanConfig || {};
+                return {
+                    ...DEFAULT_CHAN_CONFIG,
+                    ...savedChan,
+                    macd: {
+                        ...DEFAULT_CHAN_CONFIG.macd,
+                        ...(savedChan.macd || {}),
+                    },
+                    demark: {
+                        ...DEFAULT_CHAN_CONFIG.demark,
+                        ...(savedChan.demark || {}),
+                    },
+                };
+            });
             const [chartData, setChartData] = useState({});
             const [loadingCharts, setLoadingCharts] = useState({});
             const [theme, setTheme] = useState(savedConfig?.theme || 'light');
             const [leftCollapsed, setLeftCollapsed] = useState(savedConfig?.ui?.leftCollapsed || false);
             const [rightCollapsed, setRightCollapsed] = useState(savedConfig?.ui?.rightCollapsed || false);
+            const [leftWidth, setLeftWidth] = useState(savedConfig?.ui?.leftWidth || 280);
+            const [rightWidth, setRightWidth] = useState(savedConfig?.ui?.rightWidth || 320);
+            const [dragging, setDragging] = useState(null);
+            const layoutRef = useRef(null);
 
             // Save config
             useEffect(() => {
                 try {
-                    const config = { stocks, indicators, theme, ui: { leftCollapsed, rightCollapsed } };
+                    const config = { stocks, indicators, chanConfig, theme, ui: { leftCollapsed, rightCollapsed, leftWidth, rightWidth } };
                     localStorage.setItem('chanlun_config', JSON.stringify(config));
                 } catch (e) {
                     console.error('Failed to save config:', e);
                 }
-            }, [stocks, indicators, theme, leftCollapsed, rightCollapsed]);
+            }, [stocks, indicators, chanConfig, theme, leftCollapsed, rightCollapsed, leftWidth, rightWidth]);
 
             // Auto-refresh on indicator change
             const prevIndicatorsRef = useRef(indicators);
@@ -1718,6 +2302,26 @@
                     setIndicators(prev => ({ ...prev, indicator_tab: available[0] }));
                 }
             }, [indicators.indicator_layout, indicators.plot_macd, indicators.plot_kdj, indicators.plot_rsi, setIndicators, indicators.indicator_tab]);
+
+            const prevChanConfigRef = useRef(chanConfig);
+            useEffect(() => {
+                if (prevChanConfigRef.current !== chanConfig && stocks.length > 0) {
+                    console.log('⚙️ Chan config changed, refreshing charts...');
+                    setTimeout(() => refreshAllCharts(), 120);
+                }
+                prevChanConfigRef.current = chanConfig;
+            }, [chanConfig, stocks.length, refreshAllCharts]);
+
+            useEffect(() => {
+                if (dragging) {
+                    document.body.style.cursor = 'col-resize';
+                } else {
+                    document.body.style.cursor = '';
+                }
+                return () => {
+                    document.body.style.cursor = '';
+                };
+            }, [dragging]);
 
             const addStock = (stockInfo) => {
                 const code = (stockInfo.code || '').trim();
@@ -1799,6 +2403,40 @@
             const toggleLeftSidebar = () => setLeftCollapsed(prev => !prev);
             const toggleRightSidebar = () => setRightCollapsed(prev => !prev);
 
+            const startResize = useCallback((side) => (event) => {
+                if (side === 'left' && leftCollapsed) return;
+                if (side === 'right' && rightCollapsed) return;
+                if (!layoutRef.current) return;
+                event.preventDefault();
+                setDragging(side);
+
+                const handleMove = (e) => {
+                    if (!layoutRef.current) return;
+                    const currentRect = layoutRef.current.getBoundingClientRect();
+                    const minMain = 400;
+                    const currentLeftWidth = leftCollapsed ? 0 : (layoutRef.current.querySelector('.left-sidebar')?.getBoundingClientRect().width || leftWidth);
+                    const currentRightWidth = rightCollapsed ? 0 : (layoutRef.current.querySelector('.right-sidebar')?.getBoundingClientRect().width || rightWidth);
+                    if (side === 'left') {
+                        const maxLeft = currentRect.width - currentRightWidth - minMain;
+                        const newWidth = clamp(e.clientX - currentRect.left, 200, Math.max(200, maxLeft));
+                        setLeftWidth(newWidth);
+                    } else {
+                        const maxRight = currentRect.width - currentLeftWidth - minMain;
+                        const newWidth = clamp(currentRect.right - e.clientX, 220, Math.max(220, maxRight));
+                        setRightWidth(newWidth);
+                    }
+                };
+
+                const handleUp = () => {
+                    setDragging(null);
+                    window.removeEventListener('mousemove', handleMove);
+                    window.removeEventListener('mouseup', handleUp);
+                };
+
+                window.addEventListener('mousemove', handleMove);
+                window.addEventListener('mouseup', handleUp);
+            }, [leftCollapsed, rightCollapsed, rightWidth, leftWidth]);
+
             const analyzeStock = async (code, level, forceRefresh = false) => {
                 const key = `${code}-${level}`;
                 
@@ -1819,6 +2457,7 @@
                         lv_list: [level],
                         data_src: 'BAO_STOCK',
                         ...indicators,
+                        chan_config: chanConfig,
                     };
 
                     const result = await api.calculateChan(params);
@@ -1841,7 +2480,7 @@
                     });
                 });
                 message.info('正在刷新所有图表...');
-            }, [stocks, indicators]);
+            }, [stocks, indicators, chanConfig]);
 
             const contextValue = {
                 stocks,
@@ -1853,6 +2492,8 @@
                 setStockLayout,
                 indicators,
                 setIndicators,
+                chanConfig,
+                setChanConfig,
                 chartData,
                 loadingCharts,
                 analyzeStock,
@@ -1862,7 +2503,7 @@
 
             return (
                 <AppContext.Provider value={contextValue}>
-                    <Layout className={`app-layout ${theme === 'dark' ? 'dark-theme' : ''}`}>
+                    <Layout ref={layoutRef} className={`app-layout ${theme === 'dark' ? 'dark-theme' : ''}`}>
                         <Header className="app-header">
                             <div className="app-logo">
                                 <span>📈</span>
@@ -1901,17 +2542,29 @@
                         </Header>
                         <div className="app-content">
                             {!leftCollapsed && (
-                                <div className="sidebar left-sidebar">
-                                    <StockManager />
-                                </div>
+                                <>
+                                    <div className="sidebar left-sidebar" style={{ width: leftWidth }}>
+                                        <StockManager />
+                                    </div>
+                                    <div
+                                        className={`sidebar-resizer ${dragging === 'left' ? 'dragging' : ''}`}
+                                        onMouseDown={startResize('left')}
+                                    />
+                                </>
                             )}
                             <div className="main-content">
                                 <ChartGrid />
                             </div>
                             {!rightCollapsed && (
-                                <div className="sidebar right-sidebar">
-                                    <IndicatorConfig />
-                                </div>
+                                <>
+                                    <div
+                                        className={`sidebar-resizer ${dragging === 'right' ? 'dragging' : ''}`}
+                                        onMouseDown={startResize('right')}
+                                    />
+                                    <div className="sidebar right-sidebar" style={{ width: rightWidth }}>
+                                        <RightSidebar />
+                                    </div>
+                                </>
                             )}
                         </div>
                     </Layout>

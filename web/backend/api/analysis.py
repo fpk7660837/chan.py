@@ -30,6 +30,61 @@ class KLineTypeEnum(str, Enum):
     K_MON = "mon"
 
 
+class MacdConfigModel(BaseModel):
+    fast: int = Field(12, description="MACD fast period")
+    slow: int = Field(26, description="MACD slow period")
+    signal: int = Field(9, description="MACD signal period")
+
+
+class DemarkConfigModel(BaseModel):
+    demark_len: int = Field(9, description="DeMark length")
+    setup_bias: int = Field(4, description="Setup bias")
+    countdown_bias: int = Field(2, description="Countdown bias")
+    max_countdown: int = Field(13, description="Max countdown")
+    tiaokong_st: bool = Field(True, description="Count gap as setup")
+    setup_cmp2close: bool = Field(True, description="Compare setup to close price")
+    countdown_cmp2close: bool = Field(True, description="Compare countdown to close price")
+
+    class Config:
+        extra = "ignore"
+
+
+class ChanConfigModel(BaseModel):
+    bi_algo: Optional[str] = Field("normal", description="Bi algorithm")
+    bi_strict: bool = Field(True, description="Strict bi rules")
+    bi_fx_check: str = Field("strict", description="Bi fractal check mode")
+    gap_as_kl: bool = Field(False, description="Treat gap as K line")
+    bi_end_is_peak: bool = Field(True, description="Bi end must be peak")
+    bi_allow_sub_peak: bool = Field(True, description="Allow sub peak")
+    seg_algo: str = Field("chan", description="Segment algorithm")
+    left_seg_method: str = Field("peak", description="Left segment method")
+    zs_combine: bool = Field(True, description="Enable ZS combine")
+    zs_combine_mode: str = Field("zs", description="ZS combine mode")
+    one_bi_zs: bool = Field(False, description="Allow one-bi ZS")
+    zs_algo: str = Field("normal", description="ZS algorithm")
+    trigger_step: bool = Field(False, description="Enable trigger step")
+    skip_step: int = Field(0, ge=0, description="Skip step")
+    kl_data_check: bool = Field(True, description="Check K-line consistency")
+    max_kl_misalgin_cnt: int = Field(2, ge=0, description="Max misalign count")
+    max_kl_inconsistent_cnt: int = Field(5, ge=0, description="Max inconsistent count")
+    auto_skip_illegal_sub_lv: bool = Field(False, description="Auto skip illegal sub level")
+    print_warning: bool = Field(True, description="Print warnings")
+    print_err_time: bool = Field(True, description="Print error timestamps")
+    mean_metrics: List[int] = Field(default_factory=list, description="Mean metric windows")
+    trend_metrics: List[int] = Field(default_factory=list, description="Trend metric windows")
+    macd: MacdConfigModel = Field(default_factory=MacdConfigModel, description="MACD config")
+    boll_n: int = Field(20, ge=1, description="BOLL window")
+    cal_rsi: bool = Field(False, description="Calculate RSI")
+    rsi_cycle: int = Field(14, ge=1, description="RSI period")
+    cal_kdj: bool = Field(False, description="Calculate KDJ")
+    kdj_cycle: int = Field(9, ge=1, description="KDJ period")
+    cal_demark: bool = Field(False, description="Calculate DeMark")
+    demark: DemarkConfigModel = Field(default_factory=DemarkConfigModel, description="Demark config")
+
+    class Config:
+        extra = "ignore"
+
+
 class AnalysisRequest(BaseModel):
     """Request model for Chan analysis"""
     code: str = Field(..., description="Stock code, e.g., sz.000001, HK.00700")
@@ -54,6 +109,10 @@ class AnalysisRequest(BaseModel):
     ma_params: Optional[List[int]] = Field([5, 10, 20, 60], description="MA periods")
     kdj_period: int = Field(9, description="KDJ calculation period")
     rsi_period: int = Field(14, description="RSI calculation period")
+    chan_config: ChanConfigModel = Field(default_factory=ChanConfigModel, description="Core Chan config")
+
+    class Config:
+        extra = "ignore"
 
 
 class AnalysisResponse(BaseModel):
@@ -119,4 +178,3 @@ async def search_stock(keyword: str):
             {"code": "sh.600000", "name": "浦发银行"}
         ]
     }
-
