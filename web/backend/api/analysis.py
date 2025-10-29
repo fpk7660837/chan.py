@@ -92,6 +92,7 @@ class AnalysisRequest(BaseModel):
     end_time: Optional[str] = Field(None, description="End date, format: YYYY-MM-DD")
     data_src: DataSourceEnum = Field(DataSourceEnum.BAO_STOCK, description="Data source")
     lv_list: List[KLineTypeEnum] = Field([KLineTypeEnum.K_DAY], description="K-line levels")
+    limit_kl_count: Optional[int] = Field(None, ge=10, le=5000, description="Limit number of K-line records returned")
     
     # Chan config parameters
     bi_strict: bool = Field(True, description="Use strict Bi rules")

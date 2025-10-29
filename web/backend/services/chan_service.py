@@ -2,6 +2,7 @@
 Chan calculation service
 Wraps original chan.py code and exposes business logic
 """
+from datetime import datetime
 from typing import Dict, Any, List
 
 # Import original chan.py modules
@@ -48,6 +49,15 @@ class ChanService:
         begin_time = params.get("begin_time", "2020-01-01")
         end_time = params.get("end_time")
         data_src = self.DATA_SRC_MAP.get(params["data_src"], DATA_SRC.BAO_STOCK)
+        limit_kl_count = params.get("limit_kl_count")
+        try:
+            limit_kl_count = int(limit_kl_count)
+            if limit_kl_count <= 0:
+                limit_kl_count = None
+            else:
+                limit_kl_count = min(limit_kl_count, 5000)
+        except (TypeError, ValueError):
+            limit_kl_count = None
         
         print(f"📊 Received lv_list from frontend: {params['lv_list']}")
         lv_list = [self.KL_TYPE_MAP[lv] for lv in params["lv_list"]]
@@ -214,6 +224,70 @@ class ChanService:
             print(f"📊 Added RSI data to result: {len(rsi_result)} points")
         else:
             print(f"⚠️  RSI not requested in params")
+        if limit_kl_count:
+            original_count = len(result.get("kline_data", []))
+            if original_count > limit_kl_count:
+                trimmed_kl = result["kline_data"][-limit_kl_count:]
+                cutoff_time_str = trimmed_kl[0].get("time")
+
+                def _parse_time(value: Any):
+                    if not value or not isinstance(value, str):
+                        return None
+                    try:
+                        return datetime.fromisoformat(value)
+                    except ValueError:
+                        try:
+                            return datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+                        except ValueError:
+                            return None
+
+                cutoff_dt = _parse_time(cutoff_time_str)
+
+                def _within_cutoff(value: Any) -> bool:
+                    if value is None:
+                        return False
+                    if cutoff_dt:
+                        parsed = _parse_time(value)
+                        if parsed:
+                            return parsed >= cutoff_dt
+                    if cutoff_time_str:
+                        if isinstance(value, str):
+                            return value >= cutoff_time_str
+                    return True
+
+                result["kline_data"] = trimmed_kl
+                result["meta"]["total_klines"] = len(trimmed_kl)
+                if cutoff_time_str:
+                    result["meta"]["begin_time"] = cutoff_time_str
+
+                if "bi_list" in result:
+                    result["bi_list"] = [bi for bi in result["bi_list"] if _within_cutoff(bi.get("end_time"))]
+                    result["meta"]["bi_count"] = len(result["bi_list"])
+                if "seg_list" in result:
+                    result["seg_list"] = [seg for seg in result["seg_list"] if _within_cutoff(seg.get("end_time"))]
+                    result["meta"]["seg_count"] = len(result["seg_list"])
+                if "zs_list" in result:
+                    result["zs_list"] = [zs for zs in result["zs_list"] if _within_cutoff(zs.get("end_time"))]
+                    result["meta"]["zs_count"] = len(result["zs_list"])
+                if "bsp_list" in result:
+                    result["bsp_list"] = [bsp for bsp in result["bsp_list"] if _within_cutoff(bsp.get("time"))]
+                    result["meta"]["bsp_count"] = len(result["bsp_list"])
+                if "macd_data" in result:
+                    result["macd_data"] = [item for item in result["macd_data"] if _within_cutoff(item.get("time"))]
+                if "boll_data" in result:
+                    result["boll_data"] = [item for item in result["boll_data"] if _within_cutoff(item.get("time"))]
+                if "kdj_data" in result:
+                    result["kdj_data"] = [item for item in result["kdj_data"] if _within_cutoff(item.get("time"))]
+                if "rsi_data" in result:
+                    result["rsi_data"] = [item for item in result["rsi_data"] if _within_cutoff(item.get("time"))]
+                if "ma_data" in result and isinstance(result["ma_data"], dict):
+                    result["ma_data"] = {
+                        key: [item for item in values if _within_cutoff(item.get("time"))]
+                        for key, values in result["ma_data"].items()
+                    }
+                print(f"✂️  Trimmed output from {original_count} to last {limit_kl_count} K-lines starting at {cutoff_time_str}")
+            else:
+                print(f"ℹ️  Requested limit_kl_count={limit_kl_count}, but only {original_count} K-lines available. Skipping trim.")
         
         print(f"📦 Final result keys: {list(result.keys())}")
         print(f"📦 Has macd_data in result: {'macd_data' in result}")

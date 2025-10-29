@@ -1,32 +1,24 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-Core runtime code lives in `src/chan_py/`, with subpackages such as `core` for Chan element computation, `analysis` for derived metrics, and `visualization` for rendering helpers. Legacy algorithm modules (`Bi/`, `Seg/`, `ZS/`, `KLine/`, `BuySellPoint/`) remain at the repo root for direct imports used by `main.py`. Supporting tooling is grouped in `Script/` (dependency pinning), `DataAPI/` (market data connectors), and `Plot/` for matplotlib drivers. Tests are organized by scope inside `tests/` (`unit/`, `integration/`, `performance/`), while the optional FastAPI + Vue web console lives under `web/`.
+Core Chan-computation modules live at the repository root (`Chan.py`, `ChanConfig.py`, `Bi/`, `Seg/`, `ZS/`, `KLine/`, `BuySellPoint/`) and are imported directly by `main.py`. Supporting utilities and experiments are gathered under `src/` and validated by suites in `tests/`. The browser console uses a FastAPI backend (`web/backend`) plus a single-page React bundle (`web/frontend/index.html`) that renders draggable sidebars, multi-period charts, and indicator overlays via KLineCharts.
 
 ## Build, Test, and Development Commands
-Create a Python 3.11 environment and install shared dependencies:
+Set up Python 3.11 and install dependencies:
 ```bash
 python3.11 -m venv .venv && source .venv/bin/activate
 pip install -r Script/requirements.txt
 ```
-Run the CLI demo to verify data access and plotting:
-```bash
-python3 main.py
-```
-Execute the automated test suite (covers unit and integration layers):
-```bash
-pytest
-```
-Web contributors should start the dashboard with `cd web && ./start_uv.sh` (uses uv to launch both backend and frontend).
+Run `python3 main.py` to confirm Chan data access. Execute the automated suites with `pytest` before every pull request. Launch the web console by running `cd web && ./start_uv.sh`; this spins up FastAPI and serves the in-browser Babel build. Refresh the browser after editing `web/frontend/index.html`.
 
 ## Coding Style & Naming Conventions
-Follow standard Python style: four-space indentation, `snake_case` for functions and variables, `PascalCase` for classes, and module names that stay lowercase with underscores. Prefer explicit type hints in new public APIs, especially within `src/chan_py/core` and `analysis`. Format code with Black (`black .`) and keep it lint-clean with Ruff (`ruff check . --fix`) before opening a PR. Plotting configs and strategy descriptors should be stored as dictionaries named `*_config` to mirror existing patterns.
+Backend code follows PEP 8: four-space indentation, `snake_case` identifiers, and PascalCase classes. Prefer explicit type hints on public APIs and keep configuration dictionaries suffixed with `_config`. For the web layer, use functional React components, group inline styles at the top of the script, favour Ant Design primitives, and add terse comments only when overlay math or chart wiring is non-obvious.
 
 ## Testing Guidelines
-Add or update unit tests alongside code in `tests/unit/` and mirror cross-module workflows in `tests/integration/`. Use descriptive test names like `test_seglist_respects_config` to match the current pytest style. When benchmarking new algorithms, gate the code behind a flag and place performance checks in `tests/performance/`. Always run `pytest` locally; include `-k` filters when iterating, but finish with a full run before submission.
+Place new unit tests beside the touched modules in `tests/unit/`, and mirror multi-level workflows in `tests/integration/`. When adjusting ChanConfig parameters or the result trimming logic, craft fixtures that assert counts (Bi, Seg, ZS, Buy/Sell) stay aligned with the returned K-line window. Run `pytest` (optionally narrowed with `-k`) locally, then finish with a full run before submission.
 
 ## Commit & Pull Request Guidelines
-Commits follow Conventional Commits (`feat(web):`, `fix:`, `refactor(core):`), so keep the type + optional scope format and write imperative, present-tense subjects. Squash fixups before pushing. Pull requests should describe the change, list any new commands or configs, and reference related issues. When UI or plotting output changes, attach before/after screenshots. Confirm tests run clean and call out any follow-up work in a checklist.
+Follow Conventional Commit prefixes (`feat(web):`, `fix(core):`, etc.) with concise, imperative subjects and squash fixups ahead of pushing. Pull requests should summarise behaviour changes, list new commands or configuration toggles (e.g., K线数量上限), reference related issues, and attach before/after screenshots for UI updates. Confirm `pytest` passes and note any follow-up tasks in a checklist.
 
-## Security & Configuration Tips
-Do not commit API tokens or account details; `DataAPI/` loaders expect credentials from environment variables or local config files added to `.gitignore`. Review new dependencies for licensing and trading restrictions before adding them to `Script/requirements.txt` or `web/requirements.txt`. When sharing notebooks or scripts, strip cached data to avoid leaking proprietary market feeds.
+## Web Interface Notes
+Expose dashboard options through the shared context helpers so selections persist in `localStorage`. Keep sidebar dimensions and K-line limits responsive, and describe tooltip or overlay adjustments in your PR to help reviewers verify hover behaviour easily.

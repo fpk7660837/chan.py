@@ -161,6 +161,7 @@
             border-color: #333;
         }
 
+
         /* Stock Manager Styles */
         .stock-manager-title {
             font-size: 16px;
@@ -287,6 +288,7 @@
             flex-wrap: wrap;
             gap: 12px;
             align-items: center;
+            margin-bottom: 8px;
         }
 
         .period-buttons {
@@ -345,44 +347,156 @@
             color: #262626;
         }
 
-        .chart-container {
+        .chart-wrapper {
             flex: 1;
-            position: relative;
             min-height: 500px;
         }
 
-        .chart-info-panel {
+        .chart-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        .chart-summary-wrapper {
             display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            padding: 8px 4px 12px;
-            font-size: 12px;
-            color: #555;
-            border-bottom: 1px solid #f0f0f0;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
         }
 
-        .chart-info-item {
-            min-width: 90px;
+        .chart-summary-card,
+        .chart-hover-card {
+            background: #fafafa;
+            border: 1px solid #e8e8e8;
+            border-radius: 6px;
+            padding: 10px;
         }
 
-        .chart-info-label {
-            color: #888;
-            margin-bottom: 4px;
-        }
-
-        .chart-info-value {
-            font-weight: 600;
-        }
-
-        .chart-info-signals {
+        .card-header {
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
+            justify-content: space-between;
             align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .card-header .card-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .hover-info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            column-gap: 6px;
+            row-gap: 4px;
+            font-size: 11px;
+            color: #555;
+        }
+
+        .hover-info-cell {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 4px;
+            line-height: 1.2;
+        }
+
+        .hover-info-label {
+            color: #8c8c8c;
+            white-space: nowrap;
+        }
+
+        .hover-info-value {
+            font-weight: 600;
+            color: #262626;
+            white-space: nowrap;
+        }
+
+        .hover-info-cell--full {
+            grid-column: 1 / -1;
+        }
+
+        @media (max-width: 680px) {
+            .hover-info-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        .chart-signal-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 3px;
+            margin-top: 4px;
         }
 
         .chart-info-placeholder {
-            color: #999;
+            color: #a6a6a6;
+            font-size: 12px;
+        }
+
+        .chart-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(60px, auto));
+            gap: 8px 12px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .chart-stats-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .chart-stats-label {
+            color: #8c8c8c;
+        }
+
+        .chart-stats-value {
+            font-weight: 600;
+            color: #262626;
+        }
+
+        .chart-bsp-types {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .chart-type-chip {
+            font-size: 11px;
+            background: rgba(24, 144, 255, 0.12);
+            color: #1890ff;
+            padding: 2px 6px;
+            border-radius: 999px;
+        }
+
+        .dark-theme .chart-summary-card,
+        .dark-theme .chart-hover-card {
+            background: #1f1f1f;
+            border-color: #333;
+        }
+
+        .dark-theme .card-header .card-title {
+            color: #bfbfbf;
+        }
+
+        .dark-theme .hover-info-label,
+        .dark-theme .chart-stats-label {
+            color: #a6a6a6;
+        }
+
+        .dark-theme .hover-info-value,
+        .dark-theme .chart-stats-value {
+            color: #f0f0f0;
+        }
+
+        .dark-theme .chart-type-chip {
+            background: rgba(24, 144, 255, 0.2);
+            color: #69c0ff;
         }
 
         /* Indicator Config */
@@ -440,12 +554,6 @@
     color: #e8e8e8;
 }
 
-.dark-theme .chart-info-panel {
-    color: #cfcfcf;
-    border-bottom-color: #333;
-}
-
-.dark-theme .chart-info-label,
 .dark-theme .stock-chart-toolbar {
     color: #9a9a9a;
 }
@@ -463,9 +571,10 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { Layout, Button, Input, Select, Checkbox, message, Spin, Tag, Space, Tooltip, Radio, InputNumber, Slider, Switch, Tabs, Collapse, Divider, Popover } = antd;
+        const { Layout, Button, Input, Select, Checkbox, message, Spin, Tag, Space, Tooltip, Radio, InputNumber, Slider, Switch, Tabs, Collapse, Divider, Popover, DatePicker } = antd;
         const { Header, Sider, Content } = Layout;
         const { useState, useEffect, useCallback, useContext, createContext, useRef, memo } = React;
+        const dayjs = window.dayjs;
 
         // ============= Version & Debug Info =============
         console.log('🚀 Chan.py Web v4.1.0 - KLineChart + Full Chan Theory Support');
@@ -516,10 +625,8 @@
             plot_kdj: false,
             plot_rsi: false,
             plot_volume: true,
-            seg_algo: 'chan',
-            zs_algo: 'normal',
-            bi_strict: true,
             begin_time: '2023-01-01',
+            limit_kl_count: null,
             ma_params: [5, 10, 20, 60],
             kdj_period: 9,
             rsi_period: 14,
@@ -691,6 +798,14 @@
             }
         };
 
+        const sanitizeIndicators = (raw) => {
+            if (!raw || typeof raw !== 'object') {
+                return {};
+            }
+            const { bi_strict, seg_algo, zs_algo, ...rest } = raw;
+            return rest;
+        };
+
         // ============= API Service =============
         const api = {
             async calculateChan(params) {
@@ -718,7 +833,7 @@
         const useApp = () => useContext(AppContext);
 
         // ============= Chart Component =============
-        const ChartPanel = memo(({ stockCode, level, data, loading }) => {
+        const ChartPanel = memo(({ stockCode, level, data, loading, stats }) => {
             const chartRef = useRef(null);
             const chartInstanceRef = useRef(null);
             const { indicators, theme } = useApp();
@@ -793,25 +908,21 @@
                             upColor: '#ef5350',
                             downColor: '#26a69a',
                             noChangeColor: '#888888',
-                            upBorderColor: 'transparent',
-                            downBorderColor: 'transparent',
-                            noChangeBorderColor: 'transparent',
-                            border: false,
-                            borderColor: {
-                                up: 'transparent',
-                                down: 'transparent',
-                                noChange: 'transparent',
-                            },
-                            borderSize: 0,
-                        },
-                        wick: {
-                            upColor: '#ef5350',
-                            downColor: '#26a69a',
-                            noChangeColor: '#888888',
+                            upBorderColor: 'rgba(0,0,0,0)',
+                            downBorderColor: 'rgba(0,0,0,0)',
+                            noChangeBorderColor: 'rgba(0,0,0,0)',
+                            upWickColor: '#ef5350',
+                            downWickColor: '#26a69a',
+                            noChangeWickColor: '#888888',
                         },
                         tooltip: {
-                            showRule: 'always',
+                            showRule: 'none',
                             showType: 'standard',
+                        }
+                    },
+                    indicator: {
+                        tooltip: {
+                            showRule: 'none',
                         }
                     }
                 });
@@ -1102,29 +1213,47 @@
                 let subscribed = false;
                 const handleCrosshair = (params) => {
                     try {
-                        if (!params || !params.data) {
+                        const payload = (() => {
+                            if (!params) return null;
+                            if (params.data) return params.data;
+                            if (params.current) return params.current;
+                            if (params.kLineData || Number.isFinite(params.dataIndex)) {
+                                return params;
+                            }
+                            return null;
+                        })();
+
+                        if (!payload) {
                             updateHoverInfo(null);
                             return;
                         }
-                        const payload = params.data;
+
+                        const dataIndex = Number.isFinite(payload.dataIndex)
+                            ? payload.dataIndex
+                            : Number.isFinite(payload.currentDataIndex)
+                                ? payload.currentDataIndex
+                                : undefined;
+
+                        const kLineData = payload.kLineData || payload.klineData || null;
                         let timestamp = payload.timestamp;
-                        if (!timestamp && payload.kLineData && payload.kLineData.timestamp) {
-                            timestamp = payload.kLineData.timestamp;
+
+                        if (!timestamp && kLineData && Number.isFinite(kLineData.timestamp)) {
+                            timestamp = kLineData.timestamp;
                         }
-                        if (!timestamp && Number.isFinite(payload.dataIndex)) {
-                            const idx = payload.dataIndex;
+
+                        if (!timestamp && Number.isFinite(dataIndex)) {
                             const list = candleDataRef.current;
-                            if (idx >= 0 && idx < list.length) {
-                                timestamp = list[idx].timestamp;
+                            if (Array.isArray(list) && list.length > 0) {
+                                const idx = clamp(Math.floor(dataIndex), 0, list.length - 1);
+                                timestamp = idx >= 0 ? list[idx]?.timestamp : undefined;
                             }
                         }
-                        if (!timestamp && payload.kLineData && Number.isFinite(payload.kLineData.timestamp)) {
-                            timestamp = payload.kLineData.timestamp;
-                        }
+
                         if (!timestamp) {
                             updateHoverInfo(null);
                             return;
                         }
+
                         updateHoverInfo(timestamp);
                     } catch (err) {
                         console.warn('⚠️ Crosshair update failed', err);
@@ -1190,52 +1319,10 @@
                             </Button>
                         </Space>
                     </div>
-                    <div className="chart-info-panel">
-                        {hoverInfo ? (
-                            <>
-                                <div className="chart-info-item">
-                                    <div className="chart-info-label">时间</div>
-                                    <div className="chart-info-value">{formatDateTime(hoverInfo.timestamp)}</div>
-                                </div>
-                                <div className="chart-info-item">
-                                    <div className="chart-info-label">开/收</div>
-                                    <div className="chart-info-value">
-                                        {formatNumber(hoverInfo.open)} / {formatNumber(hoverInfo.close)}
-                                    </div>
-                                </div>
-                                <div className="chart-info-item">
-                                    <div className="chart-info-label">高/低</div>
-                                    <div className="chart-info-value">
-                                        {formatNumber(hoverInfo.high)} / {formatNumber(hoverInfo.low)}
-                                    </div>
-                                </div>
-                                <div className="chart-info-item">
-                                    <div className="chart-info-label">成交量</div>
-                                    <div className="chart-info-value">{formatVolume(hoverInfo.volume)}</div>
-                                </div>
-                                <div className="chart-info-item" style={{ flex: 1 }}>
-                                    <div className="chart-info-label">买卖点</div>
-                                    <div className="chart-info-signals">
-                                        {hoverInfo.signals.length > 0 ? (
-                                            hoverInfo.signals.map((signal, idx) => (
-                                                <Tag
-                                                    key={`${signal.isBuy ? 'buy' : 'sell'}-${idx}`}
-                                                    color={signal.isBuy ? 'green' : 'volcano'}
-                                                >
-                                                    {signal.isBuy ? '买' : '卖'}{signal.type || ''}
-                                                </Tag>
-                                            ))
-                                        ) : (
-                                            <span className="chart-info-placeholder">--</span>
-                                        )}
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <span className="chart-info-placeholder">将鼠标移动到K线查看详细数据</span>
-                        )}
+                    <ChartSummary hoverInfo={hoverInfo} stats={stats} level={level} />
+                    <div className="chart-wrapper">
+                        <div ref={chartRef} className="chart-container" />
                     </div>
-                    <div ref={chartRef} className="chart-container" />
                 </div>
             );
         });
@@ -1250,6 +1337,114 @@
                 </span>
             </Tooltip>
         );
+
+        function ChartSummaryComponent({ hoverInfo, stats, level }) {
+            const [statsCollapsed, setStatsCollapsed] = useState(true);
+
+            const levelLabel = LEVEL_OPTIONS.find(option => option.value === level)?.label || level;
+            const signalList = hoverInfo?.signals || [];
+            const statPairs = stats ? [
+                { label: 'K线', value: stats.kline },
+                { label: '笔', value: stats.bi },
+                { label: '线段', value: stats.seg },
+                { label: '中枢', value: stats.zs },
+                { label: '买卖点', value: stats.bsp },
+                { label: '买点', value: stats.buy },
+                { label: '卖点', value: stats.sell },
+            ] : [];
+            const bspTypeEntries = stats && stats.bspTypes ? Object.entries(stats.bspTypes) : [];
+
+            return (
+                <div className="chart-summary-wrapper">
+                    <div className="chart-summary-card">
+                        <div className="card-header">
+                            <span className="card-title">缠论统计 · {levelLabel}</span>
+                            <Button size="small" type="link" onClick={() => setStatsCollapsed(prev => !prev)}>
+                                {statsCollapsed ? '展开' : '收起'}
+                            </Button>
+                        </div>
+                        {!statsCollapsed && (
+                            stats ? (
+                                <>
+                                    <div className="chart-stats-grid">
+                                        {statPairs.map(item => (
+                                            <div className="chart-stats-item" key={item.label}>
+                                                <span className="chart-stats-label">{item.label}</span>
+                                                <span className="chart-stats-value">{item.value ?? '--'}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    {bspTypeEntries.length > 0 && (
+                                        <div className="chart-bsp-types">
+                                            {bspTypeEntries.map(([type, count]) => (
+                                                <span className="chart-type-chip" key={type}>
+                                                    {type} × {count}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    )}
+                                </>
+                            ) : (
+                                <span className="chart-info-placeholder">暂无该周期统计</span>
+                            )
+                        )}
+                    </div>
+                    <div className="chart-hover-card">
+                        <div className="card-header">
+                            <span className="card-title">K线数据</span>
+                        </div>
+                        {hoverInfo ? (
+                            <>
+                                <div className="hover-info-grid">
+                                    <div className="hover-info-cell hover-info-cell--full">
+                                        <span className="hover-info-label">时间</span>
+                                        <span className="hover-info-value">{formatDateTime(hoverInfo.timestamp)}</span>
+                                    </div>
+                                    <div className="hover-info-cell">
+                                        <span className="hover-info-label">开盘</span>
+                                        <span className="hover-info-value">{formatNumber(hoverInfo.open)}</span>
+                                    </div>
+                                    <div className="hover-info-cell">
+                                        <span className="hover-info-label">收盘</span>
+                                        <span className="hover-info-value">{formatNumber(hoverInfo.close)}</span>
+                                    </div>
+                                    <div className="hover-info-cell">
+                                        <span className="hover-info-label">最高</span>
+                                        <span className="hover-info-value">{formatNumber(hoverInfo.high)}</span>
+                                    </div>
+                                    <div className="hover-info-cell">
+                                        <span className="hover-info-label">最低</span>
+                                        <span className="hover-info-value">{formatNumber(hoverInfo.low)}</span>
+                                    </div>
+                                    <div className="hover-info-cell hover-info-cell--full">
+                                        <span className="hover-info-label">成交量</span>
+                                        <span className="hover-info-value">{formatVolume(hoverInfo.volume)}</span>
+                                    </div>
+                                </div>
+                                <div className="chart-signal-tags">
+                                    {signalList.length > 0 ? (
+                                        signalList.map((signal, idx) => (
+                                            <Tag
+                                                key={`${signal.isBuy ? 'buy' : 'sell'}-${idx}`}
+                                                color={signal.isBuy ? 'green' : 'volcano'}
+                                            >
+                                                {signal.isBuy ? '买' : '卖'}{signal.type || ''}
+                                            </Tag>
+                                        ))
+                                    ) : (
+                                        <span className="chart-info-placeholder">当前K线无买卖点</span>
+                                    )}
+                                </div>
+                            </>
+                        ) : (
+                            <span className="chart-info-placeholder">将鼠标移动到K线查看详细数据</span>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        const ChartSummary = memo(ChartSummaryComponent);
 
         const StockChartGroup = memo(({ stock }) => {
             const {
@@ -1303,6 +1498,32 @@
             const handleRefresh = () => {
                 stock.levels.forEach(level => analyzeStock(stock.code, level, true));
             };
+
+            const statsByLevel = stock.levels.reduce((acc, level) => {
+                const key = `${stock.code}-${level}`;
+                const data = chartData[key];
+                if (!data) {
+                    acc[level] = null;
+                    return acc;
+                }
+                const meta = data.meta || {};
+                const bspList = data.bsp_list || [];
+                acc[level] = {
+                    kline: meta.total_klines ?? data.kline_data?.length ?? 0,
+                    bi: meta.bi_count ?? data.bi_list?.length ?? 0,
+                    seg: meta.seg_count ?? data.seg_list?.length ?? 0,
+                    zs: meta.zs_count ?? data.zs_list?.length ?? 0,
+                    bsp: meta.bsp_count ?? bspList.length,
+                    buy: bspList.filter(item => item.is_buy).length,
+                    sell: bspList.filter(item => !item.is_buy).length,
+                    bspTypes: bspList.reduce((map, item) => {
+                        const type = item.type || '未知';
+                        map[type] = (map[type] || 0) + 1;
+                        return map;
+                    }, {}),
+                };
+                return acc;
+            }, {});
 
             let columnsClass = 'columns-1';
             if (stock.multiMode && stock.layout === 'grid' && stock.levels.length > 1) {
@@ -1382,6 +1603,7 @@
                                     level={level}
                                     data={chartData[key]}
                                     loading={loadingCharts[key]}
+                                    stats={statsByLevel[level]}
                                 />
                             );
                         })}
@@ -1501,6 +1723,18 @@
         const IndicatorConfig = memo(() => {
             const { indicators, setIndicators, refreshAllCharts } = useApp();
             const [timeRange, setTimeRange] = useState('1y');
+            const [customRange, setCustomRange] = useState(() => {
+                if (indicators.begin_time || indicators.end_time) {
+                    return [indicators.begin_time || null, indicators.end_time || null];
+                }
+                return [null, null];
+            });
+            const { RangePicker } = DatePicker;
+            const [limitCount, setLimitCount] = useState(indicators.limit_kl_count || null);
+
+            useEffect(() => {
+                setLimitCount(indicators.limit_kl_count || null);
+            }, [indicators.limit_kl_count]);
 
             const PRESET_INDICATORS = [
                 {
@@ -1592,10 +1826,52 @@
                     case '1y': beginTime = new Date(now.setFullYear(now.getFullYear() - 1)); break;
                     case '3y': beginTime = new Date(now.setFullYear(now.getFullYear() - 3)); break;
                     case 'all': beginTime = new Date('2020-01-01'); break;
+                    case 'custom':
+                        setTimeRange('custom');
+                        return;
                     default: beginTime = new Date(now.setFullYear(now.getFullYear() - 1));
                 }
                 
                 handleChange('begin_time', beginTime.toISOString().split('T')[0]);
+                handleChange('end_time', null);
+                setCustomRange([beginTime.toISOString().split('T')[0], null]);
+                setTimeout(() => refreshAllCharts(), 100);
+            };
+            const applyCustomRange = () => {
+                const [start, end] = customRange || [];
+                if (start) {
+                    handleChange('begin_time', start);
+                }
+                if (end) {
+                    handleChange('end_time', end);
+                } else {
+                    handleChange('end_time', null);
+                }
+                setTimeRange('custom');
+                setTimeout(() => refreshAllCharts(), 100);
+            };
+
+            const clearLimitCount = () => {
+                setLimitCount(null);
+                handleChange('limit_kl_count', null);
+                message.success('已取消K线数量限制');
+                setTimeout(() => refreshAllCharts(), 100);
+            };
+
+            const applyLimitCount = () => {
+                if (limitCount === null || limitCount === undefined || limitCount === '') {
+                    clearLimitCount();
+                    return;
+                }
+                const numeric = Number(limitCount);
+                if (!Number.isFinite(numeric)) {
+                    message.warning('请输入有效的K线数量');
+                    return;
+                }
+                const sanitized = Math.min(5000, Math.max(10, Math.round(numeric)));
+                handleChange('limit_kl_count', sanitized);
+                setLimitCount(sanitized);
+                message.success(`已限制展示最近 ${sanitized} 根K线`);
                 setTimeout(() => refreshAllCharts(), 100);
             };
 
@@ -1612,19 +1888,60 @@
                 <div>
                     <div style={{ marginBottom: 16, padding: 12, background: '#f5f5f5', borderRadius: 8 }}>
                         <div style={{ marginBottom: 8, fontWeight: 600, fontSize: 13 }}>时间范围</div>
-                        <Radio.Group 
-                            value={timeRange} 
-                            onChange={e => handleTimeRangeChange(e.target.value)}
-                            size="small"
-                            buttonStyle="solid"
-                        >
-                            <Radio.Button value="1m">近1月</Radio.Button>
-                            <Radio.Button value="3m">近3月</Radio.Button>
-                            <Radio.Button value="6m">近6月</Radio.Button>
-                            <Radio.Button value="1y">近1年</Radio.Button>
-                            <Radio.Button value="3y">近3年</Radio.Button>
-                            <Radio.Button value="all">全部</Radio.Button>
-                        </Radio.Group>
+                        <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                            <Radio.Group 
+                                value={timeRange} 
+                                onChange={e => handleTimeRangeChange(e.target.value)}
+                                size="small"
+                                buttonStyle="solid"
+                            >
+                                <Radio.Button value="1m">近1月</Radio.Button>
+                                <Radio.Button value="3m">近3月</Radio.Button>
+                                <Radio.Button value="6m">近6月</Radio.Button>
+                                <Radio.Button value="1y">近1年</Radio.Button>
+                                <Radio.Button value="3y">近3年</Radio.Button>
+                                <Radio.Button value="all">全部</Radio.Button>
+                                <Radio.Button value="custom">自定义</Radio.Button>
+                            </Radio.Group>
+                            <Space size="small" wrap>
+                                <RangePicker
+                                    size="small"
+                                    value={(customRange || []).map(v => v ? dayjs(v) : null)}
+                                    onChange={(dates, dateStrings) => {
+                                        setCustomRange(dateStrings);
+                                    }}
+                                    allowEmpty={[true, true]}
+                                    placeholder={['开始日期', '结束日期']}
+                                />
+                                <Button size="small" onClick={applyCustomRange}>应用</Button>
+                            </Space>
+                            <Space size="small" align="center" wrap>
+                                <span style={{ fontSize: 12, color: '#888' }}>K线数量上限</span>
+                                <InputNumber
+                                    size="small"
+                                    min={10}
+                                    max={5000}
+                                    step={50}
+                                    style={{ width: 110 }}
+                                    value={limitCount}
+                                    placeholder="不限"
+                                    onChange={value => {
+                                        if (value === null || value === undefined || value === '') {
+                                            setLimitCount(null);
+                                        } else {
+                                            setLimitCount(Number(value));
+                                        }
+                                    }}
+                                />
+                                <Button size="small" type="primary" onClick={applyLimitCount}>应用</Button>
+                                <Button size="small" onClick={clearLimitCount} disabled={limitCount === null}>
+                                    清除
+                                </Button>
+                            </Space>
+                            <div style={{ fontSize: 11, color: '#999' }}>
+                                将数量限制设为 N 时，仅加载最近 N 根K线及对应的笔/线段/中枢与指标数据，便于聚焦当前走势。
+                            </div>
+                        </Space>
                     </div>
 
                     <div className="indicator-section">
@@ -2233,10 +2550,11 @@
                     }));
             };
 
+            const savedIndicators = sanitizeIndicators(savedConfig?.indicators);
             const [stocks, setStocks] = useState(() => hydrateStocks(savedConfig?.stocks));
             const [indicators, setIndicators] = useState(() => ({
                 ...DEFAULT_INDICATORS,
-                ...(savedConfig?.indicators || {})
+                ...savedIndicators,
             }));
             const [chanConfig, setChanConfig] = useState(() => {
                 const savedChan = savedConfig?.chanConfig || {};
@@ -2266,7 +2584,7 @@
             // Save config
             useEffect(() => {
                 try {
-                    const config = { stocks, indicators, chanConfig, theme, ui: { leftCollapsed, rightCollapsed, leftWidth, rightWidth } };
+                    const config = { stocks, indicators: sanitizeIndicators(indicators), chanConfig, theme, ui: { leftCollapsed, rightCollapsed, leftWidth, rightWidth } };
                     localStorage.setItem('chanlun_config', JSON.stringify(config));
                 } catch (e) {
                     console.error('Failed to save config:', e);
