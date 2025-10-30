@@ -565,6 +565,112 @@
 .dark-theme .main-content {
     background: #000;
 }
+
+.alert-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.alert-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+}
+
+.alert-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #bfbfbf;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.06);
+}
+
+.status-dot--online {
+    background: #52c41a;
+}
+
+.status-dot--offline {
+    background: #faad14;
+}
+
+.alert-error-text {
+    color: #ff4d4f;
+    font-size: 12px;
+}
+
+.alert-strategy-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.alert-history {
+    max-height: 320px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.alert-card {
+    border: 1px solid #e8e8e8;
+    border-radius: 6px;
+    padding: 8px;
+    background: #fafafa;
+}
+
+.alert-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.alert-card-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #262626;
+}
+
+.alert-card-message {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #444;
+    line-height: 1.4;
+}
+
+.alert-card-meta {
+    margin-top: 6px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #8c8c8c;
+}
+
+.dark-theme .alert-card {
+    background: #1f1f1f;
+    border-color: #333;
+}
+
+.dark-theme .alert-card-title {
+    color: #f0f0f0;
+}
+
+.dark-theme .alert-card-message {
+    color: #d9d9d9;
+}
+
+.dark-theme .alert-card-meta {
+    color: #a6a6a6;
+}
     </style>
 </head>
 <body>
@@ -648,6 +754,7 @@
         };
 
         const MA_OPTIONS = [5, 10, 20, 30, 45, 60, 120, 250];
+        const ALERT_HISTORY_LIMIT = 120;
 
         const DEFAULT_CHAN_CONFIG = {
             bi_algo: 'normal',
@@ -825,7 +932,21 @@
                     seg_count: result.seg_list?.length,
                 });
                 return result;
-            }
+            },
+            async getAlertHistory(limit = 50) {
+                const response = await fetch(`${API_BASE}/api/alerts/history?limit=${limit}`);
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+                return response.json();
+            },
+            async listAlertStrategies() {
+                const response = await fetch(`${API_BASE}/api/alerts/strategies`);
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+                return response.json();
+            },
         };
 
         // ============= App Context =============
@@ -2495,6 +2616,64 @@
             );
         });
 
+        const AlertPanel = memo(() => {
+            const { alertHistory, alertConnected, alertError, alertStrategies, refreshAlertHistory } = useApp();
+            const severityColorMap = {
+                info: 'processing',
+                warning: 'warning',
+                critical: 'error',
+            };
+
+            return (
+                <div className="alert-panel">
+                    <div className="alert-status">
+                        <span className="alert-status-indicator">
+                            <span className={`status-dot ${alertConnected ? 'status-dot--online' : 'status-dot--offline'}`} />
+                            {alertConnected ? '实时连接正常' : '等待实时数据...'}
+                        </span>
+                        <Button size="small" onClick={refreshAlertHistory}>刷新</Button>
+                    </div>
+                    {alertError && <div className="alert-error-text">{alertError}</div>}
+                    <div>
+                        <div className="config-section-title">已启用策略</div>
+                        <div className="alert-strategy-tags">
+                            {alertStrategies.length === 0 ? (
+                                <div className="chart-info-placeholder">暂无策略</div>
+                            ) : (
+                                alertStrategies.map(strategy => (
+                                    <Tag key={strategy.id}>{strategy.name}</Tag>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                    <div>
+                        <div className="config-section-title">实时报警</div>
+                        <div className="alert-history">
+                            {alertHistory.length === 0 ? (
+                                <div className="chart-info-placeholder">暂无报警，策略运行中...</div>
+                            ) : (
+                                alertHistory.map((alert, idx) => (
+                                    <div key={`${alert.strategy_id}-${alert.created_at}-${idx}`} className="alert-card">
+                                        <div className="alert-card-header">
+                                            <span className="alert-card-title">{alert.strategy_name || alert.strategy_id}</span>
+                                            <Tag color={severityColorMap[alert.severity] || 'default'}>
+                                                {(alert.severity || 'info').toUpperCase()}
+                                            </Tag>
+                                        </div>
+                                        <div className="alert-card-message">{alert.message}</div>
+                                        <div className="alert-card-meta">
+                                            <span>{alert.symbol} · {alert.level}</span>
+                                            <span>{alert.created_at ? dayjs(alert.created_at).format('MM-DD HH:mm:ss') : '--'}</span>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        });
+
         const RightSidebar = memo(() => (
             <Tabs
                 size="small"
@@ -2502,6 +2681,7 @@
                 items={[
                     { key: 'view', label: '显示设置', children: <IndicatorConfig /> },
                     { key: 'chan', label: '缠论配置', children: <ChanConfigPanel /> },
+                    { key: 'alerts', label: '盯盘报警', children: <AlertPanel /> },
                 ]}
             />
         ));
@@ -2580,6 +2760,12 @@
             const [rightWidth, setRightWidth] = useState(savedConfig?.ui?.rightWidth || 320);
             const [dragging, setDragging] = useState(null);
             const layoutRef = useRef(null);
+            const [alertHistory, setAlertHistory] = useState([]);
+            const [alertConnected, setAlertConnected] = useState(false);
+            const [alertError, setAlertError] = useState(null);
+            const [alertStrategies, setAlertStrategies] = useState([]);
+            const alertWsRef = useRef(null);
+            const reconnectTimerRef = useRef(null);
 
             // Save config
             useEffect(() => {
@@ -2640,6 +2826,12 @@
                     document.body.style.cursor = '';
                 };
             }, [dragging]);
+
+            useEffect(() => {
+                api.listAlertStrategies()
+                    .then(res => setAlertStrategies(res.items || []))
+                    .catch(err => console.warn('⚠️ Failed to load alert strategies:', err));
+            }, []);
 
             const addStock = (stockInfo) => {
                 const code = (stockInfo.code || '').trim();
@@ -2800,6 +2992,76 @@
                 message.info('正在刷新所有图表...');
             }, [stocks, indicators, chanConfig]);
 
+            const refreshAlertHistory = useCallback(async () => {
+                try {
+                    const result = await api.getAlertHistory(50);
+                    setAlertHistory(Array.isArray(result.items) ? result.items.slice(0, ALERT_HISTORY_LIMIT) : []);
+                    setAlertError(null);
+                } catch (error) {
+                    console.error('⚠️ Failed to fetch alert history:', error);
+                    setAlertError('无法获取报警历史');
+                }
+            }, []);
+
+            useEffect(() => {
+                refreshAlertHistory();
+                let shouldReconnect = true;
+                const wsUrl = `${API_BASE.replace(/^http/, 'ws')}/api/alerts/stream`;
+
+                const connect = () => {
+                    const ws = new WebSocket(wsUrl);
+                    alertWsRef.current = ws;
+
+                    ws.onopen = () => {
+                        setAlertConnected(true);
+                        setAlertError(null);
+                    };
+
+                    ws.onmessage = (event) => {
+                        try {
+                            const payload = JSON.parse(event.data);
+                            if (payload.type === 'history') {
+                                if (Array.isArray(payload.data)) {
+                                    setAlertHistory(payload.data.slice(0, ALERT_HISTORY_LIMIT));
+                                }
+                            } else if (payload.type === 'alert' && payload.data) {
+                                setAlertHistory(prev => {
+                                    const next = [payload.data, ...prev];
+                                    return next.slice(0, ALERT_HISTORY_LIMIT);
+                                });
+                            }
+                        } catch (err) {
+                            console.error('⚠️ Failed to parse alert payload:', err);
+                        }
+                    };
+
+                    ws.onerror = () => {
+                        setAlertError('实时连接异常');
+                    };
+
+                    ws.onclose = () => {
+                        setAlertConnected(false);
+                        if (shouldReconnect) {
+                            reconnectTimerRef.current = setTimeout(connect, 5000);
+                        }
+                    };
+                };
+
+                connect();
+
+                return () => {
+                    shouldReconnect = false;
+                    if (alertWsRef.current) {
+                        alertWsRef.current.close();
+                        alertWsRef.current = null;
+                    }
+                    if (reconnectTimerRef.current) {
+                        clearTimeout(reconnectTimerRef.current);
+                        reconnectTimerRef.current = null;
+                    }
+                };
+            }, [refreshAlertHistory]);
+
             const contextValue = {
                 stocks,
                 setStocks,
@@ -2817,6 +3079,11 @@
                 analyzeStock,
                 refreshAllCharts,
                 theme,
+                alertHistory,
+                alertConnected,
+                alertError,
+                alertStrategies,
+                refreshAlertHistory,
             };
 
             return (
