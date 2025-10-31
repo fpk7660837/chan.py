@@ -7,8 +7,8 @@ from typing import Dict
 
 from fastapi import APIRouter, Query, Request, WebSocket, WebSocketDisconnect
 
-from ..runtime.realtime import get_realtime
-from ..schemas.alerts import KLineTick
+from runtime.realtime import get_realtime
+from schemas.alerts import KLineTick
 
 router = APIRouter()
 
@@ -55,4 +55,3 @@ async def stream_alerts(websocket: WebSocket) -> None:
         pass
     finally:
         await orchestrator.alert_dispatcher.unregister(queue)
-

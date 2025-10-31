@@ -8,7 +8,7 @@ from collections import deque
 from datetime import datetime, timedelta, timezone
 from typing import Deque, Dict, Iterable, List, Set
 
-from ..strategies.base import AlertSignal
+from strategies.base import AlertSignal
 
 
 class AlertDispatcher:

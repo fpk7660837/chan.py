@@ -7,11 +7,11 @@ from typing import Dict, List, Tuple
 
 from fastapi import FastAPI
 
-from ..schemas.alerts import KLineTick
-from ..services.chan_trigger import ChanTriggerSession, LEVEL_TO_KL_TYPE
-from ..services.state_cache import StateCache
-from ..services.alert_dispatcher import AlertDispatcher
-from ..strategies import StrategyContext, StrategyRegistry, SimpleBreakoutStrategy
+from schemas.alerts import KLineTick
+from services.chan_trigger import ChanTriggerSession, LEVEL_TO_KL_TYPE
+from services.state_cache import StateCache
+from services.alert_dispatcher import AlertDispatcher
+from strategies import StrategyContext, StrategyRegistry, SimpleBreakoutStrategy
 
 
 class RealTimeOrchestrator:
@@ -91,4 +91,3 @@ def get_realtime(app: FastAPI) -> RealTimeOrchestrator:
     if orchestrator is None:
         raise RuntimeError("Real-time orchestrator not initialized")
     return orchestrator
-
