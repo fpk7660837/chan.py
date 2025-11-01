@@ -163,68 +163,191 @@
 
 
         /* Stock Manager Styles */
+        .stock-manager {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .stock-manager-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
         .stock-manager-title {
             font-size: 16px;
             font-weight: 600;
-            margin-bottom: 16px;
             color: #262626;
         }
 
-        .stock-input-group {
+        .stock-manager-subtitle {
+            font-size: 12px;
+            color: #8c8c8c;
+            margin-top: 4px;
+        }
+
+        .stock-add-card {
+            background: #fafafa;
+            border: 1px solid #e8e8e8;
+            border-radius: 10px;
+            padding: 12px;
             display: flex;
             flex-direction: column;
             gap: 12px;
-            margin-bottom: 16px;
         }
 
-        .quick-add-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+        .stock-add-inputs {
+            display: flex;
+            flex-direction: column;
             gap: 8px;
-            margin-bottom: 16px;
         }
 
-        .stock-list {
-            margin-top: 16px;
+        .stock-add-inputs .ant-input {
+            font-size: 13px;
         }
 
-        .stock-item {
+        .stock-add-hint {
+            font-size: 12px;
+            color: #999;
+            line-height: 1.5;
+        }
+
+        .stock-quick-area {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stock-quick-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: #262626;
+        }
+
+        .watchlist-empty {
+            padding: 14px;
+            border-radius: 10px;
+            background: #fafafa;
+            border: 1px dashed #d9d9d9;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .watchlist-item {
             border: 1px solid #e8e8e8;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 12px;
             margin-bottom: 12px;
-            background: #fafafa;
-            transition: all 0.3s;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
         }
 
-        .stock-item:hover {
-            background: #f0f0f0;
+        .watchlist-item:hover {
             border-color: #1890ff;
+            box-shadow: 0 4px 12px rgba(24, 144, 255, 0.12);
+            transform: translateY(-1px);
         }
 
-        .stock-header {
+        .watchlist-item--active {
+            border-color: #1890ff;
+            box-shadow: 0 4px 14px rgba(24, 144, 255, 0.12);
+            background: rgba(24, 144, 255, 0.06);
+        }
+
+        .watchlist-item__header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
-        .stock-code {
+        .watchlist-item__info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .watchlist-item__code {
             font-weight: 600;
             font-size: 14px;
             color: #262626;
         }
 
-        .stock-levels {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-bottom: 8px;
+        .watchlist-item__meta {
+            font-size: 12px;
+            color: #9c9c9c;
         }
 
-        .stock-actions {
+        .watchlist-item__body {
             display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .watchlist-item__row {
+            display: flex;
+            align-items: center;
             gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .watchlist-label {
+            font-size: 12px;
+            color: #888;
+            min-width: 48px;
+        }
+
+        .watchlist-item__levels {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .level-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .level-selector-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .dark-theme .stock-add-card,
+        .dark-theme .watchlist-empty,
+        .dark-theme .watchlist-item {
+            background: #141414;
+            border-color: #333;
+        }
+
+        .dark-theme .watchlist-item--active {
+            border-color: #177ddc;
+            background: rgba(64, 169, 255, 0.18);
+            box-shadow: 0 6px 16px rgba(24, 144, 255, 0.2);
+        }
+
+        .dark-theme .stock-manager-title {
+            color: #f0f0f0;
+        }
+
+        .dark-theme .stock-manager-subtitle,
+        .dark-theme .stock-add-hint,
+        .dark-theme .watchlist-item__meta,
+        .dark-theme .watchlist-label {
+            color: #bfbfbf;
+        }
+
+        .dark-theme .watchlist-item__code {
+            color: #fafafa;
         }
 
         /* Chart Grid */
@@ -677,9 +800,9 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { Layout, Button, Input, Select, Checkbox, message, Spin, Tag, Space, Tooltip, Radio, InputNumber, Slider, Switch, Tabs, Collapse, Divider, Popover, DatePicker } = antd;
+        const { Layout, Button, Input, Select, Checkbox, message, Spin, Tag, Space, Tooltip, Radio, InputNumber, Slider, Switch, Tabs, Collapse, Divider, Popover, DatePicker, Segmented, List, Empty, AutoComplete } = antd;
         const { Header, Sider, Content } = Layout;
-        const { useState, useEffect, useCallback, useContext, createContext, useRef, memo } = React;
+        const { useState, useEffect, useCallback, useContext, createContext, useRef, memo, useMemo } = React;
         const dayjs = window.dayjs;
 
         // ============= Version & Debug Info =============
@@ -946,6 +1069,17 @@
                     throw new Error(`API Error: ${response.statusText}`);
                 }
                 return response.json();
+            },
+            async searchStocks(keyword) {
+                if (!keyword || !keyword.trim()) {
+                    return [];
+                }
+                const response = await fetch(`${API_BASE}/api/analysis/stock/search?keyword=${encodeURIComponent(keyword.trim())}`);
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+                const result = await response.json();
+                return Array.isArray(result.results) ? result.results : [];
             },
         };
 
@@ -1567,61 +1701,57 @@
 
         const ChartSummary = memo(ChartSummaryComponent);
 
-        const StockChartGroup = memo(({ stock }) => {
+        const ActiveStockPanel = memo(() => {
             const {
+                activeStock,
+                activeLevels,
+                setActiveLevels,
+                levelLayout,
+                setLevelLayout,
                 chartData,
                 loadingCharts,
                 analyzeStock,
-                updateStockLevels,
-                setStockMultiMode,
-                setStockLayout,
-                removeStock,
-                setIndicators,
+                refreshAllCharts,
                 indicators,
+                setIndicators,
             } = useApp();
 
-            const handleLevelClick = (level) => {
-                if (stock.multiMode) {
-                    const isActive = stock.levels.includes(level);
-                    let nextLevels;
-                    if (isActive) {
-                        if (stock.levels.length === 1) {
-                            message.warning('至少保留一个周期');
-                            return;
-                        }
-                        nextLevels = stock.levels.filter(l => l !== level);
-                    } else {
-                        nextLevels = [...stock.levels, level];
-                    }
-                    updateStockLevels(stock.id, nextLevels);
-                } else {
-                    if (stock.levels.length === 1 && stock.levels[0] === level) {
+            useEffect(() => {
+                if (!activeStock) {
+                    return;
+                }
+                activeLevels.forEach(level => analyzeStock(activeStock.code, level));
+            }, [activeStock?.code, activeLevels.join(','), analyzeStock]);
+
+            if (!activeStock) {
+                return (
+                    <div className="watchlist-empty" style={{ marginTop: 40 }}>
+                        请选择左侧自选股票开始分析
+                    </div>
+                );
+            }
+
+            const displayTitle = activeStock.name ? `${activeStock.name} · ${activeStock.code}` : activeStock.code;
+
+            const handleLevelToggle = (level) => {
+                const isActive = activeLevels.includes(level);
+                if (isActive) {
+                    if (activeLevels.length === 1) {
+                        message.warning('至少保留一个周期');
                         return;
                     }
-                    updateStockLevels(stock.id, [level]);
+                    setActiveLevels(prev => prev.filter(item => item !== level));
+                } else {
+                    setActiveLevels(prev => {
+                        const next = [...prev, level];
+                        analyzeStock(activeStock.code, level);
+                        return next;
+                    });
                 }
             };
 
-            const handleMultiModeChange = (checked) => {
-                setStockMultiMode(stock.id, checked);
-                if (!checked) {
-                    setStockLayout(stock.id, 'stack');
-                    if (stock.levels.length > 1) {
-                        updateStockLevels(stock.id, [stock.levels[0]]);
-                    }
-                }
-            };
-
-            const handleLayoutChange = (layout) => {
-                setStockLayout(stock.id, layout);
-            };
-
-            const handleRefresh = () => {
-                stock.levels.forEach(level => analyzeStock(stock.code, level, true));
-            };
-
-            const statsByLevel = stock.levels.reduce((acc, level) => {
-                const key = `${stock.code}-${level}`;
+            const statsByLevel = activeLevels.reduce((acc, level) => {
+                const key = `${activeStock.code}-${level}`;
                 const data = chartData[key];
                 if (!data) {
                     acc[level] = null;
@@ -1647,23 +1777,18 @@
             }, {});
 
             let columnsClass = 'columns-1';
-            if (stock.multiMode && stock.layout === 'grid' && stock.levels.length > 1) {
-                columnsClass = 'columns-2';
+            if (levelLayout === 'grid' && activeLevels.length > 1) {
+                columnsClass = activeLevels.length >= 3 ? 'columns-3' : 'columns-2';
             }
 
             return (
                 <div className="stock-chart-group">
                     <div className="stock-chart-header">
-                        <div className="stock-chart-title">{stock.code}</div>
+                        <div className="stock-chart-title">{displayTitle}</div>
                         <Space>
                             <Tooltip title="刷新当前股票所有周期">
-                                <Button size="small" onClick={handleRefresh}>
+                                <Button size="small" onClick={refreshAllCharts}>
                                     🔄 刷新
-                                </Button>
-                            </Tooltip>
-                            <Tooltip title="移除自选">
-                                <Button size="small" danger onClick={() => removeStock(stock.id)}>
-                                    删除
                                 </Button>
                             </Tooltip>
                         </Space>
@@ -1671,13 +1796,12 @@
                     <div className="stock-chart-toolbar">
                         <div className="period-buttons">
                             {LEVEL_OPTIONS.map(option => {
-                                const active = stock.levels.includes(option.value);
+                                const active = activeLevels.includes(option.value);
                                 return (
                                     <Button
                                         key={option.value}
                                         type={active ? 'primary' : 'default'}
-                                        ghost={stock.multiMode && !active}
-                                        onClick={() => handleLevelClick(option.value)}
+                                        onClick={() => handleLevelToggle(option.value)}
                                     >
                                         {option.label}
                                     </Button>
@@ -1685,21 +1809,15 @@
                             })}
                         </div>
                         <Space size="small" align="center">
-                            <div className="multi-mode-indicator">
-                                <Switch size="small" checked={!!stock.multiMode} onChange={handleMultiModeChange} />
-                                <span>多周期</span>
-                            </div>
-                            {stock.multiMode && (
-                                <Radio.Group
-                                    size="small"
-                                    value={stock.layout || 'stack'}
-                                    onChange={e => handleLayoutChange(e.target.value)}
-                                    buttonStyle="solid"
-                                >
-                                    <Radio.Button value="stack">纵向</Radio.Button>
-                                    <Radio.Button value="grid">并排</Radio.Button>
-                                </Radio.Group>
-                            )}
+                            <Radio.Group
+                                size="small"
+                                value={levelLayout}
+                                onChange={e => setLevelLayout(e.target.value)}
+                                buttonStyle="solid"
+                            >
+                                <Radio.Button value="stack">纵向</Radio.Button>
+                                <Radio.Button value="grid" disabled={activeLevels.length < 2}>并排</Radio.Button>
+                            </Radio.Group>
                             {(indicators.indicator_layout === 'tab' && LOWER_INDICATOR_KEYS.some(key => indicators[`plot_${key}`])) && (
                                 <Select
                                     size="small"
@@ -1715,12 +1833,12 @@
                         </Space>
                     </div>
                     <div className={`stock-chart-panels ${columnsClass}`}>
-                        {stock.levels.map(level => {
-                            const key = `${stock.code}-${level}`;
+                        {activeLevels.map(level => {
+                            const key = `${activeStock.code}-${level}`;
                             return (
                                 <ChartPanel
                                     key={key}
-                                    stockCode={stock.code}
+                                    stockCode={activeStock.code}
                                     level={level}
                                     data={chartData[key]}
                                     loading={loadingCharts[key]}
@@ -1735,107 +1853,181 @@
 
         // ============= Stock Manager Component =============
         const StockManager = memo(() => {
-            const { stocks, addStock, removeStock, analyzeStock } = useApp();
-            const [inputCode, setInputCode] = useState('');
+            const {
+                stocks,
+                addStock,
+                removeStock,
+                activeStockCode,
+                setActiveStockCode,
+            } = useApp();
 
-            const handleAdd = () => {
-                const code = inputCode.trim();
+            const [searchValue, setSearchValue] = useState('');
+            const [searchOptions, setSearchOptions] = useState([]);
+            const [searchLoading, setSearchLoading] = useState(false);
+            const [manualCode, setManualCode] = useState('');
+
+            const runSearch = useMemo(() => debounce(async (value) => {
+                if (!value || value.trim().length < 2) {
+                    setSearchOptions([]);
+                    setSearchLoading(false);
+                    return;
+                }
+                try {
+                    const results = await api.searchStocks(value);
+                    setSearchOptions(results.map(item => ({
+                        value: item.code,
+                        label: `${item.code} · ${item.name}`,
+                        code: item.code,
+                        name: item.name,
+                    })));
+                } catch (error) {
+                    console.error('⚠️ 搜索股票失败:', error);
+                    setSearchOptions([]);
+                } finally {
+                    setSearchLoading(false);
+                }
+            }, 350), []);
+
+            const handleSearchChange = (value) => {
+                setSearchValue(value);
+                if (!value) {
+                    setSearchOptions([]);
+                    setSearchLoading(false);
+                    return;
+                }
+                setSearchLoading(true);
+                runSearch(value);
+            };
+
+            const handleSearchSelect = (value, option) => {
+                const result = addStock({ code: option.code, name: option.name });
+                if (result === 'new') {
+                    message.success(`已添加 ${option.label}`);
+                } else if (result === 'updated') {
+                    message.success(`已更新 ${option.label}`);
+                }
+                setActiveStockCode(option.code);
+                setSearchValue('');
+                setSearchOptions([]);
+            };
+
+            const handleManualAdd = () => {
+                const code = manualCode.trim();
                 if (!code) {
                     message.warning('请输入股票代码');
                     return;
                 }
                 const result = addStock({ code });
-                if (result === 'invalid') return;
-                setInputCode('');
                 if (result === 'new') {
-                    message.success('已添加到自选，默认显示日线');
+                    message.success(`已添加 ${code}`);
                 } else if (result === 'updated') {
-                    message.success('已为该股票开启新的周期视图');
-                } else {
-                    message.info('该股票已在自选列表');
+                    message.success(`已更新 ${code}`);
+                } else if (result === 'unchanged') {
+                    message.info(`${code} 已在自选列表`);
                 }
+                setActiveStockCode(code);
+                setManualCode('');
+            };
+
+            const handleQuickAdd = (stock) => {
+                const result = addStock({ code: stock.code, name: stock.name });
+                if (result === 'new') {
+                    message.success(`已添加 ${stock.name}`);
+                } else if (result === 'updated') {
+                    message.success(`已更新 ${stock.name}`);
+                } else if (result === 'unchanged') {
+                    message.info(`${stock.name} 已在自选列表`);
+                }
+                setActiveStockCode(stock.code);
+            };
+
+            const WatchlistItem = ({ stock }) => {
+                const isActive = stock.code === activeStockCode;
+                return (
+                    <List.Item className={`watchlist-item ${isActive ? 'watchlist-item--active' : ''}`} key={stock.id}>
+                        <div className="watchlist-item__header">
+                            <div className="watchlist-item__info">
+                                <div className="watchlist-item__code">{stock.name || stock.code}</div>
+                                {stock.name && <div className="watchlist-item__meta">{stock.code}</div>}
+                            </div>
+                            <Space size="small">
+                                {!isActive && (
+                                    <Button size="small" onClick={() => setActiveStockCode(stock.code)}>
+                                        查看
+                                    </Button>
+                                )}
+                                <Button size="small" danger onClick={() => removeStock(stock.id)}>
+                                    删除
+                                </Button>
+                            </Space>
+                        </div>
+                    </List.Item>
+                );
             };
 
             return (
-                <div>
-                    <div className="stock-manager-title">自选管理</div>
-                    
-                    <div className="stock-input-group">
-                        <Input
-                            placeholder="输入股票代码 (如: sz.000001)"
-                            value={inputCode}
-                            onChange={e => setInputCode(e.target.value)}
-                            onPressEnter={handleAdd}
-                        />
-                        <Button type="primary" block onClick={handleAdd}>
-                            添加自选
-                        </Button>
+                <div className="stock-manager">
+                    <div>
+                        <div className="stock-manager-title">自选股票</div>
+                        <div className="stock-manager-subtitle">搜索或手动输入代码添加，点击即可切换</div>
                     </div>
 
-                    <div style={{ fontSize: 12, color: '#999', marginBottom: 12 }}>
-                        添加后可在图表顶部切换周期，或开启多周期并排查看。
-                    </div>
-
-                    <div className="quick-add-buttons">
-                        {QUICK_STOCKS.map(stock => (
-                            <Button
-                                key={stock.code}
-                                size="small"
-                                onClick={() => {
-                                    const result = addStock({ code: stock.code });
-                                    if (result === 'new') {
-                                        message.success(`已添加 ${stock.name}`);
-                                    } else if (result === 'updated') {
-                                        message.success(`已为 ${stock.name} 增加周期`);
-                                    } else {
-                                        message.info(`${stock.name} 已在自选列表`);
-                                    }
-                                }}
-                            >
-                                {stock.name}
+                    <div className="stock-add-card">
+                        <AutoComplete
+                            value={searchValue}
+                            options={searchOptions}
+                            onSearch={handleSearchChange}
+                            onSelect={handleSearchSelect}
+                            onChange={value => setSearchValue(value)}
+                            placeholder="搜索股票代码 / 名称（至少输入2个字符）"
+                            style={{ width: '100%' }}
+                        >
+                            <Input
+                                suffix={searchLoading ? <Spin size="small" /> : null}
+                                allowClear
+                            />
+                        </AutoComplete>
+                        <Space.Compact style={{ width: '100%' }}>
+                            <Input
+                                placeholder="或直接输入股票代码添加"
+                                value={manualCode}
+                                onChange={e => setManualCode(e.target.value)}
+                                onPressEnter={handleManualAdd}
+                            />
+                            <Button type="primary" onClick={handleManualAdd}>
+                                添加
                             </Button>
-                        ))}
+                        </Space.Compact>
+                        <div className="stock-add-hint">
+                            选中自选项后，可在主面板中同时查看多周期 K 线。
+                        </div>
                     </div>
 
-                    <div className="stock-list">
-                        {stocks.map(stock => (
-                            <div key={stock.id} className="stock-item">
-                                <div className="stock-header">
-                                    <span className="stock-code">{stock.code}</span>
-                                    <Tag color={stock.multiMode ? 'purple' : 'blue'}>
-                                        {stock.multiMode ? '多周期' : LEVEL_OPTIONS.find(o => o.value === stock.levels[0])?.label || stock.levels[0]}
-                                    </Tag>
-                                </div>
-                                <div className="stock-levels">
-                                    {stock.levels.map(lv => (
-                                        <Tag key={lv} color="geekblue">
-                                            {LEVEL_OPTIONS.find(o => o.value === lv)?.label || lv}
-                                        </Tag>
-                                    ))}
-                                </div>
-                                <div className="stock-actions">
-                                    <Button
-                                        type="text"
-                                        size="small"
-                                        onClick={() => {
-                                            stock.levels.forEach(lv => analyzeStock(stock.code, lv, true));
-                                            message.info(`正在刷新 ${stock.code}`);
-                                        }}
-                                    >
-                                        🔄 刷新
-                                    </Button>
-                                    <Button
-                                        type="text"
-                                        danger
-                                        size="small"
-                                        onClick={() => removeStock(stock.id)}
-                                    >
-                                        删除
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="stock-quick-area">
+                        <div className="stock-quick-title">快速添加</div>
+                        <Space size={[8, 8]} wrap>
+                            {QUICK_STOCKS.map(stock => (
+                                <Button key={stock.code} size="small" onClick={() => handleQuickAdd(stock)}>
+                                    {stock.name}
+                                </Button>
+                            ))}
+                        </Space>
                     </div>
+
+                    <Divider style={{ margin: '8px 0' }} />
+
+                    {stocks.length === 0 ? (
+                        <div className="watchlist-empty">
+                            暂无自选股票，先添加一只看看~
+                        </div>
+                    ) : (
+                        <List
+                            split={false}
+                            dataSource={stocks}
+                            locale={{ emptyText: <Empty description="暂无自选股票" /> }}
+                            renderItem={(stock) => <WatchlistItem stock={stock} />}
+                        />
+                    )}
                 </div>
             );
         });
@@ -2687,51 +2879,46 @@
         ));
 
         // ============= Chart Grid Component =============
-        const ChartGrid = () => {
-            const { stocks } = useApp();
-
-            const totalGroups = stocks.length;
-            let layoutClass = 'chart-grid-1x1';
-            if (totalGroups === 1) layoutClass = 'chart-grid-1x1';
-            else if (totalGroups === 2) layoutClass = 'chart-grid-2x1';
-            else if (totalGroups <= 4) layoutClass = 'chart-grid-2x2';
-            else layoutClass = 'chart-grid-3x2';
-
-            if (totalGroups === 0) {
-                return (
-                    <div style={{ textAlign: 'center', color: '#999', padding: 40 }}>
-                        暂无图表，请先添加股票
-                    </div>
-                );
-            }
-
-            return (
-                <div className={`chart-grid ${layoutClass}`}>
-                    {stocks.map(stock => (
-                        <StockChartGroup key={stock.id} stock={stock} />
-                    ))}
-                </div>
-            );
-        };
+        const ChartGrid = () => (
+            <div className="chart-grid chart-grid-1x1">
+                <ActiveStockPanel />
+            </div>
+        );
 
         // ============= Main App Component =============
         const App = () => {
             const savedConfig = loadConfig();
 
             const hydrateStocks = (rawStocks = []) => {
+                const timestampBase = Date.now();
                 return rawStocks
                     .filter(stock => stock && stock.code)
                     .map((stock, idx) => ({
-                        id: stock.id || Date.now() + idx,
+                        id: stock.id ?? (timestampBase + idx),
                         code: stock.code,
-                        levels: Array.isArray(stock.levels) && stock.levels.length > 0 ? stock.levels : [DEFAULT_LEVEL],
-                        multiMode: !!stock.multiMode,
-                        layout: stock.layout || 'stack',
+                        name: stock.name || '',
                     }));
             };
 
+            const initialStocks = useMemo(() => hydrateStocks(savedConfig?.stocks), []);
             const savedIndicators = sanitizeIndicators(savedConfig?.indicators);
-            const [stocks, setStocks] = useState(() => hydrateStocks(savedConfig?.stocks));
+
+            const [stocks, setStocks] = useState(initialStocks);
+            const [activeStockCode, setActiveStockCode] = useState(() => {
+                const stored = savedConfig?.ui?.activeStockCode;
+                if (stored) {
+                    return stored;
+                }
+                return initialStocks[0]?.code ?? null;
+            });
+            const [activeLevels, setActiveLevels] = useState(() => {
+                const stored = savedConfig?.chart?.activeLevels;
+                if (Array.isArray(stored) && stored.length > 0) {
+                    return Array.from(new Set(stored));
+                }
+                return [DEFAULT_LEVEL];
+            });
+            const [levelLayout, setLevelLayout] = useState(savedConfig?.chart?.layout || 'stack');
             const [indicators, setIndicators] = useState(() => ({
                 ...DEFAULT_INDICATORS,
                 ...savedIndicators,
@@ -2767,29 +2954,95 @@
             const alertWsRef = useRef(null);
             const reconnectTimerRef = useRef(null);
 
-            // Save config
+            const activeStock = useMemo(() => {
+                if (!activeStockCode) {
+                    return null;
+                }
+                return stocks.find(stock => stock.code === activeStockCode) || null;
+            }, [stocks, activeStockCode]);
+
             useEffect(() => {
                 try {
-                    const config = { stocks, indicators: sanitizeIndicators(indicators), chanConfig, theme, ui: { leftCollapsed, rightCollapsed, leftWidth, rightWidth } };
+                    const config = {
+                        stocks,
+                        indicators: sanitizeIndicators(indicators),
+                        chanConfig,
+                        theme,
+                        ui: { leftCollapsed, rightCollapsed, leftWidth, rightWidth, activeStockCode },
+                        chart: { activeLevels, layout: levelLayout },
+                    };
                     localStorage.setItem('chanlun_config', JSON.stringify(config));
                 } catch (e) {
                     console.error('Failed to save config:', e);
                 }
-            }, [stocks, indicators, chanConfig, theme, leftCollapsed, rightCollapsed, leftWidth, rightWidth]);
+            }, [stocks, indicators, chanConfig, theme, leftCollapsed, rightCollapsed, leftWidth, rightWidth, activeStockCode, activeLevels, levelLayout]);
 
-            // Auto-refresh on indicator change
+            useEffect(() => {
+                if (stocks.length === 0) {
+                    if (activeStockCode !== null) {
+                        setActiveStockCode(null);
+                    }
+                    return;
+                }
+                if (!activeStockCode || !stocks.some(stock => stock.code === activeStockCode)) {
+                    setActiveStockCode(stocks[0].code);
+                }
+            }, [stocks, activeStockCode]);
+
+            const analyzeStock = useCallback(async (code, level, forceRefresh = false) => {
+                const key = `${code}-${level}`;
+
+                if (!forceRefresh) {
+                    const cachedData = DataCache.get(key);
+                    if (cachedData) {
+                        setChartData(prev => ({ ...prev, [key]: cachedData }));
+                        return;
+                    }
+                }
+
+                setLoadingCharts(prev => ({ ...prev, [key]: true }));
+
+                try {
+                    const params = {
+                        code,
+                        lv_list: [level],
+                        data_src: 'BAO_STOCK',
+                        ...indicators,
+                        chan_config: chanConfig,
+                    };
+
+                    const result = await api.calculateChan(params);
+                    setChartData(prev => ({ ...prev, [key]: result }));
+                    DataCache.set(key, result);
+                } catch (error) {
+                    console.error('Analysis failed:', error);
+                    message.error(`${code} ${level} 分析失败: ${error.message}`);
+                } finally {
+                    setLoadingCharts(prev => ({ ...prev, [key]: false }));
+                }
+            }, [indicators, chanConfig]);
+
+            const refreshAllCharts = useCallback(() => {
+                if (!activeStock) {
+                    message.info('请选择股票后再刷新');
+                    return;
+                }
+                DataCache.clear();
+                activeLevels.forEach(level => analyzeStock(activeStock.code, level, true));
+                message.info(`正在刷新 ${activeStock.code}...`);
+            }, [activeStock, activeLevels, analyzeStock]);
+
             const prevIndicatorsRef = useRef(indicators);
             useEffect(() => {
                 const prev = prevIndicatorsRef.current;
                 const changed = ['plot_bi', 'plot_seg', 'plot_zs', 'plot_bsp', 'plot_ma', 'plot_macd', 'plot_boll', 'plot_kdj', 'plot_rsi', 'plot_volume']
                     .some(key => prev[key] !== indicators[key]);
 
-                if (changed && Object.keys(prev).length > 0 && stocks.length > 0) {
-                    console.log('🔄 Indicators changed, refreshing...');
+                if (changed && Object.keys(prev).length > 0 && activeStock) {
                     setTimeout(() => refreshAllCharts(), 100);
                 }
                 prevIndicatorsRef.current = indicators;
-            }, [indicators, stocks.length]);
+            }, [indicators, activeStock, refreshAllCharts]);
 
             useEffect(() => {
                 if (indicators.indicator_layout !== 'tab') {
@@ -2805,16 +3058,16 @@
                 if (!available.includes(indicators.indicator_tab)) {
                     setIndicators(prev => ({ ...prev, indicator_tab: available[0] }));
                 }
-            }, [indicators.indicator_layout, indicators.plot_macd, indicators.plot_kdj, indicators.plot_rsi, setIndicators, indicators.indicator_tab]);
+            }, [indicators.indicator_layout, indicators.plot_macd, indicators.plot_kdj, indicators.plot_rsi, indicators.indicator_tab, setIndicators]);
 
             const prevChanConfigRef = useRef(chanConfig);
             useEffect(() => {
-                if (prevChanConfigRef.current !== chanConfig && stocks.length > 0) {
+                if (prevChanConfigRef.current !== chanConfig && activeStock) {
                     console.log('⚙️ Chan config changed, refreshing charts...');
                     setTimeout(() => refreshAllCharts(), 120);
                 }
                 prevChanConfigRef.current = chanConfig;
-            }, [chanConfig, stocks.length, refreshAllCharts]);
+            }, [chanConfig, activeStock, refreshAllCharts]);
 
             useEffect(() => {
                 if (dragging) {
@@ -2833,82 +3086,35 @@
                     .catch(err => console.warn('⚠️ Failed to load alert strategies:', err));
             }, []);
 
-            const addStock = (stockInfo) => {
+            const addStock = useCallback((stockInfo = {}) => {
                 const code = (stockInfo.code || '').trim();
                 if (!code) {
                     message.warning('股票代码无效');
                     return 'invalid';
                 }
 
-                const incomingLevels = Array.from(new Set((stockInfo.levels && stockInfo.levels.length > 0 ? stockInfo.levels : [DEFAULT_LEVEL])));
-                const existingStock = stocks.find(s => s.code === code);
-
-                if (existingStock) {
-                    const mergedLevels = Array.from(new Set([...existingStock.levels, ...incomingLevels]));
-                    if (mergedLevels.length !== existingStock.levels.length) {
-                        setStocks(prev => prev.map(s => s.code === code ? { ...s, levels: mergedLevels } : s));
-                        mergedLevels.forEach(level => {
-                            const key = `${code}-${level}`;
-                            if (!chartData[key]) {
-                                analyzeStock(code, level);
-                            }
-                        });
+                const displayName = (stockInfo.name || '').trim();
+                const existing = stocks.find(s => s.code === code);
+                if (existing) {
+                    if (displayName && displayName !== existing.name) {
+                        setStocks(prev => prev.map(s => s.code === code ? { ...s, name: displayName } : s));
                         return 'updated';
                     }
                     return 'unchanged';
                 }
 
                 const newStock = {
-                    id: Date.now(),
+                    id: Date.now() + Math.floor(Math.random() * 1000),
                     code,
-                    levels: incomingLevels,
-                    multiMode: !!stockInfo.multiMode,
-                    layout: 'stack',
+                    name: displayName,
                 };
                 setStocks(prev => [...prev, newStock]);
-                incomingLevels.forEach(level => analyzeStock(code, level));
                 return 'new';
-            };
+            }, [stocks]);
 
-            const removeStock = (stockId) => {
+            const removeStock = useCallback((stockId) => {
                 setStocks(prev => prev.filter(s => s.id !== stockId));
-            };
-
-            const updateStockLevels = (stockId, nextLevelsInput) => {
-                const target = stocks.find(s => s.id === stockId);
-                if (!target) return;
-
-                const nextLevels = Array.from(new Set((typeof nextLevelsInput === 'function' ? nextLevelsInput(target.levels) : nextLevelsInput) || []));
-                if (nextLevels.length === 0) {
-                    message.warning('至少保留一个周期');
-                    return;
-                }
-
-                setStocks(prev => prev.map(s => s.id === stockId ? { ...s, levels: nextLevels } : s));
-
-                nextLevels.forEach(level => {
-                    const key = `${target.code}-${level}`;
-                    if (!chartData[key]) {
-                        analyzeStock(target.code, level);
-                    }
-                });
-            };
-
-            const setStockMultiMode = (stockId, multiMode) => {
-                const target = stocks.find(s => s.id === stockId);
-                if (!target) return;
-
-                let nextLevels = target.levels;
-                if (!multiMode && target.levels.length > 1) {
-                    nextLevels = [target.levels[0]];
-                }
-
-                setStocks(prev => prev.map(s => s.id === stockId ? { ...s, multiMode, levels: nextLevels, layout: multiMode ? (s.layout || 'stack') : 'stack' } : s));
-            };
-
-            const setStockLayout = (stockId, layout) => {
-                setStocks(prev => prev.map(s => s.id === stockId ? { ...s, layout } : s));
-            };
+            }, []);
 
             const toggleLeftSidebar = () => setLeftCollapsed(prev => !prev);
             const toggleRightSidebar = () => setRightCollapsed(prev => !prev);
@@ -2946,51 +3152,6 @@
                 window.addEventListener('mousemove', handleMove);
                 window.addEventListener('mouseup', handleUp);
             }, [leftCollapsed, rightCollapsed, rightWidth, leftWidth]);
-
-            const analyzeStock = async (code, level, forceRefresh = false) => {
-                const key = `${code}-${level}`;
-                
-                if (!forceRefresh) {
-                    const cachedData = DataCache.get(key);
-                    if (cachedData) {
-                        setChartData(prev => ({ ...prev, [key]: cachedData }));
-                        message.success(`${code} ${level} 数据已从缓存加载`, 1);
-                        return;
-                    }
-                }
-
-                setLoadingCharts(prev => ({ ...prev, [key]: true }));
-
-                try {
-                    const params = {
-                        code,
-                        lv_list: [level],
-                        data_src: 'BAO_STOCK',
-                        ...indicators,
-                        chan_config: chanConfig,
-                    };
-
-                    const result = await api.calculateChan(params);
-                    setChartData(prev => ({ ...prev, [key]: result }));
-                    DataCache.set(key, result);
-                    message.success(`${code} ${level} 分析完成`);
-                } catch (error) {
-                    console.error('Analysis failed:', error);
-                    message.error(`${code} ${level} 分析失败: ${error.message}`);
-                } finally {
-                    setLoadingCharts(prev => ({ ...prev, [key]: false }));
-                }
-            };
-
-            const refreshAllCharts = useCallback(() => {
-                DataCache.clear();
-                stocks.forEach(stock => {
-                    stock.levels.forEach(level => {
-                        analyzeStock(stock.code, level, true);
-                    });
-                });
-                message.info('正在刷新所有图表...');
-            }, [stocks, indicators, chanConfig]);
 
             const refreshAlertHistory = useCallback(async () => {
                 try {
@@ -3064,12 +3225,15 @@
 
             const contextValue = {
                 stocks,
-                setStocks,
                 addStock,
                 removeStock,
-                updateStockLevels,
-                setStockMultiMode,
-                setStockLayout,
+                activeStock,
+                activeStockCode,
+                setActiveStockCode,
+                activeLevels,
+                setActiveLevels,
+                levelLayout,
+                setLevelLayout,
                 indicators,
                 setIndicators,
                 chanConfig,
