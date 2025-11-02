@@ -334,9 +334,19 @@ class ChanService:
                             print(f"⚠️  Warning: high < low at idx {idx}: high={high_price}, low={low_price}, swapping")
                             high_price, low_price = low_price, high_price
                         
-                        # Ensure high is the maximum and low is the minimum
-                        actual_high = max(high_price, low_price, open_price, close_price)
-                        actual_low = min(high_price, low_price, open_price, close_price)
+                        # Preserve Chan merged extremes exactly as computed on backend
+                        actual_high = high_price
+                        actual_low = low_price
+
+                        # Clamp open/close into merged range so downstream charts stay consistent
+                        if open_price > actual_high:
+                            open_price = actual_high
+                        elif open_price < actual_low:
+                            open_price = actual_low
+                        if close_price > actual_high:
+                            close_price = actual_high
+                        elif close_price < actual_low:
+                            close_price = actual_low
                         
                         # Debug: log first K-line
                         if idx == 0:

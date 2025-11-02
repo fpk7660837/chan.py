@@ -1359,11 +1359,11 @@
                             }
                             const childHighs = children.map(child => Number(child.high)).filter(Number.isFinite);
                             const childLows = children.map(child => Number(child.low)).filter(Number.isFinite);
-                            if (childHighs.length > 0) {
-                                highVal = Math.max(...childHighs, highVal);
+                            if (!Number.isFinite(highVal) && childHighs.length > 0) {
+                                highVal = Math.max(...childHighs);
                             }
-                            if (childLows.length > 0) {
-                                lowVal = Math.min(...childLows, lowVal);
+                            if (!Number.isFinite(lowVal) && childLows.length > 0) {
+                                lowVal = Math.min(...childLows);
                             }
                         }
 
@@ -1813,7 +1813,15 @@
         );
 
         function ChartSummaryComponent({ hoverInfo, stats, level }) {
+            const { indicators, setIndicators } = useApp();
+            const handleChange = useCallback((key, value) => {
+                setIndicators(prev => ({ ...prev, [key]: value }));
+            }, [setIndicators]);
             const [statsCollapsed, setStatsCollapsed] = useState(true);
+
+            if (!indicators) {
+                return null;
+            }
 
             const levelLabel = LEVEL_OPTIONS.find(option => option.value === level)?.label || level;
             const signalList = hoverInfo?.signals || [];
