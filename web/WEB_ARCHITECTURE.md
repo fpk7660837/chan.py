@@ -38,6 +38,7 @@ web/
 - `web/frontend/index.html` 使用 React 18 + Ant Design 5（CDN 版）与本地打包的 KLineCharts。
 - 页面布局含左右可拖拽的侧边栏（参数配置、指标控制、告警面板）及主图区域；当前页面已实现表单/界面框架，但部分事件处理仍需补充。
 - 左侧自选面板已支持：按代码或名称搜索添加、快速添加常用指数、自选列表高亮当前标的并一键切换。
+- 主图默认展示原始 K 线，同时以虚线矩形并附带轻量底色圈出由多根原始 K 线合并而成的缠论 K 线，可在指标面板切换显示。
 - 核心接口调用顺序：
   1. `GET /api/config/default` 与 `/api/config/presets` 初始化初始配置。
   2. `POST /api/analysis/calculate` 获取缠论分析结果。

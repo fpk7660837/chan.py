@@ -874,6 +874,9 @@
             zs_label_color: '#FFC107',
             indicator_layout: 'stack',
             indicator_tab: 'macd',
+            highlight_chan_kline: true,
+            chan_kline_color: '#FF9800',
+            chan_kline_show_label: false,
         };
 
         const MA_OPTIONS = [5, 10, 20, 30, 45, 60, 120, 250];
@@ -952,10 +955,84 @@
         // ============= Utility Functions =============
         const convertTime = (timeStr) => {
             if (!timeStr) return null;
-            const cleaned = timeStr.replace(/\//g, '-');
-            const date = new Date(cleaned);
-            if (isNaN(date.getTime())) return null;
-            return date.getTime();
+            let normalized = String(timeStr).trim().replace(/\//g, '-');
+            if (!normalized.includes('T') && normalized.includes(' ')) {
+                normalized = normalized.replace(' ', 'T');
+            }
+            normalized = normalized.replace(/(\.\d+)(?=[+-]|Z|$)/, '');
+            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(normalized)) {
+                normalized = `${normalized}:00`;
+            }
+            const parsed = dayjs(normalized);
+            if (parsed.isValid()) {
+                return parsed.valueOf();
+            }
+            const fallback = new Date(normalized.replace('T', ' '));
+            const ts = fallback.getTime();
+            return Number.isNaN(ts) ? null : ts;
+        };
+
+        let chanOverlayRegistered = false;
+        const registerChanOverlay = () => {
+            if (chanOverlayRegistered) return;
+            if (typeof klinecharts === 'undefined' || typeof klinecharts.registerOverlay !== 'function') {
+                return;
+            }
+            klinecharts.registerOverlay({
+                name: 'chanZone',
+                totalStep: 0,
+                needDefaultPointFigure: false,
+                createPointFigures: ({ coordinates, overlay }) => {
+                    if (!Array.isArray(coordinates) || coordinates.length < 4) {
+                        return [];
+                    }
+                    const [topLeft, topRight, bottomRight, bottomLeft] = coordinates;
+                    const fillColor = overlay.extendData?.fillColor || 'rgba(255, 152, 0, 0.22)';
+                    const borderColor = overlay.extendData?.borderColor || '#FF9800';
+                    const borderDashed = overlay.extendData?.borderDashed ?? [4, 3];
+                    const label = overlay.extendData?.label;
+                    const textColor = overlay.extendData?.labelColor || borderColor;
+
+                    const rect = {
+                        type: 'rect',
+                        attrs: {
+                            x: Math.min(topLeft.x, bottomLeft.x),
+                            y: Math.min(topLeft.y, topRight.y),
+                            width: Math.max(2, Math.abs(topRight.x - topLeft.x)),
+                            height: Math.max(2, Math.abs(bottomLeft.y - topLeft.y)),
+                        },
+                        styles: {
+                            color: fillColor,
+                            borderColor,
+                            borderSize: 1,
+                            borderStyle: 'dashed',
+                            borderDashedValue: borderDashed,
+                        },
+                    };
+
+                    const figures = [rect];
+                    if (label) {
+                        figures.push({
+                            type: 'text',
+                            attrs: {
+                                x: Math.min(topLeft.x, topRight.x) + 6,
+                                y: Math.min(topLeft.y, topRight.y) - 6,
+                                text: label,
+                                align: 'left',
+                                baseline: 'bottom',
+                            },
+                            styles: {
+                                color: textColor,
+                                size: 10,
+                                family: 'sans-serif',
+                                weight: '600',
+                            },
+                        });
+                    }
+                    return figures;
+                },
+            });
+            chanOverlayRegistered = true;
         };
 
         const formatDateTime = (timestamp) => {
@@ -1050,7 +1127,8 @@
                 }
                 const result = await response.json();
                 console.log('🌐 [API] Response:', {
-                    kline_count: result.kline_data?.length,
+                    chan_kline_count: result.kline_data?.length,
+                    raw_kline_count: result.raw_kline_data?.length,
                     bi_count: result.bi_list?.length,
                     seg_count: result.seg_list?.length,
                 });
@@ -1183,7 +1261,29 @@
                 });
 
                 // Prepare candle data
-                const candleData = data.kline_data.map(k => ({
+                const chanKlineMeta = Array.isArray(data.kline_data) ? data.kline_data : [];
+                const rawChildMap = new Map();
+                chanKlineMeta.forEach(item => {
+                    if (!Array.isArray(item.chan_children)) {
+                        return;
+                    }
+                    item.chan_children.forEach(child => {
+                        const ts = convertTime(child.time);
+                        if (!ts || rawChildMap.has(ts)) {
+                            return;
+                        }
+                        rawChildMap.set(ts, {
+                            timestamp: ts,
+                            open: parseFloat(child.open),
+                            high: parseFloat(child.high),
+                            low: parseFloat(child.low),
+                            close: parseFloat(child.close),
+                            volume: parseFloat(child.volume || 0),
+                        });
+                    });
+                });
+
+                const fallbackCandles = (data.kline_data || []).map(k => ({
                     timestamp: convertTime(k.time),
                     open: parseFloat(k.open),
                     high: parseFloat(k.high),
@@ -1191,6 +1291,8 @@
                     close: parseFloat(k.close),
                     volume: parseFloat(k.volume || 0),
                 })).filter(k => k.timestamp !== null);
+                const rawCandles = Array.from(rawChildMap.values()).sort((a, b) => a.timestamp - b.timestamp);
+                const candleData = rawCandles.length > 0 ? rawCandles : fallbackCandles;
                 candleDataRef.current = candleData;
 
                 const candleMap = new Map();
@@ -1214,6 +1316,123 @@
 
                 console.log('📊 [KLineChart] Loading', candleData.length, 'candles');
                 chart.applyNewData(candleData);
+
+                if (indicators.highlight_chan_kline && chanKlineMeta.length > 0) {
+                    console.log('🧩 Chan K-line stats', chanKlineMeta.slice(0, 3));
+                    const chanBorderColor = indicators.chan_kline_color || '#FF9800';
+                    const borderDashed = [4, 3];
+                    registerChanOverlay();
+                    try {
+                        const removed = chart.removeOverlay({ groupId: 'chan_kline_group' });
+                        if (removed) {
+                            console.log('🧹 Cleared Chan K-line overlays:', removed.length);
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ Unable to clear previous Chan K-line overlays', error);
+                    }
+
+                    const composedCount = chanKlineMeta.filter(item => (item.chan_sub_count ?? item.sub_count ?? 1) > 1).length;
+                    chanKlineMeta.forEach((item, idx) => {
+                        const subCount = Number(item.chan_sub_count ?? item.sub_count ?? item.components ?? 1);
+                        const isComposed = item.chan_is_composed === true || subCount > 1;
+                        if (!isComposed) {
+                            return;
+                        }
+
+                        let startTs = convertTime(item.time);
+                        if (!startTs) {
+                            return;
+                        }
+
+                        let endTs = convertTime(item.end_time);
+                        const children = Array.isArray(item.chan_children) ? item.chan_children : [];
+                        let highVal = Number(item.high);
+                        let lowVal = Number(item.low);
+                        if (children.length > 0) {
+                            const childStart = convertTime(children[0]?.time);
+                            const childEnd = convertTime(children[children.length - 1]?.end_time || children[children.length - 1]?.time);
+                            if (childStart) {
+                                startTs = childStart;
+                            }
+                            if (childEnd && childEnd > startTs) {
+                                endTs = childEnd;
+                            }
+                            const childHighs = children.map(child => Number(child.high)).filter(Number.isFinite);
+                            const childLows = children.map(child => Number(child.low)).filter(Number.isFinite);
+                            if (childHighs.length > 0) {
+                                highVal = Math.max(...childHighs, highVal);
+                            }
+                            if (childLows.length > 0) {
+                                lowVal = Math.min(...childLows, lowVal);
+                            }
+                        }
+
+                        const nextChanStart = convertTime(chanKlineMeta[idx + 1]?.time);
+                        if (!endTs || endTs <= startTs) {
+                            if (nextChanStart && nextChanStart > startTs) {
+                                endTs = nextChanStart;
+                            } else {
+                                const prevChanStart = convertTime(chanKlineMeta[idx - 1]?.time);
+                                const averageSpan = prevChanStart && startTs > prevChanStart ? startTs - prevChanStart : 60000;
+                                endTs = startTs + Math.max(averageSpan, 60000);
+                            }
+                        }
+
+                        if (nextChanStart && nextChanStart > endTs) {
+                            endTs = Math.min(endTs, nextChanStart);
+                        }
+
+                        if (!Number.isFinite(highVal) || !Number.isFinite(lowVal)) {
+                            return;
+                        }
+
+                        const showLabel = !!indicators.chan_kline_show_label;
+
+                        const fillColor = theme === 'dark'
+                            ? 'rgba(255, 152, 0, 0.16)'
+                            : 'rgba(255, 152, 0, 0.26)';
+                        const labelColor = theme === 'dark' ? '#FFE0B2' : '#B36B00';
+
+                        const overlayId = chart.createOverlay({
+                            name: 'chanZone',
+                            id: `chan_kline_${idx}`,
+                            groupId: 'chan_kline_group',
+                            paneId: 'candle_pane',
+                            points: [
+                                { timestamp: startTs, value: highVal },
+                                { timestamp: endTs, value: highVal },
+                                { timestamp: endTs, value: lowVal },
+                                { timestamp: startTs, value: lowVal },
+                            ],
+                            extendData: {
+                                fillColor,
+                                borderColor: chanBorderColor,
+                                borderDashed,
+                                label: showLabel ? `${subCount}K` : undefined,
+                                labelColor,
+                            },
+                        });
+
+                        if (idx < 5) {
+                            console.log('🔶 Chan K-line highlight', {
+                                index: idx,
+                                overlayId,
+                                timestamp: startTs,
+                                end: endTs,
+                                high: highVal,
+                                low: lowVal,
+                                subCount,
+                            });
+                        }
+                    });
+                    console.log('✨ Highlighted Chan K-lines:', composedCount);
+                } else {
+                    try {
+                        chart.removeOverlay({ groupId: 'chan_kline_group' });
+                    } catch (error) {
+                        // ignore when overlay absent
+                    }
+                }
 
                 const indicatorLayout = indicators.indicator_layout || 'stack';
                 const availableLower = LOWER_INDICATOR_KEYS.filter(key => indicators[`plot_${key}`]);
@@ -1642,6 +1861,16 @@
                             ) : (
                                 <span className="chart-info-placeholder">暂无该周期统计</span>
                             )
+                        )}
+                        {indicators.highlight_chan_kline && (
+                            <div className="indicator-item" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <Checkbox
+                                    checked={indicators.chan_kline_show_label}
+                                    onChange={e => handleChange('chan_kline_show_label', e.target.checked)}
+                                >
+                                    显示合成标注
+                                </Checkbox>
+                            </div>
                         )}
                     </div>
                     <div className="chart-hover-card">
@@ -2279,6 +2508,22 @@
                                 买卖点 (BSP)
                             </Checkbox>
                         </div>
+                        <div className="indicator-item">
+                            <Checkbox checked={indicators.highlight_chan_kline} onChange={e => handleChange('highlight_chan_kline', e.target.checked)}>
+                                缠论K线虚线圈
+                            </Checkbox>
+                        </div>
+                        {indicators.highlight_chan_kline && (
+                            <div className="indicator-item" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <span>圈定颜色</span>
+                                <input
+                                    type="color"
+                                    value={indicators.chan_kline_color || '#FF9800'}
+                                    onChange={e => handleChange('chan_kline_color', e.target.value)}
+                                    style={{ width: 36, height: 20, border: 'none', background: 'transparent', padding: 0, cursor: 'pointer' }}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <div className="indicator-section">

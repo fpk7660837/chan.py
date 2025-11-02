@@ -8,7 +8,7 @@ from typing import Dict, Any, List
 # Import original chan.py modules
 from Chan import CChan
 from ChanConfig import CChanConfig
-from Common.CEnum import AUTYPE, DATA_SRC, KL_TYPE
+from Common.CEnum import AUTYPE, DATA_FIELD, DATA_SRC, KL_TYPE
 from Math.MACD import CMACD
 from Math.KDJ import KDJ
 from Math.RSI import RSI
@@ -138,12 +138,14 @@ class ChanService:
             raise
         
         # Extract results
+        kline_data = self._extract_kline_data(chan)
+
         result = {
             "code": code,
             "data_source": params["data_src"],
-            "kline_data": self._extract_kline_data(chan),
+            "kline_data": kline_data,
             "meta": {
-                "total_klines": len(chan[0]),
+                "total_klines": len(kline_data),
                 "begin_time": begin_time,
                 "end_time": end_time,
             }
@@ -294,9 +296,16 @@ class ChanService:
         
         return result
     
+    def _time_to_str(self, time_obj) -> str:
+        if time_obj is None:
+            return ""
+        if hasattr(time_obj, "to_str"):
+            return time_obj.to_str()
+        return str(time_obj)
+
     def _extract_kline_data(self, chan: CChan) -> List[Dict]:
-        """Extract K-line data from CChan object"""
-        klines = []
+        """Extract Chan-merged K-line data enriched with constituent K-line details"""
+        klines: List[Dict] = []
         try:
             for idx, klc in enumerate(chan[0]):
                 # klc is CKLine (merged K-line)
@@ -335,27 +344,51 @@ class ChanService:
                             print(f"🕐 Backend: time_begin type = {type(klc.time_begin)}")
                             print(f"💰 Backend: First K-line prices: open={open_price}, high={actual_high}, low={actual_low}, close={close_price}")
                         
+                        end_time_raw = getattr(klc, "time_end", None)
+                        if end_time_raw is None and last_klu is not None:
+                            end_time_raw = getattr(last_klu, "time_end", None)
+                        if end_time_raw is None and last_klu is not None:
+                            end_time_raw = getattr(last_klu, "time", None)
+
+                        sub_count = len(klc.lst) if hasattr(klc, "lst") else 1
+                        child_klines: List[Dict] = []
+                        if hasattr(klc, "lst"):
+                            for child in klc.lst:
+                                child_time_obj = getattr(child, "time", None)
+                                child_end_obj = getattr(child, "time_end", None)
+                                child_klines.append({
+                                    "time": self._time_to_str(child_time_obj),
+                                    "end_time": self._time_to_str(child_end_obj),
+                                    "high": float(child.high),
+                                    "low": float(child.low),
+                                    "open": float(child.open),
+                                    "close": float(child.close),
+                                })
+
                         klines.append({
                             "time": time_str,
+                            "end_time": self._time_to_str(end_time_raw) or time_str,
                             "open": open_price,
                             "high": actual_high,
                             "low": actual_low,
                             "close": close_price,
                             "volume": max(0, volume),  # Ensure volume is non-negative
+                            "chan_sub_count": sub_count,
+                            "chan_is_composed": bool(sub_count and sub_count > 1),
+                            "chan_children": child_klines,
                         })
                     except (ValueError, TypeError) as e:
                         print(f"⚠️  Warning: Failed to convert prices at idx {idx}: {e}")
                         continue
         except Exception as e:
-            print(f"⚠️  Warning extracting K-line data: {e}")
-            import traceback
-            traceback.print_exc()
-        
+                print(f"⚠️  Warning extracting K-line data: {e}")
+                import traceback
+                traceback.print_exc()
+
         if klines:
-            print(f"📊 Backend: Extracted {len(klines)} K-lines, first time = {klines[0]['time']}, last time = {klines[-1]['time']}")
-            # Log sample data
-            print(f"📊 Backend: First 3 K-lines: {klines[:3]}")
-        
+            print(f"📊 Backend: Extracted {len(klines)} Chan K-lines, first time = {klines[0]['time']}, last time = {klines[-1]['time']}")
+            print(f"📊 Backend: First Chan K-line sample: {klines[:1]}")
+
         return klines
     
     def _extract_bi_list(self, chan: CChan) -> List[Dict]:
