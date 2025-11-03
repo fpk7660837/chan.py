@@ -134,8 +134,11 @@
 
         .main-content {
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
             padding: 16px;
-            overflow-y: auto;
+            overflow: hidden;
             background: #f0f2f5;
         }
 
@@ -354,6 +357,9 @@
         .chart-grid {
             display: grid;
             gap: 16px;
+            flex: 1;
+            min-height: 0;
+            grid-auto-rows: minmax(0, 1fr);
         }
 
         .chart-grid-1x1 {
@@ -381,7 +387,8 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
             display: flex;
             flex-direction: column;
-            min-height: 480px;
+            height: 100%;
+            min-height: 0;
         }
 
         .stock-chart-group {
@@ -392,6 +399,8 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            flex: 1;
+            min-height: 0;
         }
 
         .stock-chart-header {
@@ -434,8 +443,11 @@
 
 .stock-chart-panels {
     display: grid;
+    flex: 1;
+    min-height: 0;
     gap: 16px;
-    grid-auto-rows: minmax(420px, auto);
+    overflow: auto;
+    grid-auto-rows: minmax(360px, 1fr);
 }
 
 .stock-chart-panels.columns-1 {
@@ -452,7 +464,7 @@
 
 .stock-chart-panels.columns-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-rows: minmax(0, 1fr);
+    grid-auto-rows: minmax(320px, 1fr);
 }
 
         .chart-header {
@@ -472,7 +484,7 @@
 
         .chart-wrapper {
             flex: 1;
-            min-height: 500px;
+            min-height: 0;
         }
 
         .chart-container {
@@ -859,6 +871,7 @@
             ma_params: [5, 10, 20, 60],
             kdj_period: 9,
             rsi_period: 14,
+            zs_source: 'bi',
             bi_color: '#2196F3',
             bi_line_style: 'solid',
             bi_line_width: 2,
@@ -990,6 +1003,9 @@
                     const fillColor = overlay.extendData?.fillColor || 'rgba(255, 152, 0, 0.22)';
                     const borderColor = overlay.extendData?.borderColor || '#FF9800';
                     const borderDashed = overlay.extendData?.borderDashed ?? [4, 3];
+                    const borderSize = typeof overlay.extendData?.borderSize === 'number' ? overlay.extendData.borderSize : 1;
+                    const borderStyle = overlay.extendData?.borderStyle
+                        || (Array.isArray(borderDashed) && borderDashed.length ? 'dashed' : 'solid');
                     const label = overlay.extendData?.label;
                     const textColor = overlay.extendData?.labelColor || borderColor;
 
@@ -1004,9 +1020,11 @@
                         styles: {
                             color: fillColor,
                             borderColor,
-                            borderSize: 1,
-                            borderStyle: 'dashed',
-                            borderDashedValue: borderDashed,
+                            borderSize,
+                            borderStyle,
+                            ...(Array.isArray(borderDashed) && borderDashed.length
+                                ? { borderDashedValue: borderDashed }
+                                : {}),
                         },
                     };
 
@@ -1579,48 +1597,111 @@
                 }
 
                 // 3. 绘制中枢 (ZhongShu) - 黄色矩形区域
-                if (indicators.plot_zs && data.zs_list && data.zs_list.length > 0) {
-                    console.log('📊 [ZS] Adding', data.zs_list.length, 'zhongshu');
-                    data.zs_list.forEach((zs, idx) => {
+                const baseZsList = Array.isArray(data?.zs_list) ? data.zs_list : [];
+                const segZsList = Array.isArray(data?.seg_zs_list) ? data.seg_zs_list : [];
+                const zsSource = indicators.zs_source || 'bi';
+                let zsData = [];
+                if (zsSource === 'seg') {
+                    zsData = segZsList.length > 0 ? segZsList : baseZsList;
+                } else if (zsSource === 'both') {
+                    zsData = [...baseZsList, ...segZsList];
+                } else {
+                    zsData = baseZsList;
+                }
+
+                const zsEmptyMessageKey = 'zs-empty-hint';
+                if (chart.removeOverlay) {
+                    try {
+                        const removed = chart.removeOverlay({ groupId: 'zs_group' });
+                        if (removed && removed.length) {
+                            console.log('🧹 [ZS] Cleared previous overlays:', removed.length);
+                        }
+                    } catch (error) {
+                        console.warn('⚠️ [ZS] Unable to clear previous overlays', error);
+                    }
+                }
+
+                if (indicators.plot_zs && zsSource === 'bi') {
+                    if (zsData.length === 0) {
+                        const segCount = segZsList.length;
+                        message.open({
+                            key: zsEmptyMessageKey,
+                            type: 'info',
+                            duration: 3,
+                            content: segCount > 0
+                                ? '当前笔中枢为空，可开启右侧「单笔中枢」或将来源切换为线段中枢查看。'
+                                : '当前笔中枢数量为 0，请尝试放宽时间范围或调整中枢参数。',
+                        });
+                    } else {
+                        message.destroy(zsEmptyMessageKey);
+                    }
+                }
+
+                if (indicators.plot_zs && zsData.length > 0) {
+                    console.log('📊 [ZS] Using source', zsSource, 'total', zsData.length);
+                    zsData.forEach((zs, idx) => {
+                        if (idx === 0) {
+                            console.log('🟧 [ZS] Sample payload', zs);
+                        }
                         const beginTime = convertTime(zs.begin_time);
                         const endTime = convertTime(zs.end_time);
-                        const high = parseFloat(zs.high ?? zs.zg);  // 中枢上沿
-                        const low = parseFloat(zs.low ?? zs.zd);   // 中枢下沿
-                        
-                        if (beginTime && endTime && high && low) {
+                        const high = parseFloat(zs.high ?? zs.zg);
+                        const low = parseFloat(zs.low ?? zs.zd);
+
+                        if (beginTime && endTime && Number.isFinite(high) && Number.isFinite(low)) {
+                            registerChanOverlay();
+                            const sourceTag = zs.source || zsSource || 'bi';
+                            const borderStyleConfig = getLineStyleConfig(indicators.zs_border_style);
                             const fillColor = hexToRgba(indicators.zs_fill_color, indicators.zs_fill_opacity ?? 0.2);
                             const borderColor = indicators.zs_border_color || '#FFC107';
+                            const dashedValue = Array.isArray(borderStyleConfig.dashedValue)
+                                ? borderStyleConfig.dashedValue
+                                : [];
                             const borderSize = Number(indicators.zs_border_size) || 1;
-                            const borderStyleConfig = getLineStyleConfig(indicators.zs_border_style);
+                            const baseLabel = sourceTag === 'seg' ? '线段中枢' : '笔中枢';
+                            const levelValue = zs.level;
+                            const levelLabel = (typeof levelValue === 'number' && Number.isFinite(levelValue))
+                                ? `Lv ${levelValue}`
+                                : (typeof levelValue === 'string' && levelValue.trim() ? levelValue : '');
+                            const unit = zs.component_unit || (sourceTag === 'seg' ? '段' : '笔');
+                            let countLabel = '';
+                            const componentCount = Number.isFinite(zs.component_count) ? zs.component_count
+                                : Number.isFinite(zs.bi_count) ? zs.bi_count
+                                : null;
+                            if (componentCount !== null) {
+                                const unitLabel = componentCount === zs.bi_count && sourceTag !== 'seg' ? '笔' : unit;
+                                countLabel = `${componentCount}${unitLabel}`;
+                            } else if (zs.is_one_bi) {
+                                countLabel = '单笔';
+                            }
+                            const labelText = [baseLabel, levelLabel, countLabel].filter(Boolean).join(' · ') || baseLabel;
 
-                            // 使用矩形覆盖物绘制中枢
                             chart.createOverlay({
-                                name: 'rect',
-                                id: `zs_${idx}`,
+                                name: 'chanZone',
+                                id: `zs_${sourceTag}_${idx}`,
                                 groupId: 'zs_group',
                                 paneId: 'candle_pane',
                                 points: [
                                     { timestamp: beginTime, value: high },
-                                    { timestamp: endTime, value: low }
+                                    { timestamp: endTime, value: high },
+                                    { timestamp: endTime, value: low },
+                                    { timestamp: beginTime, value: low },
                                 ],
-                                styles: {
-                                    style: 'fill',
-                                    color: fillColor,
+                                extendData: {
+                                    fillColor,
                                     borderColor,
+                                    borderDashed: dashedValue,
                                     borderSize,
                                     borderStyle: borderStyleConfig.style,
-                                    ...(borderStyleConfig.dashedValue ? { borderDashedValue: borderStyleConfig.dashedValue } : {})
-                                }
+                                    labelColor: indicators.zs_label_color || '#FFC107',
+                                },
                             });
 
                             if (indicators.zs_show_label) {
                                 const midpoint = beginTime && endTime ? Math.floor(beginTime + (endTime - beginTime) / 2) : beginTime;
-                                const levelLabel = zs.level ? `Lv ${zs.level}` : '';
-                                const biCountLabel = Number.isFinite(zs.bi_count) ? `${zs.bi_count}笔` : '';
-                                const labelText = ['ZS', levelLabel, biCountLabel].filter(Boolean).join(' · ') || 'ZS';
                                 chart.createOverlay({
                                     name: 'simpleAnnotation',
-                                    id: `zs_label_${idx}`,
+                                    id: `zs_label_${sourceTag}_${idx}`,
                                     groupId: 'zs_group',
                                     paneId: 'candle_pane',
                                     points: [{ timestamp: midpoint, value: high }],
@@ -2607,6 +2688,20 @@
                         </div>
                         <div className="indicator-item" style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 12 }}>
                             <div style={{ fontWeight: 500 }}>中枢样式</div>
+                            <Space size="small" wrap>
+                                <span>来源</span>
+                                <Select
+                                    size="small"
+                                    value={indicators.zs_source || 'bi'}
+                                    style={{ width: 120 }}
+                                    onChange={value => handleChange('zs_source', value)}
+                                    options={[
+                                        { value: 'bi', label: '笔中枢' },
+                                        { value: 'seg', label: '线段中枢' },
+                                        { value: 'both', label: '全部' },
+                                    ]}
+                                />
+                            </Space>
                             <Space size="small" wrap>
                                 <span>填充色</span>
                                 <ColorPicker value={indicators.zs_fill_color} onChange={value => handleChange('zs_fill_color', value)} />

@@ -124,6 +124,8 @@ class AnalysisResponse(BaseModel):
     bi_list: Optional[List[dict]] = None
     seg_list: Optional[List[dict]] = None
     zs_list: Optional[List[dict]] = None
+    bi_zs_list: Optional[List[dict]] = None
+    seg_zs_list: Optional[List[dict]] = None
     bsp_list: Optional[List[dict]] = None
     macd_data: Optional[List[dict]] = None
     ma_data: Optional[dict] = None

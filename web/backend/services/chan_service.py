@@ -3,7 +3,7 @@ Chan calculation service
 Wraps original chan.py code and exposes business logic
 """
 from datetime import datetime
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 
 # Import original chan.py modules
 from Chan import CChan
@@ -161,8 +161,15 @@ class ChanService:
             result["meta"]["seg_count"] = len(result["seg_list"])
             
         if params.get("plot_zs", True):
-            result["zs_list"] = self._extract_zs_list(chan)
-            result["meta"]["zs_count"] = len(result["zs_list"])
+            bi_zs_list = self._extract_zs_list(chan, source="bi")
+            seg_zs_list = self._extract_zs_list(chan, source="seg")
+            result["zs_list"] = bi_zs_list
+            result["bi_zs_list"] = bi_zs_list
+            result["meta"]["zs_count"] = len(bi_zs_list)
+            result["meta"]["bi_zs_count"] = len(bi_zs_list)
+            if seg_zs_list:
+                result["seg_zs_list"] = seg_zs_list
+                result["meta"]["seg_zs_count"] = len(seg_zs_list)
             
         if params.get("plot_bsp", True):
             result["bsp_list"] = self._extract_bsp_list(chan)
@@ -431,35 +438,116 @@ class ChanService:
                 })
         return seg_list
     
-    def _extract_zs_list(self, chan: CChan) -> List[Dict]:
-        """Extract ZhongShu (中枢) list from CChan object"""
-        zs_list = []
-        if hasattr(chan[0], 'seg_list'):
-            for seg in chan[0].seg_list:
-                if hasattr(seg, 'zs_lst'):
-                    for zs in seg.zs_lst:
-                        # zs.begin and zs.end could be CKLine or CKLine_Unit
-                        begin_time = str(zs.begin.time_begin) if hasattr(zs.begin, 'time_begin') else str(zs.begin.time)
-                        end_time = str(zs.end.time_end) if hasattr(zs.end, 'time_end') else str(zs.end.time)
-                        
-                        level = getattr(zs, "level", None)
-                        if hasattr(level, "name"):
-                            level = level.name
-                        elif hasattr(level, "value"):
-                            level = level.value
-                        if level is None and hasattr(zs, "lv"):
-                            level = getattr(zs, "lv", None)
-                            if hasattr(level, "name"):
-                                level = level.name
-                        zs_list.append({
-                            "low": float(zs.low),
-                            "high": float(zs.high),
-                            "begin_time": begin_time,
-                            "end_time": end_time,
-                            "bi_count": len(zs.bi_lst),
-                            "level": level,
-                        })
-        return zs_list
+    @staticmethod
+    def _format_time(value) -> Optional[str]:
+        if value is None:
+            return None
+        if isinstance(value, str):
+            return value
+        for attr in ("time_begin", "time", "time_end"):
+            attr_val = getattr(value, attr, None)
+            if attr_val is not None:
+                return str(attr_val)
+        return None
+
+    def _extract_zs_list(self, chan: CChan, source: str = "bi") -> List[Dict]:
+        """Extract ZhongShu (中枢) list from CChan object.
+
+        Args:
+            chan: Calculated Chan instance.
+            source: 'bi' to return pen-based ZhongShu, 'seg' for segment-based.
+
+        Returns:
+            A list of ZhongShu dictionaries sorted by their starting index.
+        """
+        zs_items: List[Dict[str, Any]] = []
+        try:
+            kl_list = chan[0]
+        except Exception:
+            return zs_items
+
+        container = []
+        component_unit = None
+
+        if source == "bi" and hasattr(kl_list, "zs_list"):
+            container = getattr(kl_list.zs_list, "zs_lst", [])
+            component_unit = "笔"
+        elif source == "seg" and hasattr(kl_list, "segzs_list"):
+            container = getattr(kl_list.segzs_list, "zs_lst", [])
+            component_unit = "段"
+
+        raw_items = list(container) if container else []
+
+        # Fallback to legacy collection to avoid returning empty lists when
+        # direct containers are unavailable (older snapshots / partial calc).
+        if not raw_items and hasattr(kl_list, "seg_list"):
+            seen_ids = set()
+            for seg in getattr(kl_list, "seg_list"):
+                zs_lst = getattr(seg, "zs_lst", []) or []
+                for zs in zs_lst:
+                    if id(zs) in seen_ids:
+                        continue
+                    raw_items.append(zs)
+                    seen_ids.add(id(zs))
+            if component_unit is None:
+                component_unit = "段" if source == "seg" else "笔"
+
+        for zs in raw_items:
+            begin_time = self._format_time(getattr(zs, "begin", None))
+            end_time = self._format_time(getattr(zs, "end", None))
+            if begin_time is None or end_time is None:
+                continue
+
+            try:
+                high_val = float(getattr(zs, "high", None))
+                low_val = float(getattr(zs, "low", None))
+            except (TypeError, ValueError):
+                continue
+
+            component_lst = getattr(zs, "bi_lst", []) or []
+            component_count = len(component_lst) if component_lst else None
+            bi_count = component_count if source == "bi" else None
+
+            entry: Dict[str, Any] = {
+                "low": low_val,
+                "high": high_val,
+                "begin_time": begin_time,
+                "end_time": end_time,
+                "bi_count": bi_count,
+                "component_count": component_count,
+                "component_unit": component_unit,
+                "source": source,
+                "is_sure": bool(getattr(zs, "is_sure", False)),
+            }
+
+            try:
+                entry["is_one_bi"] = bool(zs.is_one_bi_zs())
+            except Exception:
+                entry["is_one_bi"] = False
+
+            begin_idx = getattr(getattr(zs, "begin", None), "idx", None)
+            end_idx = getattr(getattr(zs, "end", None), "idx", None)
+            if begin_idx is not None:
+                entry["begin_index"] = begin_idx
+            if end_idx is not None:
+                entry["end_index"] = end_idx
+
+            level = getattr(zs, "level", None)
+            if level is None and hasattr(zs, "lv"):
+                level = getattr(zs, "lv", None)
+            if level is not None:
+                if hasattr(level, "name"):
+                    level = level.name
+                elif hasattr(level, "value"):
+                    level = level.value
+                entry["level"] = level
+
+            zs_items.append(entry)
+
+        if not zs_items:
+            return zs_items
+
+        return sorted(zs_items, key=lambda item: item.get("begin_index", 0))
     
     def _extract_bsp_list(self, chan: CChan) -> List[Dict]:
         """Extract BuySellPoint (买卖点) list from CChan object"""
