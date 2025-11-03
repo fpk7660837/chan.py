@@ -388,7 +388,7 @@
             display: flex;
             flex-direction: column;
             height: 100%;
-            min-height: 0;
+            min-height: 520px;
         }
 
         .stock-chart-group {
@@ -447,11 +447,12 @@
     min-height: 0;
     gap: 16px;
     overflow: auto;
-    grid-auto-rows: minmax(360px, 1fr);
+    grid-auto-rows: minmax(520px, 1fr);
 }
 
 .stock-chart-panels.columns-1 {
     grid-template-columns: 1fr;
+    grid-auto-rows: minmax(640px, auto);
 }
 
         .stock-chart-panels.columns-2 {
@@ -484,7 +485,7 @@
 
         .chart-wrapper {
             flex: 1;
-            min-height: 0;
+            min-height: 320px;
         }
 
         .chart-container {
