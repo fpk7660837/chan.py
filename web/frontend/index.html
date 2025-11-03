@@ -1195,11 +1195,14 @@
         const ChartPanel = memo(({ stockCode, level, data, loading, stats }) => {
             const chartRef = useRef(null);
             const chartInstanceRef = useRef(null);
-            const { indicators, theme } = useApp();
+            const { indicators, theme, registerChartInstance, unregisterChartInstance, syncVisibleRange } = useApp();
+            const chartKey = `${stockCode}-${level}`;
             const candleDataRef = useRef([]);
             const candleMapRef = useRef(new Map());
             const bspMapRef = useRef(new Map());
+            const timestampsRef = useRef([]);
             const lastHoverRef = useRef(null);
+            const suppressBroadcastRef = useRef(false);
             const [hoverInfo, setHoverInfo] = useState(null);
             const updateHoverInfo = useCallback((timestamp) => {
                 if (!timestamp) {
@@ -1230,10 +1233,62 @@
                     })),
                 });
             }, []);
+            const findNearestIndex = useCallback((timestamp) => {
+                const list = timestampsRef.current;
+                if (!Array.isArray(list) || list.length === 0 || !Number.isFinite(timestamp)) {
+                    return null;
+                }
+                let left = 0;
+                let right = list.length - 1;
+                if (timestamp <= list[left]) return left;
+                if (timestamp >= list[right]) return right;
+                while (left <= right) {
+                    const mid = Math.floor((left + right) / 2);
+                    const midTs = list[mid];
+                    if (midTs === timestamp) {
+                        return mid;
+                    }
+                    if (midTs < timestamp) {
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
+                if (left >= list.length) return list.length - 1;
+                if (right < 0) return 0;
+                const leftDiff = Math.abs(list[left] - timestamp);
+                const rightDiff = Math.abs(list[right] - timestamp);
+                return leftDiff <= rightDiff ? left : right;
+            }, []);
+            const getIndexRangeForTimestamps = useCallback((fromTs, toTs) => {
+                const list = timestampsRef.current;
+                if (!Array.isArray(list) || list.length === 0) {
+                    console.log('⚠️ [IndexRange] empty timestamps', chartKey);
+                    return null;
+                }
+                const fromIdx = findNearestIndex(fromTs);
+                const toIdx = findNearestIndex(toTs);
+                if (fromIdx == null || toIdx == null) {
+                    console.log('⚠️ [IndexRange] nearest index missing', chartKey, { fromTs, toTs, fromIdx, toIdx });
+                    return null;
+                }
+                const start = Math.min(fromIdx, toIdx);
+                const end = Math.max(fromIdx, toIdx);
+                const padding = Math.max(2, Math.floor((end - start) * 0.05));
+                const minIdx = clamp(start - padding, 0, list.length - 1);
+                const maxIdx = clamp(end + padding, 0, list.length - 1);
+                console.log('🧮 [IndexRange]', chartKey, { fromTs, toTs, fromIdx: minIdx, toIdx: maxIdx, total: list.length });
+                if (minIdx === maxIdx && list.length > 1) {
+                    const extra = Math.min(5, list.length - 1);
+                    return [clamp(minIdx - 2, 0, list.length - 1), clamp(maxIdx + extra, 0, list.length - 1)];
+                }
+                return [minIdx, maxIdx];
+            }, [findNearestIndex]);
 
             useEffect(() => {
                 if (!chartRef.current || !data) {
                     setHoverInfo(null);
+                    timestampsRef.current = [];
                     return;
                 }
 
@@ -1241,6 +1296,7 @@
                 candleDataRef.current = [];
                 candleMapRef.current = new Map();
                 bspMapRef.current = new Map();
+                timestampsRef.current = [];
                 lastHoverRef.current = null;
                 setHoverInfo(null);
 
@@ -1320,6 +1376,7 @@
                 const rawCandles = Array.from(rawChildMap.values()).sort((a, b) => a.timestamp - b.timestamp);
                 const candleData = rawCandles.length > 0 ? rawCandles : fallbackCandles;
                 candleDataRef.current = candleData;
+                timestampsRef.current = candleData.map(item => item.timestamp);
 
                 const candleMap = new Map();
                 candleData.forEach(item => {
@@ -1772,6 +1829,149 @@
                     console.log('✅ [BSP] Added successfully');
                 }
 
+                const applySyncedIndexRange = (fromIdx, toIdx) => {
+                    const chartInst = chartInstanceRef.current;
+                    const total = timestampsRef.current.length;
+                    if (!chartInst || total === 0) {
+                        return false;
+                    }
+                    let startIdx = Math.min(fromIdx, toIdx);
+                    let endIdx = Math.max(fromIdx, toIdx);
+                    if (!Number.isFinite(startIdx) || !Number.isFinite(endIdx)) {
+                        return false;
+                    }
+                    startIdx = clamp(Math.floor(startIdx), 0, total - 1);
+                    endIdx = clamp(Math.ceil(endIdx), 0, total - 1);
+                    const desiredCount = Math.max(1, endIdx - startIdx);
+                    let applied = false;
+                    let mutated = false;
+
+                    if (typeof chartInst.getVisibleRange === 'function' &&
+                        typeof chartInst.getBarSpace === 'function' &&
+                        typeof chartInst.setBarSpace === 'function') {
+                        try {
+                            const currentRange = chartInst.getVisibleRange();
+                            const barInfo = chartInst.getBarSpace();
+                            const currentSpan = (() => {
+                                if (!currentRange) return null;
+                                const raw = Number.isFinite(currentRange.realTo) && Number.isFinite(currentRange.realFrom)
+                                    ? Math.abs(currentRange.realTo - currentRange.realFrom)
+                                    : Math.abs((currentRange.to ?? 0) - (currentRange.from ?? 0));
+                                return Number.isFinite(raw) && raw > 0 ? raw : null;
+                            })();
+                            const currentBar = barInfo && Number.isFinite(barInfo.bar) && barInfo.bar > 0 ? barInfo.bar : null;
+                            if (currentSpan && currentBar) {
+                                const ratio = currentSpan / desiredCount;
+                                if (Number.isFinite(ratio) && ratio > 0) {
+                                    if (Math.abs(ratio - 1) > 0.05) {
+                                        const MIN_BAR = 2;
+                                        const MAX_BAR = 60;
+                                        let nextBar = currentBar * ratio;
+                                        nextBar = clamp(nextBar, MIN_BAR, MAX_BAR);
+                                        if (Math.abs(nextBar - currentBar) > 0.1) {
+                                            suppressBroadcastRef.current = true;
+                                            chartInst.setBarSpace(nextBar);
+                                            applied = true;
+                                            mutated = true;
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (err) {
+                            console.warn('⚠️ [Sync] failed to adjust bar space', chartKey, err);
+                        }
+                    }
+
+                    const scrollToIndex = () => {
+                        if (typeof chartInst.scrollToDataIndex === 'function') {
+                            suppressBroadcastRef.current = true;
+                            chartInst.scrollToDataIndex(endIdx, 0);
+                            mutated = true;
+                            return true;
+                        }
+                        if (typeof chartInst.scrollToTimestamp === 'function') {
+                            const ts = timestampsRef.current[endIdx];
+                            if (Number.isFinite(ts)) {
+                                suppressBroadcastRef.current = true;
+                                chartInst.scrollToTimestamp(ts, 0);
+                                mutated = true;
+                                return true;
+                            }
+                        }
+                        return false;
+                    };
+
+                    if (scrollToIndex()) {
+                        applied = true;
+                    }
+                    if (!mutated && suppressBroadcastRef.current) {
+                        suppressBroadcastRef.current = false;
+                    }
+                    return applied;
+                };
+
+                if (timestampsRef.current.length > 0) {
+                    registerChartInstance(chartKey, {
+                        chart,
+                        getIndexRange: getIndexRangeForTimestamps,
+                        applyIndexRange: applySyncedIndexRange,
+                        suppressNextBroadcast: () => {
+                            suppressBroadcastRef.current = true;
+                        },
+                    });
+                    console.log('📝 [ChartRegistry] Registered', chartKey, 'candles:', timestampsRef.current.length);
+                }
+
+                const visibleRangeAction = (klinecharts.ActionType && klinecharts.ActionType.OnVisibleRangeChange) || 'onVisibleRangeChange';
+                const scrollAction = (klinecharts.ActionType && klinecharts.ActionType.OnScroll) || 'onScroll';
+                const zoomAction = (klinecharts.ActionType && klinecharts.ActionType.OnZoom) || 'onZoom';
+                const subscribedRangeActions = [];
+                let initialRangeTimerId = null;
+                const handleVisibleRange = () => {
+                    if (!syncVisibleRange || !chart || typeof chart.getVisibleRange !== 'function') {
+                        return;
+                    }
+                    if (suppressBroadcastRef.current) {
+                        suppressBroadcastRef.current = false;
+                        return;
+                    }
+                    const list = timestampsRef.current;
+                    if (!Array.isArray(list) || list.length === 0) {
+                        return;
+                    }
+                    const range = chart.getVisibleRange();
+                    if (!range) {
+                        return;
+                    }
+                    const fromRaw = Number.isFinite(range.from) ? range.from : 0;
+                    const toRaw = Number.isFinite(range.to) ? range.to : list.length - 1;
+                    const fromIdx = clamp(Math.floor(fromRaw), 0, list.length - 1);
+                    const toIdx = clamp(Math.ceil(toRaw), 0, list.length - 1);
+                    const fromTs = list[fromIdx];
+                    const toTs = list[toIdx];
+                    if (!Number.isFinite(fromTs) || !Number.isFinite(toTs)) {
+                        return;
+                    }
+                    console.log('🔄 [VisibleRange]', chartKey, { fromIdx, toIdx, fromTs, toTs });
+                    syncVisibleRange(chartKey, fromTs, toTs);
+                };
+                const subscribeRangeAction = (actionType) => {
+                    if (!chart.subscribeAction || !actionType || subscribedRangeActions.includes(actionType)) {
+                        return;
+                    }
+                    try {
+                        chart.subscribeAction(actionType, handleVisibleRange);
+                        subscribedRangeActions.push(actionType);
+                        console.log('✅ [Subscribe]', chartKey, actionType);
+                    } catch (err) {
+                        console.warn(`⚠️ Failed to subscribe ${actionType} action`, err);
+                    }
+                };
+                subscribeRangeAction(visibleRangeAction);
+                subscribeRangeAction(scrollAction);
+                subscribeRangeAction(zoomAction);
+                initialRangeTimerId = setTimeout(handleVisibleRange, 0);
+
                 const crosshairAction = (klinecharts.ActionType && klinecharts.ActionType.OnCrosshairChange) || 'onCrosshairChange';
                 let subscribed = false;
                 const handleCrosshair = (params) => {
@@ -1838,6 +2038,20 @@
 
                 // Cleanup
                 return () => {
+                    unregisterChartInstance(chartKey);
+                    if (initialRangeTimerId) {
+                        clearTimeout(initialRangeTimerId);
+                    }
+                    if (chart.unsubscribeAction && subscribedRangeActions.length > 0) {
+                        subscribedRangeActions.forEach(actionType => {
+                            try {
+                                chart.unsubscribeAction(actionType, handleVisibleRange);
+                                console.log('🚪 [Unsubscribe]', chartKey, actionType);
+                            } catch (err) {
+                                console.warn(`⚠️ Failed to unsubscribe ${actionType} action`, err);
+                            }
+                        });
+                    }
                     if (chart.unsubscribeAction && subscribed) {
                         try {
                             chart.unsubscribeAction(crosshairAction, handleCrosshair);
@@ -1848,9 +2062,10 @@
                     if (chartRef.current) {
                         klinecharts.dispose(chartRef.current);
                     }
+                    timestampsRef.current = [];
                     chartInstanceRef.current = null;
                 };
-            }, [data, indicators, theme, updateHoverInfo]);
+            }, [data, indicators, theme, updateHoverInfo, registerChartInstance, unregisterChartInstance, syncVisibleRange, chartKey, getIndexRangeForTimestamps]);
 
             if (loading) {
                 return (
@@ -3309,6 +3524,9 @@
             const [alertStrategies, setAlertStrategies] = useState([]);
             const alertWsRef = useRef(null);
             const reconnectTimerRef = useRef(null);
+            const chartRegistryRef = useRef(new Map());
+            const syncLockRef = useRef(false);
+            const latestRangeRef = useRef(null);
 
             const activeStock = useMemo(() => {
                 if (!activeStockCode) {
@@ -3475,6 +3693,127 @@
             const toggleLeftSidebar = () => setLeftCollapsed(prev => !prev);
             const toggleRightSidebar = () => setRightCollapsed(prev => !prev);
 
+            const registerChartInstance = useCallback((key, entry) => {
+                if (!key || !entry || !entry.chart || typeof entry.getIndexRange !== 'function') {
+                    return;
+                }
+                chartRegistryRef.current.set(key, entry);
+                console.log('📌 [Registry] add', key, 'total:', chartRegistryRef.current.size);
+                const latest = latestRangeRef.current;
+                if (!latest || latest.sourceKey === key) {
+                    if (latest) {
+                        console.log('ℹ️ [Registry] latest from', latest.sourceKey, 'skipped for', key);
+                    }
+                    return;
+                }
+                const range = entry.getIndexRange(latest.fromTs, latest.toTs);
+                if (!Array.isArray(range)) {
+                    console.warn('⚠️ [Registry] no range when restoring', key, latest);
+                    return;
+                }
+                const [fromIdx, toIdx] = range;
+                if (!Number.isFinite(fromIdx) || !Number.isFinite(toIdx)) {
+                    console.warn('⚠️ [Registry] invalid range when restoring', key, range);
+                    return;
+                }
+                try {
+                    let applied = false;
+                    if (typeof entry.applyIndexRange === 'function') {
+                        applied = entry.applyIndexRange(fromIdx, toIdx, latest);
+                    }
+                    if (!applied) {
+                        if (typeof entry.chart.scrollToDataIndex === 'function') {
+                            if (typeof entry.suppressNextBroadcast === 'function') {
+                                entry.suppressNextBroadcast();
+                            }
+                            entry.chart.scrollToDataIndex(Math.max(fromIdx, toIdx), 0);
+                            applied = true;
+                        } else if (typeof entry.chart.scrollToTimestamp === 'function' && Number.isFinite(latest.toTs)) {
+                            if (typeof entry.suppressNextBroadcast === 'function') {
+                                entry.suppressNextBroadcast();
+                            }
+                            entry.chart.scrollToTimestamp(latest.toTs, 0);
+                            applied = true;
+                        }
+                    }
+                    if (applied) {
+                        console.log('⏪ [Registry] restore', key, { fromIdx, toIdx, fromTs: latest.fromTs, toTs: latest.toTs });
+                    } else {
+                        console.warn('⚠️ [Registry] unable to apply synced range', key);
+                    }
+                } catch (err) {
+                    console.warn('⚠️ Failed to apply synced range on register', err);
+                }
+            }, []);
+
+            const unregisterChartInstance = useCallback((key) => {
+                chartRegistryRef.current.delete(key);
+                console.log('🗑 [Registry] remove', key, 'total:', chartRegistryRef.current.size);
+            }, []);
+
+            const syncVisibleRange = useCallback((sourceKey, fromTs, toTs) => {
+                if (!Number.isFinite(fromTs) || !Number.isFinite(toTs)) {
+                    return;
+                }
+                if (syncLockRef.current) {
+                    return;
+                }
+                syncLockRef.current = true;
+                console.log('📡 [Sync] broadcast', sourceKey, { fromTs, toTs });
+                latestRangeRef.current = { sourceKey, fromTs, toTs };
+                try {
+                    chartRegistryRef.current.forEach((entry, key) => {
+                        if (key === sourceKey) {
+                            return;
+                        }
+                        if (!entry || !entry.chart) {
+                            console.warn('⚠️ [Sync] skip chart', key, 'missing instance');
+                            return;
+                        }
+                        const range = entry.getIndexRange(fromTs, toTs);
+                        if (!Array.isArray(range)) {
+                            console.warn('⚠️ [Sync] no range for target', key, { fromTs, toTs });
+                            return;
+                        }
+                        const [fromIdx, toIdx] = range;
+                        if (!Number.isFinite(fromIdx) || !Number.isFinite(toIdx)) {
+                            console.warn('⚠️ [Sync] invalid indices for target', key, range);
+                            return;
+                        }
+                        try {
+                            let applied = false;
+                            if (typeof entry.applyIndexRange === 'function') {
+                                applied = entry.applyIndexRange(fromIdx, toIdx, { fromTs, toTs, sourceKey });
+                            }
+                            if (!applied) {
+                                if (typeof entry.chart.scrollToDataIndex === 'function') {
+                                    if (typeof entry.suppressNextBroadcast === 'function') {
+                                        entry.suppressNextBroadcast();
+                                    }
+                                    entry.chart.scrollToDataIndex(Math.max(fromIdx, toIdx), 0);
+                                    applied = true;
+                                } else if (typeof entry.chart.scrollToTimestamp === 'function' && Number.isFinite(toTs)) {
+                                    if (typeof entry.suppressNextBroadcast === 'function') {
+                                        entry.suppressNextBroadcast();
+                                    }
+                                    entry.chart.scrollToTimestamp(toTs, 0);
+                                    applied = true;
+                                }
+                            }
+                            if (applied) {
+                                console.log('🎯 [Sync] apply', key, { fromIdx, toIdx });
+                            } else {
+                                console.warn('⚠️ [Sync] no method to apply range', key);
+                            }
+                        } catch (err) {
+                            console.warn('⚠️ Failed to sync visible range', err);
+                        }
+                    });
+                } finally {
+                    syncLockRef.current = false;
+                }
+            }, []);
+
             const startResize = useCallback((side) => (event) => {
                 if (side === 'left' && leftCollapsed) return;
                 if (side === 'right' && rightCollapsed) return;
@@ -3598,6 +3937,9 @@
                 loadingCharts,
                 analyzeStock,
                 refreshAllCharts,
+                registerChartInstance,
+                unregisterChartInstance,
+                syncVisibleRange,
                 theme,
                 alertHistory,
                 alertConnected,
