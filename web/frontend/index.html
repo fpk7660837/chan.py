@@ -164,6 +164,69 @@
             border-color: #333;
         }
 
+        .config-hint {
+            font-size: 11px;
+            color: #999;
+        }
+        .dark-theme .config-hint {
+            color: #bbb;
+        }
+
+        .config-grid {
+            display: grid;
+            gap: 12px 16px;
+        }
+
+        .config-grid--two {
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        }
+
+        .config-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .config-field > label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .config-field--full {
+            grid-column: 1 / -1;
+        }
+
+        .dark-theme .config-field > label {
+            color: #ddd;
+        }
+
+        .config-checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 8px 12px;
+        }
+
+        .config-checkbox-group--compact {
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        }
+
+        .config-checkbox-group .ant-checkbox-wrapper {
+            font-size: 12px;
+            color: #555;
+        }
+
+        .dark-theme .config-checkbox-group .ant-checkbox-wrapper {
+            color: #ccc;
+        }
+
+        .config-collapse-body {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+
 
         /* Stock Manager Styles */
         .stock-manager {
@@ -555,6 +618,52 @@
             grid-column: 1 / -1;
         }
 
+        .hover-structures {
+            margin-top: 8px;
+            padding-top: 6px;
+            border-top: 1px dashed #e8e8e8;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .hover-structure-section {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .hover-structure-title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+        }
+
+        .hover-structure-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 11px;
+            color: #555;
+            line-height: 1.4;
+        }
+
+        .hover-structure-metric {
+            opacity: 0.85;
+        }
+
+        .dark-theme .hover-structures {
+            border-top-color: #333;
+        }
+
+        .dark-theme .hover-structure-title {
+            color: #bfbfbf;
+        }
+
+        .dark-theme .hover-structure-row {
+            color: #ccc;
+        }
+
         @media (max-width: 900px) {
             .chart-summary-wrapper {
                 grid-template-columns: 1fr;
@@ -820,23 +929,107 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { Layout, Button, Input, Select, Checkbox, message, Spin, Tag, Space, Tooltip, Radio, InputNumber, Slider, Switch, Tabs, Collapse, Divider, Popover, DatePicker, Segmented, List, Empty, AutoComplete } = antd;
+        const { Layout, Button, Input, Select, Checkbox, message, Spin, Tag, Space, Tooltip, Radio, InputNumber, Slider, Switch, Tabs, Collapse, Divider, Popover, DatePicker, Segmented, List, Empty, AutoComplete, Drawer, Table } = antd;
         const { Header, Sider, Content } = Layout;
         const { useState, useEffect, useCallback, useContext, createContext, useRef, memo, useMemo } = React;
         const dayjs = window.dayjs;
 
+        // ============= Debug Logging =============
+        const DEBUG_LOG_STORAGE_KEY = 'chan_debug_log';
+        const loadDebugSetting = () => {
+            try {
+                return localStorage.getItem(DEBUG_LOG_STORAGE_KEY) === 'true';
+            } catch (err) {
+                return false;
+            }
+        };
+        let debugEnabled = loadDebugSetting();
+        const debugListeners = new Set();
+        const notifyDebugChange = () => {
+            debugListeners.forEach((listener) => {
+                try {
+                    listener(debugEnabled);
+                } catch (err) {
+                    // ignore listener errors
+                }
+            });
+        };
+        window.__CHAN_DEBUG__ = {
+            enable() {
+                debugEnabled = true;
+                try {
+                    localStorage.setItem(DEBUG_LOG_STORAGE_KEY, 'true');
+                } catch (err) {
+                    // ignore storage errors
+                }
+                notifyDebugChange();
+            },
+            disable() {
+                debugEnabled = false;
+                try {
+                    localStorage.removeItem(DEBUG_LOG_STORAGE_KEY);
+                } catch (err) {
+                    // ignore storage errors
+                }
+                notifyDebugChange();
+            },
+            toggle() {
+                if (debugEnabled) {
+                    this.disable();
+                } else {
+                    this.enable();
+                }
+            },
+            isEnabled() {
+                return debugEnabled;
+            },
+            subscribe(listener) {
+                if (typeof listener === 'function') {
+                    debugListeners.add(listener);
+                    try {
+                        listener(debugEnabled);
+                    } catch (err) {
+                        // ignore listener errors
+                    }
+                    return () => {
+                        debugListeners.delete(listener);
+                    };
+                }
+                return () => {};
+            },
+        };
+        const debugLog = (...args) => {
+            if (!debugEnabled) return;
+            console.log(...args);
+        };
+        const debugInfo = (...args) => {
+            if (!debugEnabled) return;
+            if (typeof console.info === 'function') {
+                console.info(...args);
+            } else {
+                console.log(...args);
+            }
+        };
+        const debugWarn = (...args) => {
+            if (!debugEnabled) return;
+            console.warn(...args);
+        };
+        const debugError = (...args) => {
+            console.error(...args);
+        };
+
         // ============= Version & Debug Info =============
-        console.log('🚀 Chan.py Web v4.1.0 - KLineChart + Full Chan Theory Support');
-        console.log('📅 Loaded at:', new Date().toISOString());
-        console.log('✅ Bi/Seg/ZS/BSP fully implemented with KLineChart overlay API');
-        console.log('🎯 All Chan theory indicators working perfectly!');
+        debugLog('🚀 Chan.py Web v4.1.0 - KLineChart + Full Chan Theory Support');
+        debugLog('📅 Loaded at:', new Date().toISOString());
+        debugLog('✅ Bi/Seg/ZS/BSP fully implemented with KLineChart overlay API');
+        debugLog('🎯 All Chan theory indicators working perfectly!');
         
         // Check if KLineChart is loaded
         if (typeof klinecharts === 'undefined') {
-            console.error('❌ KLineChart library not loaded! Check CDN.');
-            console.error('💡 Try refreshing the page or check network in DevTools.');
+            debugError('❌ KLineChart library not loaded! Check CDN.');
+            debugError('💡 Try refreshing the page or check network in DevTools.');
         } else {
-            console.log('✅ KLineChart library loaded:', klinecharts.version || 'version unknown');
+            debugLog('✅ KLineChart library loaded:', klinecharts.version || 'version unknown');
         }
 
         // ============= Constants =============
@@ -898,6 +1091,20 @@
             highlight_chan_kline: true,
             chan_kline_color: '#FF9800',
             chan_kline_show_label: false,
+            // 买卖点相关默认值（与后端 CChanConfig.set_bsp_config 一致）
+            divergence_rate: Number.POSITIVE_INFINITY,
+            min_zs_cnt: 1,
+            bsp1_only_multibi_zs: true,
+            max_bs2_rate: 0.9999,
+            macd_algo: 'peak',
+            bs1_peak: true,
+            bs_type: '1,1p,2,2s,3a,3b',
+            bsp2_follow_1: true,
+            bsp3_follow_1: true,
+            bsp3_peak: false,
+            bsp2s_follow_2: false,
+            max_bsp2s_lv: null,
+            strict_bsp3: false,
         };
 
         const MA_OPTIONS = [5, 10, 20, 30, 45, 60, 120, 250];
@@ -942,6 +1149,20 @@
                 setup_cmp2close: true,
                 countdown_cmp2close: true,
             },
+            // 买卖点默认项
+            divergence_rate: Number.POSITIVE_INFINITY,
+            min_zs_cnt: 1,
+            bsp1_only_multibi_zs: true,
+            max_bs2_rate: 0.9999,
+            macd_algo: 'peak',
+            bs1_peak: true,
+            bs_type: '1,1p,2,2s,3a,3b',
+            bsp2_follow_1: true,
+            bsp3_follow_1: true,
+            bsp3_peak: false,
+            bsp2s_follow_2: false,
+            max_bsp2s_lv: null,
+            strict_bsp3: false,
         };
 
         const BI_ALGO_OPTIONS = [
@@ -1126,7 +1347,7 @@
                 const config = localStorage.getItem('chanlun_config');
                 return config ? JSON.parse(config) : null;
             } catch (e) {
-                console.error('Failed to load config:', e);
+                debugError('Failed to load config:', e);
                 return null;
             }
         };
@@ -1142,7 +1363,7 @@
         // ============= API Service =============
         const api = {
             async calculateChan(params) {
-                console.log('🌐 [API] Request:', params);
+                debugLog('🌐 [API] Request:', params);
                 const response = await fetch(`${API_BASE}/api/analysis/calculate`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1152,7 +1373,7 @@
                     throw new Error(`API Error: ${response.statusText}`);
                 }
                 const result = await response.json();
-                console.log('🌐 [API] Response:', {
+                debugLog('🌐 [API] Response:', {
                     chan_kline_count: result.kline_data?.length,
                     raw_kline_count: result.raw_kline_data?.length,
                     bi_count: result.bi_list?.length,
@@ -1200,39 +1421,29 @@
             const candleDataRef = useRef([]);
             const candleMapRef = useRef(new Map());
             const bspMapRef = useRef(new Map());
+            const biListRef = useRef([]);
+            const segListRef = useRef([]);
+            const zsListRef = useRef([]);
             const timestampsRef = useRef([]);
             const lastHoverRef = useRef(null);
             const suppressBroadcastRef = useRef(false);
             const [hoverInfo, setHoverInfo] = useState(null);
-            const updateHoverInfo = useCallback((timestamp) => {
-                if (!timestamp) {
-                    lastHoverRef.current = null;
-                    setHoverInfo(null);
-                    return;
-                }
-                const candle = candleMapRef.current.get(timestamp);
-                if (!candle) {
-                    return;
-                }
-                const signals = bspMapRef.current.get(timestamp) || [];
-                const prev = lastHoverRef.current;
-                if (prev && prev.timestamp === timestamp && prev.signalsLength === signals.length) {
-                    return;
-                }
-                lastHoverRef.current = { timestamp, signalsLength: signals.length };
-                setHoverInfo({
-                    timestamp,
-                    open: candle.open,
-                    high: candle.high,
-                    low: candle.low,
-                    close: candle.close,
-                    volume: candle.volume,
-                    signals: signals.map(item => ({
-                        type: item.type,
-                        isBuy: !!item.is_buy,
-                    })),
-                });
+            const [detailVisible, setDetailVisible] = useState(false);
+            const [detailData, setDetailData] = useState(null);
+            const [detailTab, setDetailTab] = useState('bi');
+            const [summaryCollapsed, setSummaryCollapsed] = useState(false);
+
+            const levelMeta = LEVEL_OPTIONS.find(option => option.value === level);
+            const levelLabel = levelMeta?.label || level;
+
+            const formatPercent = useCallback((value, digits = 2) => Number.isFinite(value) ? `${(value * 100).toFixed(digits)}%` : '--', []);
+            const formatMinutes = useCallback((value) => Number.isFinite(value) ? value.toFixed(1) : '--', []);
+            const directionLabel = useCallback((dir) => {
+                if (dir === 'up') return '向上';
+                if (dir === 'down') return '向下';
+                return dir || '--';
             }, []);
+
             const findNearestIndex = useCallback((timestamp) => {
                 const list = timestampsRef.current;
                 if (!Array.isArray(list) || list.length === 0 || !Number.isFinite(timestamp)) {
@@ -1260,16 +1471,480 @@
                 const rightDiff = Math.abs(list[right] - timestamp);
                 return leftDiff <= rightDiff ? left : right;
             }, []);
+
+            const calcStructureSnapshot = useCallback((timestamp) => {
+                if (!Number.isFinite(timestamp)) {
+                    return { bi: [], seg: [], zs: [] };
+                }
+
+                const toMinutes = (startTs, endTs) => {
+                    if (!Number.isFinite(startTs) || !Number.isFinite(endTs)) return null;
+                    return Math.abs(endTs - startTs) / 60000;
+                };
+
+                const toProgress = (startTs, endTs) => {
+                    const startIdx = findNearestIndex(startTs);
+                    const endIdx = findNearestIndex(endTs);
+                    const currentIdx = findNearestIndex(timestamp);
+                    if (startIdx == null || endIdx == null || currentIdx == null) {
+                        return null;
+                    }
+                    const span = endIdx - startIdx;
+                    if (span === 0) {
+                        return currentIdx >= endIdx ? 1 : 0;
+                    }
+                    const progress = (currentIdx - startIdx) / span;
+                    return Math.min(1, Math.max(0, progress));
+                };
+
+                const resolveLinearStructures = (list, labelPrefix) => list
+                    .filter(item => Number.isFinite(item.startTs) && Number.isFinite(item.endTs) && item.startTs <= item.endTs)
+                    .filter(item => timestamp >= item.startTs && timestamp <= item.endTs)
+                    .map(item => {
+                        const amplitude = Number.isFinite(item.amplitude)
+                            ? item.amplitude
+                            : Number.isFinite(item.end_price) && Number.isFinite(item.begin_price)
+                                ? Number(item.end_price) - Number(item.begin_price)
+                                : null;
+                        const beginPrice = Number.isFinite(item.begin_price) ? Number(item.begin_price) : null;
+                        const amplitudePct = Number.isFinite(amplitude) && Number.isFinite(beginPrice) && beginPrice !== 0
+                            ? amplitude / beginPrice
+                            : null;
+                        return {
+                            id: item.idx ?? `${labelPrefix}-${item.startTs}-${item.endTs}`,
+                            label: item.label || `${labelPrefix}${item.idx != null ? `#${item.idx}` : ''}`,
+                            dir: item.dir || 'unknown',
+                            beginTs: item.startTs,
+                            endTs: item.endTs,
+                            beginPrice,
+                            endPrice: Number.isFinite(item.end_price) ? Number(item.end_price) : null,
+                            amplitude,
+                            amplitudePct,
+                            durationMinutes: Number.isFinite(item.durationMinutes)
+                                ? Number(item.durationMinutes)
+                                : toMinutes(item.startTs, item.endTs),
+                            progress: toProgress(item.startTs, item.endTs),
+                        };
+                    });
+
+                const resolveZones = (list) => list
+                    .filter(item => Number.isFinite(item.startTs) && Number.isFinite(item.endTs) && item.startTs <= item.endTs)
+                    .filter(item => timestamp >= item.startTs && timestamp <= item.endTs)
+                    .map(item => {
+                        const range = Number.isFinite(item.range)
+                            ? Number(item.range)
+                            : (Number.isFinite(item.high) && Number.isFinite(item.low)
+                                ? Number(item.high) - Number(item.low)
+                                : null);
+                        const base = Number.isFinite(item.low) ? Number(item.low) : null;
+                        const rangePct = Number.isFinite(item.rangePct)
+                            ? Number(item.rangePct)
+                            : (Number.isFinite(range) && Number.isFinite(base) && base !== 0 ? range / base : null);
+                        const duration = Number.isFinite(item.durationMinutes)
+                            ? Number(item.durationMinutes)
+                            : toMinutes(item.startTs, item.endTs);
+                        return {
+                            id: item.id ?? `zs-${item.startTs}-${item.endTs}`,
+                            beginTs: item.startTs,
+                            endTs: item.endTs,
+                            high: Number.isFinite(item.high) ? Number(item.high) : null,
+                            low: Number.isFinite(item.low) ? Number(item.low) : null,
+                            range,
+                            rangePct,
+                            componentCount: item.componentCount ?? item.component_count ?? null,
+                            componentUnit: item.component_unit,
+                            isSure: item.is_sure === true || item.isSure === true,
+                            source: item.source || 'bi',
+                            durationMinutes: duration,
+                        };
+                    });
+
+                return {
+                    bi: resolveLinearStructures(biListRef.current, '笔'),
+                    seg: resolveLinearStructures(segListRef.current, '段'),
+                    zs: resolveZones(zsListRef.current).filter(item => item.source === 'bi'),
+                };
+            }, [findNearestIndex]);
+
+            const updateHoverInfo = useCallback((timestamp) => {
+                if (!timestamp) {
+                    lastHoverRef.current = null;
+                    setHoverInfo(null);
+                    return;
+                }
+                const candle = candleMapRef.current.get(timestamp);
+                if (!candle) {
+                    return;
+                }
+                const structures = calcStructureSnapshot(timestamp);
+                const signals = bspMapRef.current.get(timestamp) || [];
+                const prev = lastHoverRef.current;
+                const structuresKey = `${structures.bi.length}:${structures.seg.length}:${structures.zs.length}`;
+                if (prev && prev.timestamp === timestamp && prev.signalsLength === signals.length && prev.structuresKey === structuresKey) {
+                    return;
+                }
+                lastHoverRef.current = { timestamp, signalsLength: signals.length, structuresKey };
+                setHoverInfo({
+                    timestamp,
+                    open: candle.open,
+                    high: candle.high,
+                    low: candle.low,
+                    close: candle.close,
+                    volume: candle.volume,
+                    signals: signals.map(item => ({
+                        type: item.type,
+                        isBuy: !!item.is_buy,
+                    })),
+                    structures,
+                });
+            }, [calcStructureSnapshot]);
+
+            const buildStructureSnapshot = useCallback(() => ({
+                generatedAt: new Date().toISOString(),
+                stockCode,
+                level,
+                levelLabel,
+                bi: biListRef.current.map(item => ({ ...item })),
+                seg: segListRef.current.map(item => ({ ...item })),
+                zs: zsListRef.current.map(item => ({ ...item })),
+            }), [stockCode, level, levelLabel]);
+
+            const openStructureDetail = useCallback(() => {
+                const snapshot = buildStructureSnapshot();
+                setDetailData(snapshot);
+                if (snapshot.bi.length > 0) {
+                    setDetailTab('bi');
+                } else if (snapshot.seg.length > 0) {
+                    setDetailTab('seg');
+                } else if (snapshot.zs.length > 0) {
+                    setDetailTab('zs');
+                } else {
+                    setDetailTab('bi');
+                }
+                setDetailVisible(true);
+            }, [buildStructureSnapshot]);
+
+            const closeStructureDetail = useCallback(() => {
+                setDetailVisible(false);
+                setDetailTab('bi');
+                setDetailData(null);
+            }, []);
+
+            const exportStructureCsv = useCallback((type) => {
+                if (!detailData) {
+                    message.warning('暂无结构数据');
+                    return;
+                }
+                const map = {
+                    bi: detailData.bi || [],
+                    seg: detailData.seg || [],
+                    zs: detailData.zs || [],
+                };
+                const rows = map[type] || [];
+                if (!rows || rows.length === 0) {
+                    message.warning('该结构暂无数据');
+                    return;
+                }
+
+                let columns = [];
+                if (type === 'bi' || type === 'seg') {
+                    columns = [
+                        { header: '序号', accessor: (row, idx) => row.order ?? row.idx ?? idx + 1 },
+                        { header: '方向', accessor: (row) => directionLabel(row.dir) },
+                        { header: '起始时间', accessor: (row) => formatDateTime(row.startTs) },
+                        { header: '结束时间', accessor: (row) => formatDateTime(row.endTs) },
+                        { header: '起价', accessor: (row) => Number.isFinite(row.begin_price) ? row.begin_price : '' },
+                        { header: '终价', accessor: (row) => Number.isFinite(row.end_price) ? row.end_price : '' },
+                        { header: '振幅', accessor: (row) => Number.isFinite(row.amplitude) ? row.amplitude : '' },
+                        { header: '振幅%', accessor: (row) => Number.isFinite(row.amplitudePct) ? (row.amplitudePct * 100).toFixed(2) + '%' : '' },
+                        { header: '耗时(分)', accessor: (row) => Number.isFinite(row.durationMinutes) ? row.durationMinutes : '' },
+                    ];
+                } else {
+                    columns = [
+                        { header: '类型', accessor: (row) => row.source === 'seg' ? '段中枢' : '笔中枢' },
+                        { header: '状态', accessor: (row) => row.is_sure ? '确定' : '未确认' },
+                        { header: '起始时间', accessor: (row) => formatDateTime(row.startTs) },
+                        { header: '结束时间', accessor: (row) => formatDateTime(row.endTs) },
+                        { header: '下沿', accessor: (row) => Number.isFinite(row.low) ? row.low : '' },
+                        { header: '上沿', accessor: (row) => Number.isFinite(row.high) ? row.high : '' },
+                        { header: '宽度', accessor: (row) => Number.isFinite(row.range) ? row.range : '' },
+                        { header: '宽度%', accessor: (row) => Number.isFinite(row.rangePct) ? (row.rangePct * 100).toFixed(2) + '%' : '' },
+                        { header: '组成数', accessor: (row) => row.componentCount ?? row.component_count ?? '' },
+                        { header: '组成单位', accessor: (row) => row.component_unit ?? '' },
+                        { header: '耗时(分)', accessor: (row) => Number.isFinite(row.durationMinutes) ? row.durationMinutes : '' },
+                    ];
+                }
+
+                const headerRow = columns.map(col => col.header).join(',');
+                const lines = rows.map((row, rowIdx) => columns.map(col => {
+                    const raw = col.accessor(row, rowIdx);
+                    if (raw === null || raw === undefined) {
+                        return '';
+                    }
+                    const value = typeof raw === 'number' && Number.isFinite(raw) ? raw : `${raw}`;
+                    const sanitized = `${value}`.replace(/"/g, '""');
+                    return `"${sanitized}"`;
+                }).join(','));
+                const csvContent = [headerRow, ...lines].join('\n');
+
+                try {
+                    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.setAttribute('download', `${stockCode}_${level}_${type}_structures.csv`);
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    message.success('CSV 导出完成');
+                } catch (err) {
+                    debugWarn('CSV export failed', err);
+                    message.error('导出失败，请检查浏览器权限');
+                }
+            }, [detailData, directionLabel, level, stockCode]);
+
+            const detailTabsConfig = useMemo(() => {
+                if (!detailData) {
+                    return [];
+                }
+
+                const biColumns = [
+                    {
+                        title: '序号',
+                        dataIndex: 'order',
+                        width: 70,
+                        render: (value, row, index) => value ?? row.idx ?? index + 1,
+                    },
+                    {
+                        title: '方向',
+                        dataIndex: 'dir',
+                        width: 70,
+                        render: (value) => directionLabel(value),
+                    },
+                    {
+                        title: '起价',
+                        dataIndex: 'begin_price',
+                        width: 90,
+                        render: (value) => Number.isFinite(value) ? formatNumber(value, 2) : '--',
+                    },
+                    {
+                        title: '终价',
+                        dataIndex: 'end_price',
+                        width: 90,
+                        render: (value) => Number.isFinite(value) ? formatNumber(value, 2) : '--',
+                    },
+                    {
+                        title: '振幅',
+                        dataIndex: 'amplitude',
+                        width: 90,
+                        render: (value) => Number.isFinite(value) ? formatNumber(value, 2) : '--',
+                    },
+                    {
+                        title: '振幅%',
+                        dataIndex: 'amplitudePct',
+                        width: 90,
+                        render: (value) => formatPercent(value),
+                    },
+                    {
+                        title: '起始时间',
+                        dataIndex: 'startTs',
+                        width: 180,
+                        render: (value) => formatDateTime(value),
+                    },
+                    {
+                        title: '结束时间',
+                        dataIndex: 'endTs',
+                        width: 180,
+                        render: (value) => formatDateTime(value),
+                    },
+                    {
+                        title: '耗时(分)',
+                        dataIndex: 'durationMinutes',
+                        width: 100,
+                        render: (value) => formatMinutes(value),
+                    },
+                ];
+
+                const segColumns = [
+                    {
+                        title: '序号',
+                        dataIndex: 'order',
+                        width: 70,
+                        render: (value, row, index) => value ?? row.idx ?? index + 1,
+                    },
+                    {
+                        title: '方向',
+                        dataIndex: 'dir',
+                        width: 70,
+                        render: (value) => directionLabel(value),
+                    },
+                    {
+                        title: '起价',
+                        dataIndex: 'begin_price',
+                        width: 90,
+                        render: (value) => Number.isFinite(value) ? formatNumber(value, 2) : '--',
+                    },
+                    {
+                        title: '终价',
+                        dataIndex: 'end_price',
+                        width: 90,
+                        render: (value) => Number.isFinite(value) ? formatNumber(value, 2) : '--',
+                    },
+                    {
+                        title: '振幅',
+                        dataIndex: 'amplitude',
+                        width: 90,
+                        render: (value) => Number.isFinite(value) ? formatNumber(value, 2) : '--',
+                    },
+                    {
+                        title: '振幅%',
+                        dataIndex: 'amplitudePct',
+                        width: 90,
+                        render: (value) => formatPercent(value),
+                    },
+                    {
+                        title: '起始时间',
+                        dataIndex: 'startTs',
+                        width: 180,
+                        render: (value) => formatDateTime(value),
+                    },
+                    {
+                        title: '结束时间',
+                        dataIndex: 'endTs',
+                        width: 180,
+                        render: (value) => formatDateTime(value),
+                    },
+                    {
+                        title: '耗时(分)',
+                        dataIndex: 'durationMinutes',
+                        width: 100,
+                        render: (value) => formatMinutes(value),
+                    },
+                ];
+
+                const zsColumns = [
+                    {
+                        title: '类型',
+                        dataIndex: 'source',
+                        width: 90,
+                        render: (value) => value === 'seg' ? '段中枢' : '笔中枢',
+                    },
+                    {
+                        title: '状态',
+                        dataIndex: 'is_sure',
+                        width: 90,
+                        render: (value, row) => (value || row.isSure) ? '确定' : '未确认',
+                    },
+                    {
+                        title: '下沿',
+                        dataIndex: 'low',
+                        width: 90,
+                        render: (value) => Number.isFinite(value) ? formatNumber(value, 2) : '--',
+                    },
+                    {
+                        title: '上沿',
+                        dataIndex: 'high',
+                        width: 90,
+                        render: (value) => Number.isFinite(value) ? formatNumber(value, 2) : '--',
+                    },
+                    {
+                        title: '宽度',
+                        dataIndex: 'range',
+                        width: 90,
+                        render: (value) => Number.isFinite(value) ? formatNumber(value, 2) : '--',
+                    },
+                    {
+                        title: '宽度%',
+                        dataIndex: 'rangePct',
+                        width: 90,
+                        render: (value) => formatPercent(value),
+                    },
+                    {
+                        title: '组成数',
+                        dataIndex: 'componentCount',
+                        width: 90,
+                        render: (value, row) => value ?? row.component_count ?? '--',
+                    },
+                    {
+                        title: '组成单位',
+                        dataIndex: 'component_unit',
+                        width: 100,
+                        render: (value) => value || '--',
+                    },
+                    {
+                        title: '起始时间',
+                        dataIndex: 'startTs',
+                        width: 180,
+                        render: (value) => formatDateTime(value),
+                    },
+                    {
+                        title: '结束时间',
+                        dataIndex: 'endTs',
+                        width: 180,
+                        render: (value) => formatDateTime(value),
+                    },
+                    {
+                        title: '耗时(分)',
+                        dataIndex: 'durationMinutes',
+                        width: 100,
+                        render: (value) => formatMinutes(value),
+                    },
+                ];
+
+                const buildTable = (type, columns, data) => (
+                    <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                        <Space size="small">
+                            <Button
+                                size="small"
+                                onClick={() => exportStructureCsv(type)}
+                                disabled={data.length === 0}
+                            >
+                                导出CSV
+                            </Button>
+                            <span className="chart-info-placeholder">
+                                共 {data.length} 条
+                            </span>
+                        </Space>
+                        <Table
+                            size="small"
+                            columns={columns}
+                            dataSource={data}
+                            pagination={{ pageSize: 12, showSizeChanger: false, hideOnSinglePage: true }}
+                            rowKey={(row, index) => row.id ?? row.idx ?? row.order ?? `${type}-${index}`}
+                            scroll={{ x: 780 }}
+                        />
+                    </Space>
+                );
+
+                return [
+                    {
+                        key: 'bi',
+                        label: `笔 (${detailData.bi.length})`,
+                        children: buildTable('bi', biColumns, detailData.bi),
+                    },
+                    {
+                        key: 'seg',
+                        label: `线段 (${detailData.seg.length})`,
+                        children: buildTable('seg', segColumns, detailData.seg),
+                    },
+                    {
+                        key: 'zs',
+                        label: `中枢 (${detailData.zs.length})`,
+                        children: buildTable('zs', zsColumns, detailData.zs),
+                    },
+                ];
+            }, [detailData, directionLabel, exportStructureCsv, formatMinutes, formatPercent]);
             const getIndexRangeForTimestamps = useCallback((fromTs, toTs) => {
                 const list = timestampsRef.current;
                 if (!Array.isArray(list) || list.length === 0) {
-                    console.log('⚠️ [IndexRange] empty timestamps', chartKey);
+                    debugLog('⚠️ [IndexRange] empty timestamps', chartKey);
                     return null;
                 }
                 const fromIdx = findNearestIndex(fromTs);
                 const toIdx = findNearestIndex(toTs);
                 if (fromIdx == null || toIdx == null) {
-                    console.log('⚠️ [IndexRange] nearest index missing', chartKey, { fromTs, toTs, fromIdx, toIdx });
+                    debugLog('⚠️ [IndexRange] nearest index missing', chartKey, { fromTs, toTs, fromIdx, toIdx });
                     return null;
                 }
                 const start = Math.min(fromIdx, toIdx);
@@ -1277,7 +1952,7 @@
                 const padding = Math.max(2, Math.floor((end - start) * 0.05));
                 const minIdx = clamp(start - padding, 0, list.length - 1);
                 const maxIdx = clamp(end + padding, 0, list.length - 1);
-                console.log('🧮 [IndexRange]', chartKey, { fromTs, toTs, fromIdx: minIdx, toIdx: maxIdx, total: list.length });
+                debugLog('🧮 [IndexRange]', chartKey, { fromTs, toTs, fromIdx: minIdx, toIdx: maxIdx, total: list.length });
                 if (minIdx === maxIdx && list.length > 1) {
                     const extra = Math.min(5, list.length - 1);
                     return [clamp(minIdx - 2, 0, list.length - 1), clamp(maxIdx + extra, 0, list.length - 1)];
@@ -1289,6 +1964,9 @@
                 if (!chartRef.current || !data) {
                     setHoverInfo(null);
                     timestampsRef.current = [];
+                    biListRef.current = [];
+                    segListRef.current = [];
+                    zsListRef.current = [];
                     return;
                 }
 
@@ -1297,6 +1975,9 @@
                 candleMapRef.current = new Map();
                 bspMapRef.current = new Map();
                 timestampsRef.current = [];
+                biListRef.current = [];
+                segListRef.current = [];
+                zsListRef.current = [];
                 lastHoverRef.current = null;
                 setHoverInfo(null);
 
@@ -1397,21 +2078,117 @@
                 }
                 bspMapRef.current = bspMap;
 
-                console.log('📊 [KLineChart] Loading', candleData.length, 'candles');
+                biListRef.current = Array.isArray(data.bi_list)
+                    ? data.bi_list.map((bi, idx) => {
+                        const startTs = convertTime(bi.begin_time);
+                        let endTs = convertTime(bi.end_time);
+                        if (!Number.isFinite(endTs) && Number.isFinite(startTs)) {
+                            endTs = startTs;
+                        }
+                        const beginPrice = parseFloat(bi.begin_price);
+                        const endPrice = parseFloat(bi.end_price);
+                        return {
+                            ...bi,
+                            idx: typeof bi.idx === 'number' ? bi.idx : idx,
+                            order: idx + 1,
+                            startTs,
+                            endTs,
+                            begin_price: Number.isFinite(beginPrice) ? beginPrice : null,
+                            end_price: Number.isFinite(endPrice) ? endPrice : null,
+                            amplitude: (Number.isFinite(endPrice) && Number.isFinite(beginPrice))
+                                ? endPrice - beginPrice
+                                : null,
+                            label: `第${idx + 1}笔`,
+                        };
+                    }).filter(item => Number.isFinite(item.startTs) && Number.isFinite(item.endTs))
+                    : [];
+
+                segListRef.current = Array.isArray(data.seg_list)
+                    ? data.seg_list.map((seg, idx) => {
+                        const startTs = convertTime(seg.begin_time);
+                        let endTs = convertTime(seg.end_time);
+                        if (!Number.isFinite(endTs) && Number.isFinite(startTs)) {
+                            endTs = startTs;
+                        }
+                        const beginPrice = parseFloat(seg.begin_price);
+                        const endPrice = parseFloat(seg.end_price);
+                        return {
+                            ...seg,
+                            idx: typeof seg.idx === 'number' ? seg.idx : idx,
+                            order: idx + 1,
+                            startTs,
+                            endTs,
+                            begin_price: Number.isFinite(beginPrice) ? beginPrice : null,
+                            end_price: Number.isFinite(endPrice) ? endPrice : null,
+                            amplitude: (Number.isFinite(endPrice) && Number.isFinite(beginPrice))
+                                ? endPrice - beginPrice
+                                : null,
+                            label: `第${idx + 1}段`,
+                        };
+                    }).filter(item => Number.isFinite(item.startTs) && Number.isFinite(item.endTs))
+                    : [];
+
+                const normalizeZsList = (sourceList, sourceLabel) => Array.isArray(sourceList)
+                    ? sourceList.map((zs, idx) => {
+                        const startTs = convertTime(zs.begin_time ?? zs.begin ?? zs.start_time);
+                        let endTs = convertTime(zs.end_time ?? zs.end ?? zs.finish_time);
+                        if (!Number.isFinite(endTs) && Number.isFinite(startTs)) {
+                            endTs = startTs;
+                        }
+                        const high = parseFloat(zs.high);
+                        const low = parseFloat(zs.low);
+                        const range = Number.isFinite(high) && Number.isFinite(low) ? high - low : null;
+                        const base = Number.isFinite(low) ? low : null;
+                        const rangePct = Number.isFinite(range) && Number.isFinite(base) && base !== 0 ? range / base : null;
+                        const componentCountRaw = zs.component_count ?? zs.bi_count ?? zs.componentCnt ?? zs.count ??
+                            (Array.isArray(zs.bi_lst) ? zs.bi_lst.length : Array.isArray(zs.component_list) ? zs.component_list.length : null);
+                        const normalizedComponentCount = Number.isFinite(componentCountRaw) ? Number(componentCountRaw) : componentCountRaw ?? null;
+                        const durationMinutes = Number.isFinite(startTs) && Number.isFinite(endTs)
+                            ? Math.abs(endTs - startTs) / 60000
+                            : null;
+                        const isSure = zs.is_sure === true || zs.isSure === true;
+                        return {
+                            ...zs,
+                            id: zs.id ?? `${sourceLabel}_zs_${idx}`,
+                            startTs,
+                            endTs,
+                            high: Number.isFinite(high) ? high : null,
+                            low: Number.isFinite(low) ? low : null,
+                            range,
+                            rangePct,
+                            durationMinutes,
+                            componentCount: normalizedComponentCount,
+                            component_count: normalizedComponentCount,
+                            component_unit: zs.component_unit || (sourceLabel === 'seg' ? '段' : '笔'),
+                            source: sourceLabel,
+                            is_sure: isSure,
+                            isSure,
+                        };
+                    }).filter(item => Number.isFinite(item.startTs) && Number.isFinite(item.endTs))
+                    : [];
+
+                const biZs = normalizeZsList(data.zs_list, 'bi');
+                const segZs = normalizeZsList(data.seg_zs_list, 'seg');
+                zsListRef.current = [...biZs, ...segZs];
+                if (detailVisible) {
+                    setDetailData(buildStructureSnapshot());
+                }
+
+                debugLog('📊 [KLineChart] Loading', candleData.length, 'candles');
                 chart.applyNewData(candleData);
 
                 if (indicators.highlight_chan_kline && chanKlineMeta.length > 0) {
-                    console.log('🧩 Chan K-line stats', chanKlineMeta.slice(0, 3));
+                    debugLog('🧩 Chan K-line stats', chanKlineMeta.slice(0, 3));
                     const chanBorderColor = indicators.chan_kline_color || '#FF9800';
                     const borderDashed = [4, 3];
                     registerChanOverlay();
                     try {
                         const removed = chart.removeOverlay({ groupId: 'chan_kline_group' });
                         if (removed) {
-                            console.log('🧹 Cleared Chan K-line overlays:', removed.length);
+                            debugLog('🧹 Cleared Chan K-line overlays:', removed.length);
                         }
                     } catch (error) {
-                        console.warn('⚠️ Unable to clear previous Chan K-line overlays', error);
+                        debugWarn('⚠️ Unable to clear previous Chan K-line overlays', error);
                     }
 
                     const composedCount = chanKlineMeta.filter(item => (item.chan_sub_count ?? item.sub_count ?? 1) > 1).length;
@@ -1497,7 +2274,7 @@
                         });
 
                         if (idx < 5) {
-                            console.log('🔶 Chan K-line highlight', {
+                            debugLog('🔶 Chan K-line highlight', {
                                 index: idx,
                                 overlayId,
                                 timestamp: startTs,
@@ -1508,7 +2285,7 @@
                             });
                         }
                     });
-                    console.log('✨ Highlighted Chan K-lines:', composedCount);
+                    debugLog('✨ Highlighted Chan K-lines:', composedCount);
                 } else {
                     try {
                         chart.removeOverlay({ groupId: 'chan_kline_group' });
@@ -1569,7 +2346,7 @@
                         const lowerSpace = panes.length > 0 ? Math.min(0.45, panes.length * 0.14) : 0.0;
                         chart.setPaneOptions({ id: 'candle_pane', height: 1 - lowerSpace });
                     } catch (error) {
-                        console.warn('⚠️ Unable to adjust candle pane height', error);
+                        debugWarn('⚠️ Unable to adjust candle pane height', error);
                     }
                 }
 
@@ -1595,7 +2372,7 @@
                 
                 // 1. 绘制笔 (Bi) - 蓝色折线
                 if (indicators.plot_bi && data.bi_list && data.bi_list.length > 0) {
-                    console.log('📊 [Bi] Adding', data.bi_list.length, 'segments');
+                    debugLog('📊 [Bi] Adding', data.bi_list.length, 'segments');
                     data.bi_list.forEach((bi, idx) => {
                         const beginTime = convertTime(bi.begin_time);
                         const endTime = convertTime(bi.end_time);
@@ -1624,12 +2401,12 @@
                             });
                         }
                     });
-                    console.log('✅ [Bi] Added successfully');
+                    debugLog('✅ [Bi] Added successfully');
                 }
 
                 // 2. 绘制线段 (Seg) - 紫色粗线
                 if (indicators.plot_seg && data.seg_list && data.seg_list.length > 0) {
-                    console.log('📊 [Seg] Adding', data.seg_list.length, 'segments');
+                    debugLog('📊 [Seg] Adding', data.seg_list.length, 'segments');
                     data.seg_list.forEach((seg, idx) => {
                         const beginTime = convertTime(seg.begin_time);
                         const endTime = convertTime(seg.end_time);
@@ -1658,7 +2435,7 @@
                             });
                         }
                     });
-                    console.log('✅ [Seg] Added successfully');
+                    debugLog('✅ [Seg] Added successfully');
                 }
 
                 // 3. 绘制中枢 (ZhongShu) - 黄色矩形区域
@@ -1679,10 +2456,10 @@
                     try {
                         const removed = chart.removeOverlay({ groupId: 'zs_group' });
                         if (removed && removed.length) {
-                            console.log('🧹 [ZS] Cleared previous overlays:', removed.length);
+                            debugLog('🧹 [ZS] Cleared previous overlays:', removed.length);
                         }
                     } catch (error) {
-                        console.warn('⚠️ [ZS] Unable to clear previous overlays', error);
+                        debugWarn('⚠️ [ZS] Unable to clear previous overlays', error);
                     }
                 }
 
@@ -1703,10 +2480,10 @@
                 }
 
                 if (indicators.plot_zs && zsData.length > 0) {
-                    console.log('📊 [ZS] Using source', zsSource, 'total', zsData.length);
+                    debugLog('📊 [ZS] Using source', zsSource, 'total', zsData.length);
                     zsData.forEach((zs, idx) => {
                         if (idx === 0) {
-                            console.log('🟧 [ZS] Sample payload', zs);
+                            debugLog('🟧 [ZS] Sample payload', zs);
                         }
                         const beginTime = convertTime(zs.begin_time);
                         const endTime = convertTime(zs.end_time);
@@ -1794,12 +2571,12 @@
                             }
                         }
                     });
-                    console.log('✅ [ZS] Added successfully');
+                    debugLog('✅ [ZS] Added successfully');
                 }
 
                 // 4. 绘制买卖点 (BuySellPoint) - 箭头标记
                 if (indicators.plot_bsp && data.bsp_list && data.bsp_list.length > 0) {
-                    console.log('📊 [BSP] Adding', data.bsp_list.length, 'buy/sell points');
+                    debugLog('📊 [BSP] Adding', data.bsp_list.length, 'buy/sell points');
                     data.bsp_list.forEach((bsp, idx) => {
                         const timestamp = convertTime(bsp.time);
                         const price = parseFloat(bsp.price);
@@ -1826,7 +2603,7 @@
                             });
                         }
                     });
-                    console.log('✅ [BSP] Added successfully');
+                    debugLog('✅ [BSP] Added successfully');
                 }
 
                 const applySyncedIndexRange = (fromIdx, toIdx) => {
@@ -1878,7 +2655,7 @@
                                 }
                             }
                         } catch (err) {
-                            console.warn('⚠️ [Sync] failed to adjust bar space', chartKey, err);
+                            debugWarn('⚠️ [Sync] failed to adjust bar space', chartKey, err);
                         }
                     }
 
@@ -1919,7 +2696,7 @@
                             suppressBroadcastRef.current = true;
                         },
                     });
-                    console.log('📝 [ChartRegistry] Registered', chartKey, 'candles:', timestampsRef.current.length);
+                    debugLog('📝 [ChartRegistry] Registered', chartKey, 'candles:', timestampsRef.current.length);
                 }
 
                 const visibleRangeAction = (klinecharts.ActionType && klinecharts.ActionType.OnVisibleRangeChange) || 'onVisibleRangeChange';
@@ -1952,7 +2729,7 @@
                     if (!Number.isFinite(fromTs) || !Number.isFinite(toTs)) {
                         return;
                     }
-                    console.log('🔄 [VisibleRange]', chartKey, { fromIdx, toIdx, fromTs, toTs });
+                    debugLog('🔄 [VisibleRange]', chartKey, { fromIdx, toIdx, fromTs, toTs });
                     syncVisibleRange(chartKey, fromTs, toTs);
                 };
                 const subscribeRangeAction = (actionType) => {
@@ -1962,9 +2739,9 @@
                     try {
                         chart.subscribeAction(actionType, handleVisibleRange);
                         subscribedRangeActions.push(actionType);
-                        console.log('✅ [Subscribe]', chartKey, actionType);
+                        debugLog('✅ [Subscribe]', chartKey, actionType);
                     } catch (err) {
-                        console.warn(`⚠️ Failed to subscribe ${actionType} action`, err);
+                        debugWarn(`⚠️ Failed to subscribe ${actionType} action`, err);
                     }
                 };
                 subscribeRangeAction(visibleRangeAction);
@@ -2019,7 +2796,7 @@
 
                         updateHoverInfo(timestamp);
                     } catch (err) {
-                        console.warn('⚠️ Crosshair update failed', err);
+                        debugWarn('⚠️ Crosshair update failed', err);
                     }
                 };
 
@@ -2028,7 +2805,7 @@
                         chart.subscribeAction(crosshairAction, handleCrosshair);
                         subscribed = true;
                     } catch (err) {
-                        console.warn('⚠️ Failed to subscribe crosshair action', err);
+                        debugWarn('⚠️ Failed to subscribe crosshair action', err);
                     }
                 }
 
@@ -2046,9 +2823,9 @@
                         subscribedRangeActions.forEach(actionType => {
                             try {
                                 chart.unsubscribeAction(actionType, handleVisibleRange);
-                                console.log('🚪 [Unsubscribe]', chartKey, actionType);
+                                debugLog('🚪 [Unsubscribe]', chartKey, actionType);
                             } catch (err) {
-                                console.warn(`⚠️ Failed to unsubscribe ${actionType} action`, err);
+                                debugWarn(`⚠️ Failed to unsubscribe ${actionType} action`, err);
                             }
                         });
                     }
@@ -2056,16 +2833,19 @@
                         try {
                             chart.unsubscribeAction(crosshairAction, handleCrosshair);
                         } catch (err) {
-                            console.warn('⚠️ Failed to unsubscribe crosshair action', err);
+                            debugWarn('⚠️ Failed to unsubscribe crosshair action', err);
                         }
                     }
+                    biListRef.current = [];
+                    segListRef.current = [];
+                    zsListRef.current = [];
                     if (chartRef.current) {
                         klinecharts.dispose(chartRef.current);
                     }
                     timestampsRef.current = [];
                     chartInstanceRef.current = null;
                 };
-            }, [data, indicators, theme, updateHoverInfo, registerChartInstance, unregisterChartInstance, syncVisibleRange, chartKey, getIndexRangeForTimestamps]);
+            }, [data, indicators, theme, updateHoverInfo, registerChartInstance, unregisterChartInstance, syncVisibleRange, chartKey, getIndexRangeForTimestamps, detailVisible, buildStructureSnapshot]);
 
             if (loading) {
                 return (
@@ -2082,6 +2862,18 @@
                             {stockCode} | {LEVEL_OPTIONS.find(o => o.value === level)?.label || level}
                         </div>
                         <Space>
+                            <Button
+                                size="small"
+                                onClick={() => setSummaryCollapsed(prev => !prev)}
+                            >
+                                {summaryCollapsed ? '展开信息面板' : '收起信息面板'}
+                            </Button>
+                            <Button
+                                size="small"
+                                onClick={openStructureDetail}
+                            >
+                                结构明细
+                            </Button>
                             <Button 
                                 size="small" 
                                 onClick={() => {
@@ -2097,10 +2889,36 @@
                             </Button>
                         </Space>
                     </div>
-                    <ChartSummary hoverInfo={hoverInfo} stats={stats} level={level} />
+                    {!summaryCollapsed && (
+                        <ChartSummary
+                            hoverInfo={hoverInfo}
+                            stats={stats}
+                            level={level}
+                            stockCode={stockCode}
+                            onOpenDetail={openStructureDetail}
+                        />
+                    )}
                     <div className="chart-wrapper">
                         <div ref={chartRef} className="chart-container" />
                     </div>
+                    <Drawer
+                        open={detailVisible}
+                        onClose={closeStructureDetail}
+                        width={640}
+                        title={`结构明细 · ${stockCode} · ${levelLabel}`}
+                        destroyOnClose
+                    >
+                        {detailData ? (
+                            <Tabs
+                                size="small"
+                                activeKey={detailTab}
+                                onChange={setDetailTab}
+                                items={detailTabsConfig}
+                            />
+                        ) : (
+                            <Empty description="暂无结构数据" />
+                        )}
+                    </Drawer>
                 </div>
             );
         });
@@ -2116,38 +2934,120 @@
             </Tooltip>
         );
 
-        function ChartSummaryComponent({ hoverInfo, stats, level }) {
+        function ChartSummaryComponent({ hoverInfo, stats, level, stockCode, onOpenDetail }) {
             const { indicators, setIndicators } = useApp();
             const handleChange = useCallback((key, value) => {
                 setIndicators(prev => ({ ...prev, [key]: value }));
             }, [setIndicators]);
             const [statsCollapsed, setStatsCollapsed] = useState(true);
+            const [hoverCollapsed, setHoverCollapsed] = useState(false);
 
             if (!indicators) {
                 return null;
             }
 
             const levelLabel = LEVEL_OPTIONS.find(option => option.value === level)?.label || level;
+            const percentLabel = (value, digits = 1) => Number.isFinite(value) ? `${(value * 100).toFixed(digits)}%` : '--';
+            const minuteLabel = (value) => Number.isFinite(value) ? value.toFixed(1) : '--';
             const signalList = hoverInfo?.signals || [];
-            const statPairs = stats ? [
-                { label: 'K线', value: stats.kline },
-                { label: '笔', value: stats.bi },
-                { label: '线段', value: stats.seg },
-                { label: '中枢', value: stats.zs },
-                { label: '买卖点', value: stats.bsp },
-                { label: '买点', value: stats.buy },
-                { label: '卖点', value: stats.sell },
-            ] : [];
+            const structureData = hoverInfo?.structures;
+            const hasStructureInfo = !!(structureData &&
+                (((structureData.bi || []).length > 0) ||
+                 ((structureData.seg || []).length > 0) ||
+                 ((structureData.zs || []).length > 0)));
+            const statPairs = [];
+            if (stats) {
+                statPairs.push(
+                    { label: 'K线', value: stats.kline },
+                    { label: '笔', value: stats.bi },
+                    { label: '线段', value: stats.seg },
+                    { label: '中枢', value: stats.zs },
+                    { label: '买卖点', value: stats.bsp },
+                    { label: '买点', value: stats.buy },
+                    { label: '卖点', value: stats.sell },
+                );
+                if (Number.isFinite(stats.biAvgAmplitude)) {
+                    statPairs.push({ label: '笔振幅均值', value: formatNumber(stats.biAvgAmplitude, 2) });
+                }
+                if (Number.isFinite(stats.biAvgDuration)) {
+                    statPairs.push({ label: '笔耗时(分)', value: minuteLabel(stats.biAvgDuration) });
+                }
+                if (Number.isFinite(stats.segAvgAmplitude)) {
+                    statPairs.push({ label: '段振幅均值', value: formatNumber(stats.segAvgAmplitude, 2) });
+                }
+                if (Number.isFinite(stats.segAvgDuration)) {
+                    statPairs.push({ label: '段耗时(分)', value: minuteLabel(stats.segAvgDuration) });
+                }
+                if (Number.isFinite(stats.zsSureRatio)) {
+                    statPairs.push({ label: '确定中枢占比', value: percentLabel(stats.zsSureRatio) });
+                }
+            }
             const bspTypeEntries = stats && stats.bspTypes ? Object.entries(stats.bspTypes) : [];
+            const copyStatsToClipboard = useCallback(() => {
+                if (!stats) {
+                    message.warning('暂无统计数据');
+                    return;
+                }
+                const payload = {
+                    stock: stockCode,
+                    level,
+                    levelLabel,
+                    generatedAt: new Date().toISOString(),
+                    stats,
+                };
+                const text = JSON.stringify(payload, null, 2);
+                const fallback = () => {
+                    try {
+                        const textarea = document.createElement('textarea');
+                        textarea.value = text;
+                        textarea.setAttribute('readonly', '');
+                        textarea.style.position = 'absolute';
+                        textarea.style.left = '-9999px';
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textarea);
+                        message.success('统计已复制到剪贴板');
+                    } catch (err) {
+                        debugWarn('Fallback clipboard copy failed', err);
+                        message.error('复制失败，请手动选择文本');
+                    }
+                };
+                if (navigator.clipboard?.writeText) {
+                    navigator.clipboard.writeText(text)
+                        .then(() => message.success('统计已复制到剪贴板'))
+                        .catch(err => {
+                            debugWarn('Clipboard copy failed', err);
+                            fallback();
+                        });
+                } else {
+                    fallback();
+                }
+            }, [stats, stockCode, level, levelLabel]);
 
             return (
                 <div className="chart-summary-wrapper">
                     <div className="chart-summary-card">
                         <div className="card-header">
                             <span className="card-title">缠论统计 · {levelLabel}</span>
-                            <Button size="small" type="link" onClick={() => setStatsCollapsed(prev => !prev)}>
-                                {statsCollapsed ? '展开' : '收起'}
-                            </Button>
+                            <Space size="small">
+                                {onOpenDetail && (
+                                    <Button
+                                        size="small"
+                                        type="link"
+                                        onClick={onOpenDetail}
+                                        disabled={!stats}
+                                    >
+                                        结构明细
+                                    </Button>
+                                )}
+                                <Button size="small" type="link" onClick={copyStatsToClipboard}>
+                                    复制统计
+                                </Button>
+                                <Button size="small" type="link" onClick={() => setStatsCollapsed(prev => !prev)}>
+                                    {statsCollapsed ? '展开' : '收起'}
+                                </Button>
+                            </Space>
                         </div>
                         {!statsCollapsed && (
                             stats ? (
@@ -2188,8 +3088,13 @@
                     <div className="chart-hover-card">
                         <div className="card-header">
                             <span className="card-title">K线数据</span>
+                            <Button size="small" type="link" onClick={() => setHoverCollapsed(prev => !prev)}>
+                                {hoverCollapsed ? '展开' : '收起'}
+                            </Button>
                         </div>
-                        {hoverInfo ? (
+                        {hoverCollapsed ? (
+                            <span className="chart-info-placeholder">信息已收起，点击右上角展开</span>
+                        ) : hoverInfo ? (
                             <>
                                 <div className="hover-info-grid">
                                     <div className="hover-info-cell hover-info-cell--full">
@@ -2231,6 +3136,126 @@
                                         <span className="chart-info-placeholder">当前K线无买卖点</span>
                                     )}
                                 </div>
+                                {structureData && (
+                                   <div className="hover-structures">
+                                       {hasStructureInfo ? (
+                                           <>
+                                               {(structureData.bi || []).length > 0 && (
+                                                   <div className="hover-structure-section">
+                                                        <div className="hover-structure-title">当前笔</div>
+                                                        {(structureData.bi || []).map((item, idx) => (
+                                                            <div className="hover-structure-row" key={`bi-${item.id ?? idx}`}>
+                                                                <span className="hover-structure-metric">{item.label || `笔${idx + 1}`}</span>
+                                                                <Tag color={item.dir === 'down' ? 'blue' : item.dir === 'up' ? 'red' : 'default'}>
+                                                                    {item.dir === 'down' ? '向下' : item.dir === 'up' ? '向上' : '未知'}
+                                                                </Tag>
+                                                                <span className="hover-structure-metric">
+                                                                    {formatDateTime(item.beginTs)} → {formatDateTime(item.endTs)}
+                                                                </span>
+                                                                {Number.isFinite(item.amplitude) && (
+                                                                    <span className="hover-structure-metric">
+                                                                        振幅 {formatNumber(item.amplitude, 2)}
+                                                                    </span>
+                                                                )}
+                                                                {Number.isFinite(item.amplitudePct) && (
+                                                                    <span className="hover-structure-metric">
+                                                                        {percentLabel(item.amplitudePct, 2)}
+                                                                    </span>
+                                                                )}
+                                                                {Number.isFinite(item.durationMinutes) && (
+                                                                    <span className="hover-structure-metric">
+                                                                        耗时 {minuteLabel(item.durationMinutes)} 分
+                                                                    </span>
+                                                                )}
+                                                                {Number.isFinite(item.progress) && (
+                                                                    <span className="hover-structure-metric">
+                                                                        进度 {percentLabel(item.progress, 0)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {(structureData.seg || []).length > 0 && (
+                                                    <div className="hover-structure-section">
+                                                        <div className="hover-structure-title">当前线段</div>
+                                                        {(structureData.seg || []).map((item, idx) => (
+                                                            <div className="hover-structure-row" key={`seg-${item.id ?? idx}`}>
+                                                                <span className="hover-structure-metric">{item.label || `线段${idx + 1}`}</span>
+                                                                <Tag color={item.dir === 'down' ? 'geekblue' : item.dir === 'up' ? 'orange' : 'default'}>
+                                                                    {item.dir === 'down' ? '向下' : item.dir === 'up' ? '向上' : '未知'}
+                                                                </Tag>
+                                                                <span className="hover-structure-metric">
+                                                                    {formatDateTime(item.beginTs)} → {formatDateTime(item.endTs)}
+                                                                </span>
+                                                                {Number.isFinite(item.amplitude) && (
+                                                                    <span className="hover-structure-metric">
+                                                                        振幅 {formatNumber(item.amplitude, 2)}
+                                                                    </span>
+                                                                )}
+                                                                {Number.isFinite(item.amplitudePct) && (
+                                                                    <span className="hover-structure-metric">
+                                                                        {percentLabel(item.amplitudePct, 2)}
+                                                                    </span>
+                                                                )}
+                                                                {Number.isFinite(item.durationMinutes) && (
+                                                                    <span className="hover-structure-metric">
+                                                                        耗时 {minuteLabel(item.durationMinutes)} 分
+                                                                    </span>
+                                                                )}
+                                                                {Number.isFinite(item.progress) && (
+                                                                    <span className="hover-structure-metric">
+                                                                        进度 {percentLabel(item.progress, 0)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {(structureData.zs || []).length > 0 && (
+                                                    <div className="hover-structure-section">
+                                                        <div className="hover-structure-title">当前中枢</div>
+                                                        {(structureData.zs || []).map((item, idx) => (
+                                                            <div className="hover-structure-row" key={`zs-${item.id ?? idx}`}>
+                                                                <Tag color={item.source === 'seg' ? 'purple' : 'gold'}>
+                                                                    {item.source === 'seg' ? '段中枢' : '笔中枢'}
+                                                                </Tag>
+                                                                <Tag color={item.isSure ? 'green' : 'default'}>
+                                                                    {item.isSure ? '确定' : '未确认'}
+                                                                </Tag>
+                                                                <span className="hover-structure-metric">
+                                                                    {formatDateTime(item.beginTs)} → {formatDateTime(item.endTs)}
+                                                                </span>
+                                                                {(Number.isFinite(item.low) || Number.isFinite(item.high)) && (
+                                                                    <span className="hover-structure-metric">
+                                                                        区间 {Number.isFinite(item.low) ? formatNumber(item.low, 2) : '--'} ~ {Number.isFinite(item.high) ? formatNumber(item.high, 2) : '--'}
+                                                                    </span>
+                                                                )}
+                                                                {Number.isFinite(item.range) && (
+                                                                    <span className="hover-structure-metric">
+                                                                        宽度 {formatNumber(item.range, 2)}{Number.isFinite(item.rangePct) ? ` (${percentLabel(item.rangePct, 2)})` : ''}
+                                                                    </span>
+                                                                )}
+                                                                {item.componentCount != null && (
+                                                                    <span className="hover-structure-metric">
+                                                                        组成 {item.componentCount}{item.componentUnit || ''}
+                                                                    </span>
+                                                                )}
+                                                                {Number.isFinite(item.durationMinutes) && (
+                                                                    <span className="hover-structure-metric">
+                                                                        耗时 {minuteLabel(item.durationMinutes)} 分
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                       ))}
+                                                   </div>
+                                               )}
+                                           </>
+                                       ) : (
+                                           <span className="chart-info-placeholder">当前K线未匹配任何笔、段或中枢</span>
+                                       )}
+                                   </div>
+                                )}
                             </>
                         ) : (
                             <span className="chart-info-placeholder">将鼠标移动到K线查看详细数据</span>
@@ -2300,6 +3325,67 @@
                 }
                 const meta = data.meta || {};
                 const bspList = data.bsp_list || [];
+                const safeNumber = (value) => {
+                    if (typeof value === 'number') {
+                        return Number.isFinite(value) ? value : null;
+                    }
+                    if (value === null || value === undefined) {
+                        return null;
+                    }
+                    const parsed = parseFloat(value);
+                    return Number.isFinite(parsed) ? parsed : null;
+                };
+                const toDurationMinutes = (start, end) => {
+                    const startTs = convertTime(start);
+                    let endTs = convertTime(end);
+                    if (!Number.isFinite(endTs) && Number.isFinite(startTs)) {
+                        endTs = startTs;
+                    }
+                    if (!Number.isFinite(startTs) || !Number.isFinite(endTs)) {
+                        return null;
+                    }
+                    return Math.abs(endTs - startTs) / 60000;
+                };
+                const average = (values) => {
+                    if (!Array.isArray(values) || values.length === 0) {
+                        return null;
+                    }
+                    const total = values.reduce((sum, item) => sum + item, 0);
+                    return total / values.length;
+                };
+
+                const biDurations = [];
+                const biAmplitudes = [];
+                (data.bi_list || []).forEach(bi => {
+                    const duration = toDurationMinutes(bi.begin_time, bi.end_time);
+                    if (Number.isFinite(duration)) {
+                        biDurations.push(duration);
+                    }
+                    const beginPrice = safeNumber(bi.begin_price);
+                    const endPrice = safeNumber(bi.end_price);
+                    if (Number.isFinite(beginPrice) && Number.isFinite(endPrice)) {
+                        biAmplitudes.push(Math.abs(endPrice - beginPrice));
+                    }
+                });
+
+                const segDurations = [];
+                const segAmplitudes = [];
+                (data.seg_list || []).forEach(seg => {
+                    const duration = toDurationMinutes(seg.begin_time, seg.end_time);
+                    if (Number.isFinite(duration)) {
+                        segDurations.push(duration);
+                    }
+                    const beginPrice = safeNumber(seg.begin_price);
+                    const endPrice = safeNumber(seg.end_price);
+                    if (Number.isFinite(beginPrice) && Number.isFinite(endPrice)) {
+                        segAmplitudes.push(Math.abs(endPrice - beginPrice));
+                    }
+                });
+
+                const zsList = Array.isArray(data.zs_list) ? data.zs_list : [];
+                const zsSureCount = zsList.filter(item => item && item.is_sure).length;
+                const zsSureRatio = zsList.length > 0 ? zsSureCount / zsList.length : null;
+
                 acc[level] = {
                     kline: meta.total_klines ?? data.kline_data?.length ?? 0,
                     bi: meta.bi_count ?? data.bi_list?.length ?? 0,
@@ -2308,6 +3394,11 @@
                     bsp: meta.bsp_count ?? bspList.length,
                     buy: bspList.filter(item => item.is_buy).length,
                     sell: bspList.filter(item => !item.is_buy).length,
+                    biAvgDuration: average(biDurations),
+                    biAvgAmplitude: average(biAmplitudes),
+                    segAvgDuration: average(segDurations),
+                    segAvgAmplitude: average(segAmplitudes),
+                    zsSureRatio,
                     bspTypes: bspList.reduce((map, item) => {
                         const type = item.type || '未知';
                         map[type] = (map[type] || 0) + 1;
@@ -2422,7 +3513,7 @@
                         name: item.name,
                     })));
                 } catch (error) {
-                    console.error('⚠️ 搜索股票失败:', error);
+                    debugError('⚠️ 搜索股票失败:', error);
                     setSearchOptions([]);
                 } finally {
                     setSearchLoading(false);
@@ -3126,243 +4217,563 @@
                 mergeConfig({ trend_metrics: sanitized });
             }, [mergeConfig]);
 
+            const resetAllToDefault = useCallback(() => {
+                setChanConfig(() => ({
+                    ...DEFAULT_CHAN_CONFIG,
+                    mean_metrics: [...(DEFAULT_CHAN_CONFIG.mean_metrics || [])],
+                    trend_metrics: [...(DEFAULT_CHAN_CONFIG.trend_metrics || [])],
+                    macd: { ...DEFAULT_CHAN_CONFIG.macd },
+                    demark: { ...DEFAULT_CHAN_CONFIG.demark },
+                }));
+                message.success('已恢复全部缠论配置默认值');
+            }, [setChanConfig]);
+
+            const defaultBsTypeArray = useMemo(() => {
+                if (typeof DEFAULT_CHAN_CONFIG.bs_type === 'string') {
+                    return DEFAULT_CHAN_CONFIG.bs_type
+                        .split(',')
+                        .map(item => item.trim())
+                        .filter(Boolean);
+                }
+                if (Array.isArray(DEFAULT_CHAN_CONFIG.bs_type)) {
+                    return DEFAULT_CHAN_CONFIG.bs_type.filter(Boolean);
+                }
+                return [];
+            }, []);
+
+            const bsTypeOptions = useMemo(() => ([
+                { label: 'T1', value: '1' },
+                { label: 'T1P', value: '1p' },
+                { label: 'T2', value: '2' },
+                { label: 'T2S', value: '2s' },
+                { label: 'T3A', value: '3a' },
+                { label: 'T3B', value: '3b' },
+            ]), []);
+
+            const handleBsTypeChange = useCallback((values) => {
+                mergeConfig({ bs_type: Array.isArray(values) ? values.join(',') : '' });
+            }, [mergeConfig]);
+
+            const bsTypeSelection = useMemo(() => {
+                const raw = chanConfig.bs_type;
+                if (typeof raw === 'string' && raw.trim().length > 0) {
+                    const parsed = raw.split(',').map(item => item.trim()).filter(Boolean);
+                    return parsed.length > 0 ? parsed : defaultBsTypeArray;
+                }
+                return defaultBsTypeArray;
+            }, [chanConfig.bs_type, defaultBsTypeArray]);
+
+            const effectiveDivergenceRate = Number.isFinite(chanConfig.divergence_rate)
+                ? chanConfig.divergence_rate
+                : (Number.isFinite(DEFAULT_CHAN_CONFIG.divergence_rate) ? DEFAULT_CHAN_CONFIG.divergence_rate : Number.POSITIVE_INFINITY);
+            const effectiveMinZsCnt = chanConfig.min_zs_cnt ?? DEFAULT_CHAN_CONFIG.min_zs_cnt ?? 0;
+            const effectiveBsp1OnlyMultiBiZs = (chanConfig.bsp1_only_multibi_zs ?? DEFAULT_CHAN_CONFIG.bsp1_only_multibi_zs) ?? false;
+            const effectiveBs1Peak = (chanConfig.bs1_peak ?? DEFAULT_CHAN_CONFIG.bs1_peak) ?? false;
+            const effectiveBsp2Follow1 = (chanConfig.bsp2_follow_1 ?? DEFAULT_CHAN_CONFIG.bsp2_follow_1) ?? false;
+            const effectiveBsp3Follow1 = (chanConfig.bsp3_follow_1 ?? DEFAULT_CHAN_CONFIG.bsp3_follow_1) ?? false;
+            const effectiveBsp3Peak = (chanConfig.bsp3_peak ?? DEFAULT_CHAN_CONFIG.bsp3_peak) ?? false;
+            const effectiveBsp2sFollow2 = (chanConfig.bsp2s_follow_2 ?? DEFAULT_CHAN_CONFIG.bsp2s_follow_2) ?? false;
+            const effectiveStrictBsp3 = (chanConfig.strict_bsp3 ?? DEFAULT_CHAN_CONFIG.strict_bsp3) ?? false;
+            const effectiveMaxBs2Rate = chanConfig.max_bs2_rate ?? DEFAULT_CHAN_CONFIG.max_bs2_rate;
+            const effectiveMacdAlgo = chanConfig.macd_algo || DEFAULT_CHAN_CONFIG.macd_algo || 'peak';
+            const effectiveBiAlgo = chanConfig.bi_algo || DEFAULT_CHAN_CONFIG.bi_algo || 'normal';
+            const effectiveBiStrict = (chanConfig.bi_strict ?? DEFAULT_CHAN_CONFIG.bi_strict) ?? false ? true : false;
+            const effectiveBiFxCheck = chanConfig.bi_fx_check || DEFAULT_CHAN_CONFIG.bi_fx_check || 'strict';
+            const effectiveGapAsKl = (chanConfig.gap_as_kl ?? DEFAULT_CHAN_CONFIG.gap_as_kl) ?? false;
+            const effectiveBiEndIsPeak = (chanConfig.bi_end_is_peak ?? DEFAULT_CHAN_CONFIG.bi_end_is_peak) ?? false;
+            const effectiveBiAllowSubPeak = (chanConfig.bi_allow_sub_peak ?? DEFAULT_CHAN_CONFIG.bi_allow_sub_peak) ?? false;
+            const effectiveSegAlgo = chanConfig.seg_algo || DEFAULT_CHAN_CONFIG.seg_algo || 'chan';
+            const effectiveLeftSegMethod = chanConfig.left_seg_method || DEFAULT_CHAN_CONFIG.left_seg_method || 'peak';
+            const effectiveZsCombine = (chanConfig.zs_combine ?? DEFAULT_CHAN_CONFIG.zs_combine) ?? false;
+            const effectiveZsCombineMode = chanConfig.zs_combine_mode || DEFAULT_CHAN_CONFIG.zs_combine_mode || 'zs';
+            const effectiveOneBiZs = (chanConfig.one_bi_zs ?? DEFAULT_CHAN_CONFIG.one_bi_zs) ?? false;
+            const effectiveZsAlgo = chanConfig.zs_algo || DEFAULT_CHAN_CONFIG.zs_algo || 'normal';
+            const effectiveTriggerStep = (chanConfig.trigger_step ?? DEFAULT_CHAN_CONFIG.trigger_step) ?? false;
+            const effectiveSkipStep = chanConfig.skip_step ?? DEFAULT_CHAN_CONFIG.skip_step ?? 0;
+            const effectiveKlDataCheck = (chanConfig.kl_data_check ?? DEFAULT_CHAN_CONFIG.kl_data_check) ?? false;
+            const effectiveMaxKlMisalign = chanConfig.max_kl_misalgin_cnt ?? DEFAULT_CHAN_CONFIG.max_kl_misalgin_cnt ?? 0;
+            const effectiveMaxKlInconsistent = chanConfig.max_kl_inconsistent_cnt ?? DEFAULT_CHAN_CONFIG.max_kl_inconsistent_cnt ?? 0;
+            const effectiveAutoSkipIllegal = (chanConfig.auto_skip_illegal_sub_lv ?? DEFAULT_CHAN_CONFIG.auto_skip_illegal_sub_lv) ?? false;
+            const effectivePrintWarning = (chanConfig.print_warning ?? DEFAULT_CHAN_CONFIG.print_warning) ?? false;
+            const effectivePrintErrTime = (chanConfig.print_err_time ?? DEFAULT_CHAN_CONFIG.print_err_time) ?? false;
+
+            const resetBspToDefault = useCallback(() => {
+                setChanConfig(prev => ({
+                    ...prev,
+                    divergence_rate: DEFAULT_CHAN_CONFIG.divergence_rate,
+                    min_zs_cnt: DEFAULT_CHAN_CONFIG.min_zs_cnt,
+                    bsp1_only_multibi_zs: DEFAULT_CHAN_CONFIG.bsp1_only_multibi_zs,
+                    max_bs2_rate: DEFAULT_CHAN_CONFIG.max_bs2_rate,
+                    macd_algo: DEFAULT_CHAN_CONFIG.macd_algo,
+                    bs1_peak: DEFAULT_CHAN_CONFIG.bs1_peak,
+                    bs_type: DEFAULT_CHAN_CONFIG.bs_type,
+                    bsp2_follow_1: DEFAULT_CHAN_CONFIG.bsp2_follow_1,
+                    bsp3_follow_1: DEFAULT_CHAN_CONFIG.bsp3_follow_1,
+                    bsp3_peak: DEFAULT_CHAN_CONFIG.bsp3_peak,
+                    bsp2s_follow_2: DEFAULT_CHAN_CONFIG.bsp2s_follow_2,
+                    max_bsp2s_lv: DEFAULT_CHAN_CONFIG.max_bsp2s_lv,
+                    strict_bsp3: DEFAULT_CHAN_CONFIG.strict_bsp3,
+                }));
+                message.success('已恢复买卖点默认配置');
+            }, [setChanConfig]);
+
             const basicContent = (
                 <Space direction="vertical" size={16} style={{ width: '100%' }}>
                     <div className="config-section">
-                        <div className="config-section-title">核心参数</div>
-                        <Space size="small" wrap>
-                            <LabelWithTip label="笔算法" tip="笔的识别逻辑，normal 为标准笔" />
-                            <Select
-                                size="small"
-                                value={chanConfig.bi_algo}
-                                onChange={handleSelect('bi_algo')}
-                                options={BI_ALGO_OPTIONS}
-                            />
-                            <LabelWithTip label="线段算法" tip="线段生成方式，chan 为默认算法" />
-                            <Select
-                                size="small"
-                                value={chanConfig.seg_algo}
-                                onChange={handleSelect('seg_algo')}
-                                options={SEG_ALGO_OPTIONS}
-                            />
-                        </Space>
-                        <Space size="small" wrap style={{ marginTop: 8 }}>
-                            <Checkbox checked={chanConfig.bi_strict} onChange={handleBoolean('bi_strict')}>
-                                <LabelWithTip label="严格笔" tip="开启后只有严格顶/底的笔会被识别" />
-                            </Checkbox>
-                            <Checkbox checked={chanConfig.zs_combine} onChange={handleBoolean('zs_combine')}>
-                                <LabelWithTip label="合并中枢" tip="允许相邻中枢自动合并" />
-                            </Checkbox>
-                            <Checkbox checked={chanConfig.one_bi_zs} onChange={handleBoolean('one_bi_zs')}>
-                                <LabelWithTip label="单笔中枢" tip="允许单笔构成中枢，适合低级别走势" />
-                            </Checkbox>
-                            <LabelWithTip label="中枢算法" tip="选择中枢计算方式" />
-                            <Select
-                                size="small"
-                                value={chanConfig.zs_algo}
-                                onChange={handleSelect('zs_algo')}
-                                options={[
-                                    { value: 'normal', label: '标准' },
-                                    { value: 'over_seg', label: '跨段' },
-                                    { value: 'auto', label: '自动' },
-                                ]}
-                            />
-                        </Space>
-                    </div>
-
-                    <div className="config-section">
-                        <div className="config-section-title">运行控制</div>
-                        <Space size="small" wrap>
-                            <Checkbox checked={chanConfig.trigger_step} onChange={handleBoolean('trigger_step')}>
-                                <LabelWithTip label="增量触发" tip="增量方式计算，适合实时更新" />
-                            </Checkbox>
-                            <Checkbox checked={chanConfig.kl_data_check} onChange={handleBoolean('kl_data_check')}>
-                                <LabelWithTip label="检查K线一致性" tip="自动比对子级别数据" />
-                            </Checkbox>
-                            <Checkbox checked={chanConfig.print_warning} onChange={handleBoolean('print_warning')}>
-                                <LabelWithTip label="打印警告" tip="输出运行警告信息" />
-                            </Checkbox>
-                        </Space>
-                        <Space size="small" wrap style={{ marginTop: 8 }}>
-                            <LabelWithTip label="跳过步长" tip="增量模式下每次跳过的笔数，0 表示逐笔" />
-                            <InputNumber size="small" min={0} value={chanConfig.skip_step} onChange={handleNumber('skip_step')} />
-                            <LabelWithTip label="布林N" tip="布林带窗口长度" />
-                            <InputNumber size="small" min={1} value={chanConfig.boll_n} onChange={handleNumber('boll_n')} />
-                        </Space>
-                    </div>
-
-                    <div className="config-section">
-                        <div className="config-section-title">指标</div>
-                        <Space size="small" wrap>
-                            <LabelWithTip label="MACD" tip="调整快慢线与信号线周期" />
-                            <InputNumber size="small" min={1} value={chanConfig.macd.fast} onChange={handleMacdChange('fast')} />
-                            <InputNumber size="small" min={1} value={chanConfig.macd.slow} onChange={handleMacdChange('slow')} />
-                            <InputNumber size="small" min={1} value={chanConfig.macd.signal} onChange={handleMacdChange('signal')} />
-                        </Space>
-                        <Space size="small" wrap style={{ marginTop: 8 }}>
-                            <Checkbox checked={chanConfig.cal_rsi} onChange={handleBoolean('cal_rsi')}>
-                                <LabelWithTip label="RSI" tip="开启后计算 RSI 指标" />
-                            </Checkbox>
-                            <Checkbox checked={chanConfig.cal_kdj} onChange={handleBoolean('cal_kdj')}>
-                                <LabelWithTip label="KDJ" tip="开启后计算 KDJ 指标" />
-                            </Checkbox>
-                            <Checkbox checked={chanConfig.cal_demark} onChange={handleBoolean('cal_demark')}>
-                                <LabelWithTip label="DeMark" tip="开启后计算 DeMark 指标" />
-                            </Checkbox>
-                        </Space>
-                    </div>
-                </Space>
-            );
-
-            const advancedItems = [
-                {
-                    key: 'bi',
-                    label: '笔参数',
-                    children: (
-                        <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                            <Space size="small" wrap>
-                                <LabelWithTip label="分型判定" tip="决定分型确认方式，影响笔识别的严格程度" />
+                        <div className="config-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span>核心参数</span>
+                            <Button size="small" onClick={resetAllToDefault}>恢复默认</Button>
+                        </div>
+                        <div className="config-grid config-grid--two">
+                            <div className="config-field">
+                                <label>笔算法</label>
                                 <Select
                                     size="small"
-                                    value={chanConfig.bi_fx_check}
+                                    value={effectiveBiAlgo}
+                                    onChange={handleSelect('bi_algo')}
+                                    options={BI_ALGO_OPTIONS}
+                                />
+                                <div className="config-hint">默认：normal</div>
+                            </div>
+                            <div className="config-field">
+                                <label>线段算法</label>
+                                <Select
+                                    size="small"
+                                    value={effectiveSegAlgo}
+                                    onChange={handleSelect('seg_algo')}
+                                    options={SEG_ALGO_OPTIONS}
+                                />
+                                <div className="config-hint">默认：chan</div>
+                            </div>
+                            <div className="config-field">
+                                <label>分型判定</label>
+                                <Select
+                                    size="small"
+                                    value={effectiveBiFxCheck}
                                     onChange={handleSelect('bi_fx_check')}
                                     options={[
-                                        { value: 'strict', label: '严格' },
+                                    { value: 'strict', label: '严格（默认）' },
                                         { value: 'half', label: '半严格' },
                                         { value: 'loss', label: '松弛' },
                                         { value: 'totally', label: '全量' },
                                     ]}
                                 />
-                            </Space>
-                            <Space size="small" wrap>
-                                <Checkbox checked={chanConfig.gap_as_kl} onChange={handleBoolean('gap_as_kl')}>
-                                    <LabelWithTip label="缺口视作K线" tip="将价格跳空视作独立K线处理" />
-                                </Checkbox>
-                                <Checkbox checked={chanConfig.bi_end_is_peak} onChange={handleBoolean('bi_end_is_peak')}>
-                                    <LabelWithTip label="笔尾必须顶/底" tip="笔结束时必须满足顶/底条件" />
-                                </Checkbox>
-                                <Checkbox checked={chanConfig.bi_allow_sub_peak} onChange={handleBoolean('bi_allow_sub_peak')}>
-                                    <LabelWithTip label="允许次级别顶底" tip="允许使用次级别的顶底完成笔" />
-                                </Checkbox>
-                            </Space>
+                                <div className="config-hint">默认：严格</div>
+                            </div>
+                            <div className="config-field">
+                                <label>中枢算法</label>
+                                <Select
+                                    size="small"
+                                    value={effectiveZsAlgo}
+                                    onChange={handleSelect('zs_algo')}
+                                    options={[
+                                        { value: 'normal', label: '标准' },
+                                        { value: 'over_seg', label: '跨段' },
+                                        { value: 'auto', label: '自动' },
+                                    ]}
+                                />
+                                <div className="config-hint">默认：标准</div>
+                            </div>
+                        </div>
+                        <div className="config-field config-field--full">
+                            <label>笔 / 中枢选项</label>
+                            <div className="config-checkbox-group">
+                                <Checkbox checked={!!effectiveBiStrict} onChange={handleBoolean('bi_strict')}>严格笔（默认）</Checkbox>
+                                <Checkbox checked={!!effectiveZsCombine} onChange={handleBoolean('zs_combine')}>合并中枢（默认）</Checkbox>
+                                <Checkbox checked={!!effectiveOneBiZs} onChange={handleBoolean('one_bi_zs')}>单笔中枢</Checkbox>
+                                <Checkbox checked={!!effectiveGapAsKl} onChange={handleBoolean('gap_as_kl')}>缺口视作K线</Checkbox>
+                                <Checkbox checked={!!effectiveBiEndIsPeak} onChange={handleBoolean('bi_end_is_peak')}>笔尾必须顶/底（默认）</Checkbox>
+                                <Checkbox checked={!!effectiveBiAllowSubPeak} onChange={handleBoolean('bi_allow_sub_peak')}>允许次级别顶底（默认）</Checkbox>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="config-section">
+                        <div className="config-section-title">运行控制</div>
+                        <div className="config-checkbox-group config-checkbox-group--compact">
+                            <Checkbox checked={!!effectiveTriggerStep} onChange={handleBoolean('trigger_step')}>增量触发</Checkbox>
+                            <Checkbox checked={!!effectiveKlDataCheck} onChange={handleBoolean('kl_data_check')}>检查K线一致性（默认）</Checkbox>
+                            <Checkbox checked={!!effectivePrintWarning} onChange={handleBoolean('print_warning')}>打印警告（默认）</Checkbox>
+                            <Checkbox checked={!!effectivePrintErrTime} onChange={handleBoolean('print_err_time')}>打印异常时间（默认）</Checkbox>
+                            <Checkbox checked={!!effectiveAutoSkipIllegal} onChange={handleBoolean('auto_skip_illegal_sub_lv')}>自动跳过非法子级别</Checkbox>
+                        </div>
+                        <div className="config-grid config-grid--two" style={{ marginTop: 12 }}>
+                            <div className="config-field">
+                                <label>跳过步长</label>
+                                <InputNumber size="small" min={0} value={effectiveSkipStep} onChange={handleNumber('skip_step')} />
+                                <div className="config-hint">默认：0</div>
+                            </div>
+                            <div className="config-field">
+                                <label>布林 N</label>
+                                <InputNumber size="small" min={1} value={chanConfig.boll_n ?? DEFAULT_CHAN_CONFIG.boll_n} onChange={handleNumber('boll_n')} />
+                                <div className="config-hint">默认：20</div>
+                            </div>
+                            <div className="config-field">
+                                <label>错位容忍</label>
+                                <InputNumber size="small" min={0} value={effectiveMaxKlMisalign} onChange={handleNumber('max_kl_misalgin_cnt')} />
+                                <div className="config-hint">默认：2</div>
+                            </div>
+                            <div className="config-field">
+                                <label>不一致容忍</label>
+                                <InputNumber size="small" min={0} value={effectiveMaxKlInconsistent} onChange={handleNumber('max_kl_inconsistent_cnt')} />
+                                <div className="config-hint">默认：5</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="config-section">
+                        <div className="config-section-title">指标</div>
+                        <Space size="small" wrap>
+                            <LabelWithTip label="MACD" tip="调整快慢线与信号线周期（默认 12/26/9）" />
+                            <InputNumber size="small" min={1} value={chanConfig.macd.fast ?? DEFAULT_CHAN_CONFIG.macd.fast} onChange={handleMacdChange('fast')} />
+                            <InputNumber size="small" min={1} value={chanConfig.macd.slow ?? DEFAULT_CHAN_CONFIG.macd.slow} onChange={handleMacdChange('slow')} />
+                            <InputNumber size="small" min={1} value={chanConfig.macd.signal ?? DEFAULT_CHAN_CONFIG.macd.signal} onChange={handleMacdChange('signal')} />
                         </Space>
+                        <Space size="small" wrap style={{ marginTop: 8 }}>
+                            <Checkbox checked={chanConfig.cal_rsi ?? DEFAULT_CHAN_CONFIG.cal_rsi} onChange={handleBoolean('cal_rsi')}>
+                                <LabelWithTip label="RSI" tip="开启后计算 RSI 指标（默认关闭）" />
+                            </Checkbox>
+                            <Checkbox checked={chanConfig.cal_kdj ?? DEFAULT_CHAN_CONFIG.cal_kdj} onChange={handleBoolean('cal_kdj')}>
+                                <LabelWithTip label="KDJ" tip="开启后计算 KDJ 指标（默认关闭）" />
+                            </Checkbox>
+                            <Checkbox checked={chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark} onChange={handleBoolean('cal_demark')}>
+                                <LabelWithTip label="DeMark" tip="开启后计算 DeMark 指标（默认关闭）" />
+                            </Checkbox>
+                        </Space>
+                    </div>
+                </Space>
+            );
+                        const advancedItems = [
+                {
+                    key: 'bi',
+                    label: '笔参数',
+                    children: (
+                        <div className="config-collapse-body">
+                            <div className="config-grid config-grid--two">
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="分型判定" tip="决定分型确认方式，影响笔识别的严格程度" />
+                                    </label>
+                                    <Select
+                                        size="small"
+                                        value={effectiveBiFxCheck}
+                                        onChange={handleSelect('bi_fx_check')}
+                                        options={[
+                                            { value: 'strict', label: '严格' },
+                                            { value: 'half', label: '半严格' },
+                                            { value: 'loss', label: '松弛' },
+                                            { value: 'totally', label: '全量' },
+                                        ]}
+                                    />
+                                    <div className="config-hint">默认：严格</div>
+                                </div>
+                                <div className="config-field config-field--full">
+                                    <label>笔选项</label>
+                                    <div className="config-checkbox-group config-checkbox-group--compact">
+                                        <Checkbox checked={!!effectiveBiStrict} onChange={handleBoolean('bi_strict')}>
+                                            严格笔（默认）
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectiveGapAsKl} onChange={handleBoolean('gap_as_kl')}>
+                                            <LabelWithTip label="缺口视作K线" tip="将价格跳空视作独立K线处理" />
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectiveBiEndIsPeak} onChange={handleBoolean('bi_end_is_peak')}>
+                                            <LabelWithTip label="笔尾必须顶/底" tip="笔结束时必须满足顶/底条件" />
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectiveBiAllowSubPeak} onChange={handleBoolean('bi_allow_sub_peak')}>
+                                            <LabelWithTip label="允许次级别顶底" tip="允许使用次级别的顶底完成笔" />
+                                        </Checkbox>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     ),
                 },
                 {
                     key: 'seg',
                     label: '线段 & 中枢',
                     children: (
-                        <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                            <Space size="small" wrap>
-                                <LabelWithTip label="线段左端" tip="决定线段起点的计算方式" />
-                                <Select
-                                    size="small"
-                                    value={chanConfig.left_seg_method}
-                                    onChange={handleSelect('left_seg_method')}
-                                    options={[
-                                        { value: 'peak', label: '峰值' },
-                                        { value: 'all', label: '全量' },
-                                    ]}
-                                />
-                                <LabelWithTip label="合并模式" tip="中枢合并后的结果以中枢自身或线段替代" />
-                                <Select
-                                    size="small"
-                                    value={chanConfig.zs_combine_mode}
-                                    onChange={handleSelect('zs_combine_mode')}
-                                    options={[
-                                        { value: 'zs', label: '中枢' },
-                                        { value: 'seg', label: '线段' },
-                                    ]}
-                                    disabled={!chanConfig.zs_combine}
-                                />
-                            </Space>
-                        </Space>
+                        <div className="config-collapse-body">
+                            <div className="config-grid config-grid--two">
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="线段左端" tip="决定线段起点的计算方式（默认峰值）" />
+                                    </label>
+                                    <Select
+                                        size="small"
+                                        value={effectiveLeftSegMethod}
+                                        onChange={handleSelect('left_seg_method')}
+                                        options={[
+                                            { value: 'peak', label: '峰值' },
+                                            { value: 'all', label: '全量' },
+                                        ]}
+                                    />
+                                    <div className="config-hint">默认：峰值</div>
+                                </div>
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="合并模式" tip="中枢合并后的结果以中枢自身或线段替代" />
+                                    </label>
+                                    <Select
+                                        size="small"
+                                        value={effectiveZsCombineMode}
+                                        onChange={handleSelect('zs_combine_mode')}
+                                        options={[
+                                            { value: 'zs', label: '中枢' },
+                                            { value: 'seg', label: '线段' },
+                                        ]}
+                                        disabled={!effectiveZsCombine}
+                                    />
+                                    <div className="config-hint">默认：中枢</div>
+                                </div>
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="中枢算法" tip="调整中枢识别算法（标准/跨段/自动）" />
+                                    </label>
+                                    <Select
+                                        size="small"
+                                        value={effectiveZsAlgo}
+                                        onChange={handleSelect('zs_algo')}
+                                        options={[
+                                            { value: 'normal', label: '标准' },
+                                            { value: 'over_seg', label: '跨段' },
+                                            { value: 'auto', label: '自动' },
+                                        ]}
+                                    />
+                                    <div className="config-hint">默认：标准</div>
+                                </div>
+                                <div className="config-field config-field--full">
+                                    <label>中枢选项</label>
+                                    <div className="config-checkbox-group config-checkbox-group--compact">
+                                        <Checkbox checked={!!effectiveZsCombine} onChange={handleBoolean('zs_combine')}>
+                                            合并中枢（默认）
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectiveOneBiZs} onChange={handleBoolean('one_bi_zs')}>
+                                            单笔中枢
+                                        </Checkbox>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ),
+                },
+                {
+                    key: 'bsp',
+                    label: '买卖点',
+                    children: (
+                        <div className="config-collapse-body">
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                                <div style={{ fontSize: 12, color: '#888', lineHeight: 1.6 }}>
+                                    推荐基线：最小中枢数 1，开启多笔中枢 + 峰值突破，T1/T1P 为主信号，根据需要再放开其他类型。
+                                </div>
+                                <Button size="small" onClick={resetBspToDefault}>恢复默认</Button>
+                            </div>
+                            <div className="config-grid config-grid--two">
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="背驰阈值" tip="设置背驰判定的最大比率，默认 Infinity 表示关闭阈值限制" />
+                                    </label>
+                                    <InputNumber
+                                        size="small"
+                                        min={0}
+                                        value={Number.isFinite(effectiveDivergenceRate) ? effectiveDivergenceRate : undefined}
+                                        placeholder="∞"
+                                        onChange={(value) => {
+                                            if (value === null || value === undefined || value === '') {
+                                                mergeConfig({ divergence_rate: Number.POSITIVE_INFINITY });
+                                                return;
+                                            }
+                                            const numeric = Number(value);
+                                            if (Number.isFinite(numeric) && numeric >= 0) {
+                                                mergeConfig({ divergence_rate: numeric });
+                                            }
+                                        }}
+                                    />
+                                    <div className="config-hint">默认：∞</div>
+                                </div>
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="最小中枢数" tip="设置触发买卖点所需的最低中枢数量" />
+                                    </label>
+                                    <InputNumber size="small" min={0} value={effectiveMinZsCnt} onChange={handleNumber('min_zs_cnt')} />
+                                    <div className="config-hint">默认：1</div>
+                                </div>
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="MACD 判定" tip="背驰计算所使用的 MACD 指标" />
+                                    </label>
+                                    <Select
+                                        size="small"
+                                        value={effectiveMacdAlgo}
+                                        style={{ width: 160 }}
+                                        onChange={handleSelect('macd_algo')}
+                                        options={[
+                                            { value: 'peak', label: 'peak (峰值)' },
+                                            { value: 'area', label: 'area (面积)' },
+                                            { value: 'diff', label: 'diff (差值)' },
+                                            { value: 'slope', label: 'slope (斜率)' },
+                                            { value: 'amp', label: 'amp (振幅)' },
+                                        ]}
+                                    />
+                                    <div className="config-hint">默认：peak</div>
+                                </div>
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="T2最大比例" tip="T2/T2S 触发时允许的最大回撤比例" />
+                                    </label>
+                                    <InputNumber size="small" min={0} max={1} step={0.01} value={effectiveMaxBs2Rate} onChange={handleNumber('max_bs2_rate')} />
+                                    <div className="config-hint">默认：0.9999</div>
+                                </div>
+                                <div className="config-field config-field--full">
+                                    <label>买卖点开关</label>
+                                    <div className="config-checkbox-group config-checkbox-group--compact">
+                                        <Checkbox checked={!!effectiveBsp1OnlyMultiBiZs} onChange={handleBoolean('bsp1_only_multibi_zs')}>
+                                            <LabelWithTip label="仅多笔中枢" tip="仅在存在多笔中枢时计算 BSP1/T1（默认启用）" />
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectiveBs1Peak} onChange={handleBoolean('bs1_peak')}>
+                                            <LabelWithTip label="仅峰值突破" tip="T1 必须突破中枢峰值才算背驰（默认启用）" />
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectiveBsp2Follow1} onChange={handleBoolean('bsp2_follow_1')}>
+                                            <LabelWithTip label="T2跟随T1" tip="T2 需要在 T1 出现后才生效（默认启用）" />
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectiveBsp3Follow1} onChange={handleBoolean('bsp3_follow_1')}>
+                                            <LabelWithTip label="T3跟随T1" tip="T3 需要在 T1 出现后才生效（默认启用）" />
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectiveBsp3Peak} onChange={handleBoolean('bsp3_peak')}>
+                                            <LabelWithTip label="T3需突破峰值" tip="T3 必须突破中枢峰值（默认关闭）" />
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectiveBsp2sFollow2} onChange={handleBoolean('bsp2s_follow_2')}>
+                                            <LabelWithTip label="T2S跟随T2" tip="T2S 信号需在 T2 后出现（默认关闭）" />
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectiveStrictBsp3} onChange={handleBoolean('strict_bsp3')}>
+                                            <LabelWithTip label="严格 T3" tip="严格要求 T3 的进出位置连续（默认关闭）" />
+                                        </Checkbox>
+                                    </div>
+                                </div>
+                                <div className="config-field config-field--full">
+                                    <label>买卖点类型</label>
+                                    <Checkbox.Group
+                                        options={bsTypeOptions}
+                                        value={bsTypeSelection.length > 0 ? bsTypeSelection : defaultBsTypeArray}
+                                        onChange={handleBsTypeChange}
+                                    />
+                                    <div className="config-hint">默认：{defaultBsTypeArray.join(', ')}</div>
+                                </div>
+                            </div>
+                        </div>
                     ),
                 },
                 {
                     key: 'runtime',
                     label: '运行与校验',
                     children: (
-                        <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                            <Space size="small" wrap>
-                                <Checkbox checked={chanConfig.auto_skip_illegal_sub_lv} onChange={handleBoolean('auto_skip_illegal_sub_lv')}>
-                                    <LabelWithTip label="自动跳过非法子级别" tip="遇到不合法的子级别数据时自动跳过" />
-                                </Checkbox>
-                                <Checkbox checked={chanConfig.print_err_time} onChange={handleBoolean('print_err_time')}>
-                                    <LabelWithTip label="打印异常时间" tip="输出异常发生的时间信息" />
-                                </Checkbox>
-                            </Space>
-                            <Space size="small" wrap>
-                                <LabelWithTip label="错位容忍" tip="允许子级别错位的最大次数" />
-                                <InputNumber
-                                    size="small"
-                                    min={0}
-                                    value={chanConfig.max_kl_misalgin_cnt}
-                                    onChange={handleNumber('max_kl_misalgin_cnt')}
-                                />
-                                <LabelWithTip label="不一致容忍" tip="允许子级别不一致的最大次数" />
-                                <InputNumber
-                                    size="small"
-                                    min={0}
-                                    value={chanConfig.max_kl_inconsistent_cnt}
-                                    onChange={handleNumber('max_kl_inconsistent_cnt')}
-                                />
-                            </Space>
-                        </Space>
+                        <div className="config-collapse-body">
+                            <div className="config-grid config-grid--two">
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="错位容忍" tip="允许子级别错位的最大次数" />
+                                    </label>
+                                    <InputNumber size="small" min={0} value={effectiveMaxKlMisalign} onChange={handleNumber('max_kl_misalgin_cnt')} />
+                                    <div className="config-hint">默认：2</div>
+                                </div>
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="不一致容忍" tip="允许子级别不一致的最大次数" />
+                                    </label>
+                                    <InputNumber size="small" min={0} value={effectiveMaxKlInconsistent} onChange={handleNumber('max_kl_inconsistent_cnt')} />
+                                    <div className="config-hint">默认：5</div>
+                                </div>
+                                <div className="config-field config-field--full">
+                                    <label>运行开关</label>
+                                    <div className="config-checkbox-group config-checkbox-group--compact">
+                                        <Checkbox checked={!!effectiveTriggerStep} onChange={handleBoolean('trigger_step')}>
+                                            增量触发
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectiveKlDataCheck} onChange={handleBoolean('kl_data_check')}>
+                                            检查K线一致性（默认）
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectivePrintWarning} onChange={handleBoolean('print_warning')}>
+                                            打印警告（默认）
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectivePrintErrTime} onChange={handleBoolean('print_err_time')}>
+                                            打印异常时间（默认）
+                                        </Checkbox>
+                                        <Checkbox checked={!!effectiveAutoSkipIllegal} onChange={handleBoolean('auto_skip_illegal_sub_lv')}>
+                                            自动跳过非法子级别
+                                        </Checkbox>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     ),
                 },
                 {
                     key: 'metrics',
                     label: '指标参数',
                     children: (
-                        <Space direction="vertical" size={12} style={{ width: '100%' }}>
-                            <Space size="small" wrap>
-                                <LabelWithTip label="均值窗口" tip="用于均值序列的窗口长度，可输入多个数值" />
-                                <Select
-                                    mode="tags"
-                                    size="small"
-                                    placeholder="如 5,10,20"
-                                    style={{ minWidth: 200 }}
-                                    value={(chanConfig.mean_metrics || []).map(String)}
-                                    onChange={handleMeanMetricsChange}
-                                />
-                            </Space>
-                            <Space size="small" wrap>
-                                <LabelWithTip label="趋势窗口" tip="趋势指标使用的最大/最小窗口长度" />
-                                <Select
-                                    mode="tags"
-                                    size="small"
-                                    placeholder="如 55, 89"
-                                    style={{ minWidth: 200 }}
-                                    value={(chanConfig.trend_metrics || []).map(String)}
-                                    onChange={handleTrendMetricsChange}
-                                />
-                            </Space>
-                            <Space size="small" wrap>
-                                <LabelWithTip label="RSI周期" tip="RSI 指标的周期长度" />
-                                <InputNumber size="small" min={1} value={chanConfig.rsi_cycle} onChange={handleNumber('rsi_cycle')} disabled={!chanConfig.cal_rsi} />
-                                <LabelWithTip label="KDJ周期" tip="KDJ 指标的周期长度" />
-                                <InputNumber size="small" min={1} value={chanConfig.kdj_cycle} onChange={handleNumber('kdj_cycle')} disabled={!chanConfig.cal_kdj} />
-                            </Space>
-                            <Space size="small" wrap>
-                                <LabelWithTip label="DeMark" tip="DeMark 指标参数调整" />
-                                <InputNumber size="small" min={1} value={chanConfig.demark.demark_len} onChange={handleDemarkChange('demark_len')} disabled={!chanConfig.cal_demark} />
-                                <InputNumber size="small" min={0} value={chanConfig.demark.setup_bias} onChange={handleDemarkChange('setup_bias')} disabled={!chanConfig.cal_demark} />
-                                <InputNumber size="small" min={0} value={chanConfig.demark.countdown_bias} onChange={handleDemarkChange('countdown_bias')} disabled={!chanConfig.cal_demark} />
-                                <InputNumber size="small" min={1} value={chanConfig.demark.max_countdown} onChange={handleDemarkChange('max_countdown')} disabled={!chanConfig.cal_demark} />
-                            </Space>
-                            <Space size="small" wrap>
-                                <Checkbox checked={chanConfig.demark.tiaokong_st} onChange={handleDemarkToggle('tiaokong_st')} disabled={!chanConfig.cal_demark}>
-                                    <LabelWithTip label="跳空算 Setup" tip="在 Setup 计数时将跳空视作满足条件" />
-                                </Checkbox>
-                                <Checkbox checked={chanConfig.demark.setup_cmp2close} onChange={handleDemarkToggle('setup_cmp2close')} disabled={!chanConfig.cal_demark}>
-                                    <LabelWithTip label="Setup 比较收盘价" tip="Setup 比较使用收盘价而非最高/最低" />
-                                </Checkbox>
-                                <Checkbox checked={chanConfig.demark.countdown_cmp2close} onChange={handleDemarkToggle('countdown_cmp2close')} disabled={!chanConfig.cal_demark}>
-                                    <LabelWithTip label="Countdown 比较收盘价" tip="Countdown 计数使用收盘价比较" />
-                                </Checkbox>
-                            </Space>
-                        </Space>
+                        <div className="config-collapse-body">
+                            <div className="config-grid config-grid--two">
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="均值窗口" tip="用于均值序列的窗口长度，可输入多个数值" />
+                                    </label>
+                                    <Select
+                                        mode="tags"
+                                        size="small"
+                                        placeholder="如 5,10,20"
+                                        style={{ minWidth: 200 }}
+                                        value={(chanConfig.mean_metrics || []).map(String)}
+                                        onChange={handleMeanMetricsChange}
+                                    />
+                                </div>
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="趋势窗口" tip="趋势指标使用的最大/最小窗口长度" />
+                                    </label>
+                                    <Select
+                                        mode="tags"
+                                        size="small"
+                                        placeholder="如 55, 89"
+                                        style={{ minWidth: 200 }}
+                                        value={(chanConfig.trend_metrics || []).map(String)}
+                                        onChange={handleTrendMetricsChange}
+                                    />
+                                </div>
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="RSI周期" tip="RSI 指标的周期长度" />
+                                    </label>
+                                    <InputNumber size="small" min={1} value={chanConfig.rsi_cycle ?? DEFAULT_CHAN_CONFIG.rsi_cycle} onChange={handleNumber('rsi_cycle')} disabled={!(chanConfig.cal_rsi ?? DEFAULT_CHAN_CONFIG.cal_rsi)} />
+                                </div>
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="KDJ周期" tip="KDJ 指标的周期长度" />
+                                    </label>
+                                    <InputNumber size="small" min={1} value={chanConfig.kdj_cycle ?? DEFAULT_CHAN_CONFIG.kdj_cycle} onChange={handleNumber('kdj_cycle')} disabled={!(chanConfig.cal_kdj ?? DEFAULT_CHAN_CONFIG.cal_kdj)} />
+                                </div>
+                                <div className="config-field config-field--full">
+                                    <label>
+                                        <LabelWithTip label="DeMark" tip="DeMark 指标参数调整" />
+                                    </label>
+                                    <div className="config-grid config-grid--two" style={{ gap: 8 }}>
+                                        <InputNumber size="small" min={1} value={chanConfig.demark?.demark_len ?? DEFAULT_CHAN_CONFIG.demark.demark_len} onChange={handleDemarkChange('demark_len')} disabled={!(chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark)} />
+                                        <InputNumber size="small" min={0} value={chanConfig.demark?.setup_bias ?? DEFAULT_CHAN_CONFIG.demark.setup_bias} onChange={handleDemarkChange('setup_bias')} disabled={!(chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark)} />
+                                        <InputNumber size="small" min={0} value={chanConfig.demark?.countdown_bias ?? DEFAULT_CHAN_CONFIG.demark.countdown_bias} onChange={handleDemarkChange('countdown_bias')} disabled={!(chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark)} />
+                                        <InputNumber size="small" min={1} value={chanConfig.demark?.max_countdown ?? DEFAULT_CHAN_CONFIG.demark.max_countdown} onChange={handleDemarkChange('max_countdown')} disabled={!(chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark)} />
+                                    </div>
+                                    <div className="config-checkbox-group config-checkbox-group--compact" style={{ marginTop: 8 }}>
+                                        <Checkbox checked={chanConfig.demark?.tiaokong_st ?? DEFAULT_CHAN_CONFIG.demark.tiaokong_st} onChange={handleDemarkToggle('tiaokong_st')} disabled={!(chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark)}>
+                                            <LabelWithTip label="跳空算 Setup" tip="在 Setup 计数时将跳空视作满足条件（默认开启）" />
+                                        </Checkbox>
+                                        <Checkbox checked={chanConfig.demark?.setup_cmp2close ?? DEFAULT_CHAN_CONFIG.demark.setup_cmp2close} onChange={handleDemarkToggle('setup_cmp2close')} disabled={!(chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark)}>
+                                            <LabelWithTip label="Setup 比较收盘价" tip="Setup 比较使用收盘价而非最高/最低（默认开启）" />
+                                        </Checkbox>
+                                        <Checkbox checked={chanConfig.demark?.countdown_cmp2close ?? DEFAULT_CHAN_CONFIG.demark.countdown_cmp2close} onChange={handleDemarkToggle('countdown_cmp2close')} disabled={!(chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark)}>
+                                            <LabelWithTip label="Countdown 比较收盘价" tip="Countdown 计数使用收盘价比较（默认开启）" />
+                                        </Checkbox>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     ),
                 },
             ];
@@ -3512,6 +4923,7 @@
             const [chartData, setChartData] = useState({});
             const [loadingCharts, setLoadingCharts] = useState({});
             const [theme, setTheme] = useState(savedConfig?.theme || 'light');
+            const [debugLogging, setDebugLogging] = useState(() => (typeof window !== 'undefined' && window.__CHAN_DEBUG__?.isEnabled?.() ? window.__CHAN_DEBUG__.isEnabled() : false));
             const [leftCollapsed, setLeftCollapsed] = useState(savedConfig?.ui?.leftCollapsed || false);
             const [rightCollapsed, setRightCollapsed] = useState(savedConfig?.ui?.rightCollapsed || false);
             const [leftWidth, setLeftWidth] = useState(savedConfig?.ui?.leftWidth || 280);
@@ -3527,6 +4939,32 @@
             const chartRegistryRef = useRef(new Map());
             const syncLockRef = useRef(false);
             const latestRangeRef = useRef(null);
+
+            useEffect(() => {
+                if (typeof window === 'undefined' || !window.__CHAN_DEBUG__?.subscribe) {
+                    return undefined;
+                }
+                const unsubscribe = window.__CHAN_DEBUG__.subscribe((value) => {
+                    setDebugLogging(!!value);
+                });
+                return () => {
+                    if (typeof unsubscribe === 'function') {
+                        unsubscribe();
+                    }
+                };
+            }, []);
+
+            const toggleDebugLogging = useCallback(() => {
+                if (typeof window === 'undefined' || !window.__CHAN_DEBUG__) {
+                    message.warning('调试模块不可用');
+                    return;
+                }
+                if (window.__CHAN_DEBUG__.isEnabled()) {
+                    window.__CHAN_DEBUG__.disable();
+                } else {
+                    window.__CHAN_DEBUG__.enable();
+                }
+            }, []);
 
             const activeStock = useMemo(() => {
                 if (!activeStockCode) {
@@ -3547,7 +4985,7 @@
                     };
                     localStorage.setItem('chanlun_config', JSON.stringify(config));
                 } catch (e) {
-                    console.error('Failed to save config:', e);
+                    debugError('Failed to save config:', e);
                 }
             }, [stocks, indicators, chanConfig, theme, leftCollapsed, rightCollapsed, leftWidth, rightWidth, activeStockCode, activeLevels, levelLayout]);
 
@@ -3584,12 +5022,23 @@
                         ...indicators,
                         chan_config: chanConfig,
                     };
+                    debugLog('🧪 ChanConfig snapshot', {
+                        min_zs_cnt: chanConfig.min_zs_cnt,
+                        bsp1_only_multibi_zs: chanConfig.bsp1_only_multibi_zs,
+                        bs1_peak: chanConfig.bs1_peak,
+                        bsp2_follow_1: chanConfig.bsp2_follow_1,
+                        bsp3_follow_1: chanConfig.bsp3_follow_1,
+                        bs_type: chanConfig.bs_type,
+                        macd_algo: chanConfig.macd_algo,
+                        max_bs2_rate: chanConfig.max_bs2_rate,
+                        divergence_rate: chanConfig.divergence_rate,
+                    });
 
                     const result = await api.calculateChan(params);
                     setChartData(prev => ({ ...prev, [key]: result }));
                     DataCache.set(key, result);
                 } catch (error) {
-                    console.error('Analysis failed:', error);
+                    debugError('Analysis failed:', error);
                     message.error(`${code} ${level} 分析失败: ${error.message}`);
                 } finally {
                     setLoadingCharts(prev => ({ ...prev, [key]: false }));
@@ -3637,7 +5086,7 @@
             const prevChanConfigRef = useRef(chanConfig);
             useEffect(() => {
                 if (prevChanConfigRef.current !== chanConfig && activeStock) {
-                    console.log('⚙️ Chan config changed, refreshing charts...');
+                    debugLog('⚙️ Chan config changed, refreshing charts...');
                     setTimeout(() => refreshAllCharts(), 120);
                 }
                 prevChanConfigRef.current = chanConfig;
@@ -3657,7 +5106,7 @@
             useEffect(() => {
                 api.listAlertStrategies()
                     .then(res => setAlertStrategies(res.items || []))
-                    .catch(err => console.warn('⚠️ Failed to load alert strategies:', err));
+                    .catch(err => debugWarn('⚠️ Failed to load alert strategies:', err));
             }, []);
 
             const addStock = useCallback((stockInfo = {}) => {
@@ -3698,22 +5147,22 @@
                     return;
                 }
                 chartRegistryRef.current.set(key, entry);
-                console.log('📌 [Registry] add', key, 'total:', chartRegistryRef.current.size);
+                debugLog('📌 [Registry] add', key, 'total:', chartRegistryRef.current.size);
                 const latest = latestRangeRef.current;
                 if (!latest || latest.sourceKey === key) {
                     if (latest) {
-                        console.log('ℹ️ [Registry] latest from', latest.sourceKey, 'skipped for', key);
+                        debugLog('ℹ️ [Registry] latest from', latest.sourceKey, 'skipped for', key);
                     }
                     return;
                 }
                 const range = entry.getIndexRange(latest.fromTs, latest.toTs);
                 if (!Array.isArray(range)) {
-                    console.warn('⚠️ [Registry] no range when restoring', key, latest);
+                    debugWarn('⚠️ [Registry] no range when restoring', key, latest);
                     return;
                 }
                 const [fromIdx, toIdx] = range;
                 if (!Number.isFinite(fromIdx) || !Number.isFinite(toIdx)) {
-                    console.warn('⚠️ [Registry] invalid range when restoring', key, range);
+                    debugWarn('⚠️ [Registry] invalid range when restoring', key, range);
                     return;
                 }
                 try {
@@ -3737,18 +5186,18 @@
                         }
                     }
                     if (applied) {
-                        console.log('⏪ [Registry] restore', key, { fromIdx, toIdx, fromTs: latest.fromTs, toTs: latest.toTs });
+                        debugLog('⏪ [Registry] restore', key, { fromIdx, toIdx, fromTs: latest.fromTs, toTs: latest.toTs });
                     } else {
-                        console.warn('⚠️ [Registry] unable to apply synced range', key);
+                        debugWarn('⚠️ [Registry] unable to apply synced range', key);
                     }
                 } catch (err) {
-                    console.warn('⚠️ Failed to apply synced range on register', err);
+                    debugWarn('⚠️ Failed to apply synced range on register', err);
                 }
             }, []);
 
             const unregisterChartInstance = useCallback((key) => {
                 chartRegistryRef.current.delete(key);
-                console.log('🗑 [Registry] remove', key, 'total:', chartRegistryRef.current.size);
+                debugLog('🗑 [Registry] remove', key, 'total:', chartRegistryRef.current.size);
             }, []);
 
             const syncVisibleRange = useCallback((sourceKey, fromTs, toTs) => {
@@ -3759,7 +5208,7 @@
                     return;
                 }
                 syncLockRef.current = true;
-                console.log('📡 [Sync] broadcast', sourceKey, { fromTs, toTs });
+                debugLog('📡 [Sync] broadcast', sourceKey, { fromTs, toTs });
                 latestRangeRef.current = { sourceKey, fromTs, toTs };
                 try {
                     chartRegistryRef.current.forEach((entry, key) => {
@@ -3767,17 +5216,17 @@
                             return;
                         }
                         if (!entry || !entry.chart) {
-                            console.warn('⚠️ [Sync] skip chart', key, 'missing instance');
+                            debugWarn('⚠️ [Sync] skip chart', key, 'missing instance');
                             return;
                         }
                         const range = entry.getIndexRange(fromTs, toTs);
                         if (!Array.isArray(range)) {
-                            console.warn('⚠️ [Sync] no range for target', key, { fromTs, toTs });
+                            debugWarn('⚠️ [Sync] no range for target', key, { fromTs, toTs });
                             return;
                         }
                         const [fromIdx, toIdx] = range;
                         if (!Number.isFinite(fromIdx) || !Number.isFinite(toIdx)) {
-                            console.warn('⚠️ [Sync] invalid indices for target', key, range);
+                            debugWarn('⚠️ [Sync] invalid indices for target', key, range);
                             return;
                         }
                         try {
@@ -3801,12 +5250,12 @@
                                 }
                             }
                             if (applied) {
-                                console.log('🎯 [Sync] apply', key, { fromIdx, toIdx });
+                                debugLog('🎯 [Sync] apply', key, { fromIdx, toIdx });
                             } else {
-                                console.warn('⚠️ [Sync] no method to apply range', key);
+                                debugWarn('⚠️ [Sync] no method to apply range', key);
                             }
                         } catch (err) {
-                            console.warn('⚠️ Failed to sync visible range', err);
+                            debugWarn('⚠️ Failed to sync visible range', err);
                         }
                     });
                 } finally {
@@ -3854,7 +5303,7 @@
                     setAlertHistory(Array.isArray(result.items) ? result.items.slice(0, ALERT_HISTORY_LIMIT) : []);
                     setAlertError(null);
                 } catch (error) {
-                    console.error('⚠️ Failed to fetch alert history:', error);
+                    debugError('⚠️ Failed to fetch alert history:', error);
                     setAlertError('无法获取报警历史');
                 }
             }, []);
@@ -3887,7 +5336,7 @@
                                 });
                             }
                         } catch (err) {
-                            console.error('⚠️ Failed to parse alert payload:', err);
+                            debugError('⚠️ Failed to parse alert payload:', err);
                         }
                     };
 
@@ -3960,6 +5409,15 @@
                                 <Tooltip title={leftCollapsed ? '展开自选面板' : '收起自选面板'}>
                                     <Button size="small" onClick={toggleLeftSidebar}>
                                         {leftCollapsed ? '📂 展开' : '📁 收起'}
+                                    </Button>
+                                </Tooltip>
+                                <Tooltip title={debugLogging ? '关闭调试日志（刷新后保留）' : '开启调试日志（刷新后保留）'}>
+                                    <Button
+                                        size="small"
+                                        type={debugLogging ? 'primary' : 'default'}
+                                        onClick={toggleDebugLogging}
+                                    >
+                                        {debugLogging ? '📝 调试开' : '📝 调试关'}
                                     </Button>
                                 </Tooltip>
                                 <Tooltip title="切换主题">
