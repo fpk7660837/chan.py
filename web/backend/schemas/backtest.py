@@ -97,6 +97,8 @@ class BacktestSummary(BaseModel):
     sampleSignal: Optional[Dict[str, Any]] = Field(default=None, description="Most recent signal payload.")
     strength: Optional[StrengthSummary] = Field(default=None, description="Strength comparison data.")
     generatedAt: datetime = Field(default_factory=datetime.utcnow, description="Timestamp summary was generated.")
+    signals: List[Dict[str, Any]] = Field(default_factory=list, description="Full filtered signal list.")
+    resultInfo: Optional[Dict[str, Any]] = Field(default=None, description="Key metrics from analysis result.")
 
 
 class BacktestJob(BaseModel):

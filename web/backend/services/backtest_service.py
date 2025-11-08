@@ -233,6 +233,8 @@ class BacktestService:
                 "sampleSignal": None,
                 "strength": None,
                 "generatedAt": datetime.now(timezone.utc),
+                "signals": [],
+                "resultInfo": None,
             }
 
         signal_filters = self._normalize_filters(filters)
@@ -243,12 +245,15 @@ class BacktestService:
 
         strength_summary = self._derive_strength_summary(analysis_result, chan_config)
 
+        formatted_signals = [self._format_signal(entry) for entry in sorted_signals]
         return {
             "status": "ready",
             "signalCount": len(filtered),
             "sampleSignal": sample_signal,
             "strength": strength_summary,
             "generatedAt": datetime.now(timezone.utc),
+            "signals": formatted_signals,
+            "resultInfo": self._build_result_info(analysis_result),
         }
 
     def _normalize_filters(self, filters: BacktestFilters) -> Dict[str, Any]:
@@ -288,6 +293,33 @@ class BacktestService:
             sorted_signals.append(enriched)
         sorted_signals.sort(key=lambda entry: entry["timestamp"], reverse=True)
         return sorted_signals
+
+    def _format_signal(self, item: Dict[str, Any]) -> Dict[str, Any]:
+        formatted = {
+            "timestamp": item.get("timestamp"),
+            "type": item.get("type"),
+            "typeKey": item.get("typeKey"),
+            "price": self._safe_float(item.get("price")),
+            "code": item.get("code"),
+            "level": item.get("level"),
+            "is_buy": bool(item.get("is_buy")),
+        }
+        for key in ("time", "idx", "comment", "extra"):
+            if key in item:
+                formatted[key] = item[key]
+        return formatted
+
+    def _build_result_info(self, analysis_result: Dict[str, Any]) -> Dict[str, Any]:
+        meta = analysis_result.get("meta") if isinstance(analysis_result.get("meta"), dict) else {}
+        return {
+            "klineCount": len(analysis_result.get("kline_data") or []),
+            "rawKlineCount": len(analysis_result.get("raw_kline_data") or []),
+            "biCount": len(analysis_result.get("bi_list") or []),
+            "segCount": len(analysis_result.get("seg_list") or []),
+            "zsCount": len(analysis_result.get("zs_list") or []),
+            "bspCount": len(analysis_result.get("bsp_list") or []),
+            "meta": meta,
+        }
 
     def _normalize_bsp_type(self, value: Any) -> str:
         if value is None:

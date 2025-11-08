@@ -95,6 +95,16 @@ class ChanService:
                 "slow": int(macd_conf.get("slow", 26)),
                 "signal": int(macd_conf.get("signal", 9)),
             }
+        divergence_rate = chan_config_data.get("divergence_rate")
+        if divergence_rate is None:
+            chan_config_data["divergence_rate"] = float("inf")
+        else:
+            try:
+                parsed = float(divergence_rate)
+            except (TypeError, ValueError):
+                parsed = float("inf")
+            chan_config_data["divergence_rate"] = parsed if parsed > 0 else float("inf")
+
         if "demark" not in chan_config_data:
             chan_config_data["demark"] = {
                 "demark_len": 9,

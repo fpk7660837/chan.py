@@ -4656,9 +4656,9 @@
                                 />
                             );
                         })}
-                    </div>
                 </div>
-            );
+            </div>
+        );
         });
 
         // ============= Stock Manager Component =============
@@ -5020,6 +5020,8 @@
             }));
             const [queue, setQueue] = useState([]);
             const [loadingQueue, setLoadingQueue] = useState(false);
+            const [inspectorVisible, setInspectorVisible] = useState(false);
+            const [inspectorData, setInspectorData] = useState(null);
 
             useEffect(() => {
                 if (stocks.length > 0 && !form.stockCode) {
@@ -5061,6 +5063,27 @@
                 []
             );
 
+            const normalizeSignals = useCallback((signals) => {
+                if (!Array.isArray(signals) || signals.length === 0) {
+                    return [];
+                }
+                return signals
+                    .map(item => {
+                        if (!item) {
+                            return null;
+                        }
+                        if (Number.isFinite(item.timestamp)) {
+                            return item;
+                        }
+                        const ts = convertTime(item.timestamp ?? item.time);
+                        if (!Number.isFinite(ts)) {
+                            return item;
+                        }
+                        return { ...item, timestamp: ts };
+                    })
+                    .filter(Boolean);
+            }, []);
+
             const ensureSampleTimestamp = useCallback((sample) => {
                 if (!sample) {
                     return null;
@@ -5094,6 +5117,8 @@
                         ...job.lastSummary,
                         sampleSignal: ensureSampleTimestamp(job.lastSummary.sampleSignal),
                         strength: job.lastSummary.strength || null,
+                        signals: normalizeSignals(job.lastSummary.signals),
+                        resultInfo: job.lastSummary.resultInfo || null,
                     };
                 }
                 return {
@@ -5105,7 +5130,7 @@
                     errorMessage,
                     lastSummary: summary,
                 };
-            }, [normalizeFilters, ensureSampleTimestamp]);
+            }, [normalizeFilters, ensureSampleTimestamp, normalizeSignals]);
 
             const mergeHydratedJob = useCallback((hydrated) => {
                 if (!hydrated) {
@@ -5157,6 +5182,16 @@
                         signalCount: filtered.length,
                         sampleSignal: sample,
                         strength: { biStrength, segStrength },
+                        signals: sorted,
+                        resultInfo: {
+                            klineCount: (data.kline_data || []).length,
+                            rawKlineCount: (data.raw_kline_data || []).length,
+                            biCount: (data.bi_list || []).length,
+                            segCount: (data.seg_list || []).length,
+                            zsCount: (data.zs_list || []).length,
+                            bspCount: (data.bsp_list || []).length,
+                            meta: data.meta || null,
+                        },
                     };
                 }
                 if (entry.lastSummary) {
@@ -5164,6 +5199,8 @@
                         ...entry.lastSummary,
                         sampleSignal: ensureSampleTimestamp(entry.lastSummary.sampleSignal),
                         strength: entry.lastSummary.strength || null,
+                        signals: normalizeSignals(entry.lastSummary.signals),
+                        resultInfo: entry.lastSummary.resultInfo || null,
                     };
                 }
                 return {
@@ -5171,8 +5208,10 @@
                     signalCount: 0,
                     sampleSignal: null,
                     strength: null,
+                    signals: [],
+                    resultInfo: null,
                 };
-            }, [chartData, normalizeFilters, chanConfig, ensureSampleTimestamp]);
+            }, [chartData, normalizeFilters, chanConfig, ensureSampleTimestamp, normalizeSignals]);
 
             const handleFormChange = useCallback((patch) => {
                 setForm(prev => ({ ...prev, ...patch }));
@@ -5283,6 +5322,20 @@
                 completed: '已运行',
                 failed: '失败',
             };
+
+            const openSignalInspector = useCallback((entry, summary) => {
+                if (!summary?.signals?.length) {
+                    message.info('暂无信号');
+                    return;
+                }
+                setInspectorData({ entry, summary });
+                setInspectorVisible(true);
+            }, []);
+
+            const closeSignalInspector = useCallback(() => {
+                setInspectorVisible(false);
+                setInspectorData(null);
+            }, []);
 
             return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -5412,6 +5465,13 @@
                                                     >
                                                         刷新数据
                                                     </Button>
+                                                    <Button
+                                                        size="small"
+                                                        onClick={() => openSignalInspector(entry, summary)}
+                                                        disabled={!summary?.signals?.length}
+                                                    >
+                                                        信号
+                                                    </Button>
                                                     <Button size="small" danger onClick={() => removeEntry(entry.id)}>
                                                         删除
                                                     </Button>
@@ -5443,6 +5503,11 @@
                                                     上次运行：{dayjs(entry.lastRunAt).format('MM-DD HH:mm')}
                                                 </div>
                                             )}
+                                            {summary.resultInfo && (
+                                                <div style={{ fontSize: 11, color: '#777' }}>
+                                                    K线：{summary.resultInfo.klineCount ?? '--'} ｜ BI：{summary.resultInfo.biCount ?? '--'} ｜ 段：{summary.resultInfo.segCount ?? '--'} ｜ 信号：{summary.resultInfo.bspCount ?? '--'}
+                                                </div>
+                                            )}
                                             {entry.status === 'failed' && entry.errorMessage && (
                                                 <div style={{ fontSize: 11, color: '#d4380d' }}>
                                                     错误：{entry.errorMessage}
@@ -5454,6 +5519,54 @@
                             </div>
                         )}
                     </div>
+                    <Drawer
+                        width={520}
+                        title="信号详情"
+                        onClose={closeSignalInspector}
+                        open={inspectorVisible}
+                        destroyOnClose
+                    >
+                        {!inspectorData ? (
+                            <div style={{ color: '#999' }}>请选择任务查看信号详情</div>
+                        ) : (
+                            <>
+                                <div style={{ marginBottom: 12, fontSize: 12, color: '#555' }}>
+                                    <div>股票：{inspectorData.entry.stockCode}</div>
+                                    <div>级别：{LEVEL_OPTIONS.find(item => item.value === inspectorData.entry.level)?.label || inspectorData.entry.level}</div>
+                                    <div>方向：{(inspectorData.entry.filters?.directions || []).map(dir => (dir === 'sell' ? '卖点' : '买点')).join(' / ') || '全部'}</div>
+                                    <div>类型：{(inspectorData.entry.filters?.types || []).join('、') || '全部'}</div>
+                                </div>
+                                {inspectorData.summary?.resultInfo && (
+                                    <div style={{ marginBottom: 12, fontSize: 12, color: '#555' }}>
+                                        <div>统计：K线 {inspectorData.summary.resultInfo.klineCount ?? '--'} ｜ BI {inspectorData.summary.resultInfo.biCount ?? '--'} ｜ 段 {inspectorData.summary.resultInfo.segCount ?? '--'} ｜ 信号 {inspectorData.summary.resultInfo.bspCount ?? '--'}</div>
+                                    </div>
+                                )}
+                                <Table
+                                    size="small"
+                                    pagination={{ pageSize: 10 }}
+                                    columns={[
+                                        { title: '序号', dataIndex: 'index', width: 60 },
+                                        { title: '时间', dataIndex: 'time', width: 160 },
+                                        { title: '方向', dataIndex: 'direction', width: 80 },
+                                        { title: '类型', dataIndex: 'type' },
+                                        { title: '价格', dataIndex: 'price', width: 100 },
+                                    ]}
+                                    dataSource={(inspectorData.summary?.signals || []).map((signal, idx) => {
+                                        const priceValue = Number(signal.price);
+                                        return {
+                                            key: `${signal.timestamp || idx}-${idx}`,
+                                            index: idx + 1,
+                                            time: signal.timestamp ? dayjs(signal.timestamp).format('YYYY-MM-DD HH:mm') : (signal.time || '--'),
+                                            direction: signal.is_buy ? '买点' : '卖点',
+                                            type: SignalUtils.normalizeBspType(signal.typeKey || signal.type),
+                                            price: Number.isFinite(priceValue) ? priceValue.toFixed(3) : (signal.price ?? '--'),
+                                        };
+                                    })}
+                                    scroll={{ y: 360 }}
+                                />
+                            </>
+                        )}
+                    </Drawer>
                 </div>
             );
         });

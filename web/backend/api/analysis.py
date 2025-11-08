@@ -8,6 +8,7 @@ from typing import Optional, List
 from enum import Enum
 
 from services.chan_service import ChanService
+from services.stock_service import stock_service
 
 router = APIRouter()
 
@@ -164,20 +165,12 @@ async def calculate_chan_analysis(request: AnalysisRequest):
 
 
 @router.get("/stock/search")
-async def search_stock(keyword: str):
+async def search_stock(keyword: str, limit: int = 20):
     """
-    Search stock by keyword
-    
-    Args:
-        keyword: Stock code or name keyword
-        
-    Returns:
-        List of matching stocks
+    Search BaoStock listings by code or name keyword.
     """
-    # TODO: Implement stock search functionality
-    return {
-        "results": [
-            {"code": "sz.000001", "name": "平安银行"},
-            {"code": "sh.600000", "name": "浦发银行"}
-        ]
-    }
+    try:
+        results = stock_service.search(keyword, limit=limit)
+        return {"results": results}
+    except Exception as exc:  # pylint: disable=broad-except
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
