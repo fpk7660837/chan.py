@@ -18,7 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import uvicorn
 
-from api import analysis, chart, config, alerts
+from api import analysis, chart, config, alerts, backtest
 from runtime.realtime import setup_realtime
 
 app = FastAPI(
@@ -41,6 +41,7 @@ app.include_router(analysis.router, prefix="/api/analysis", tags=["Analysis"])
 app.include_router(chart.router, prefix="/api/chart", tags=["Chart"])
 app.include_router(config.router, prefix="/api/config", tags=["Config"])
 app.include_router(alerts.router, prefix="/api/alerts", tags=["Alerts"])
+app.include_router(backtest.router, prefix="/api/backtest", tags=["Backtest"])
 
 # Mount static files
 frontend_path = Path(__file__).parent.parent / "frontend"

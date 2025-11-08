@@ -226,6 +226,189 @@
             gap: 12px;
         }
 
+        .strength-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 8px 0;
+        }
+
+        .strength-row {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 6px 8px;
+            border-radius: 6px;
+            background: rgba(33, 150, 243, 0.08);
+        }
+
+        .strength-row__title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #1a237e;
+        }
+
+        .strength-row__metrics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .strength-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #fff;
+            border: 1px solid #1976d2;
+            color: #0d47a1;
+        }
+
+        .strength-pill--weak {
+            border-color: #f44336;
+            color: #b71c1c;
+            background: rgba(244, 67, 54, 0.1);
+        }
+
+        .strength-pill--strong {
+            border-color: #43a047;
+            color: #1b5e20;
+            background: rgba(67, 160, 71, 0.12);
+        }
+
+        .level-overview {
+            display: grid;
+            gap: 6px;
+            margin-top: 12px;
+        }
+
+        .level-overview__item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.04);
+            font-size: 12px;
+        }
+
+        .signal-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+
+        .signal-filter__row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .watchlist-overview {
+            margin-top: 16px;
+            padding: 12px;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .watchlist-overview__header {
+            font-weight: 600;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .watchlist-overview__stock {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .watchlist-overview__stock-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .watchlist-overview__rows {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .watchlist-overview__row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 6px;
+            background: rgba(0, 0, 0, 0.03);
+            font-size: 12px;
+        }
+
+        .watchlist-overview__level-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .watchlist-overview__actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .dark-theme .watchlist-overview {
+            background: #141414;
+            border-color: #333;
+        }
+
+        .dark-theme .watchlist-overview__header {
+            color: #ddd;
+        }
+
+        .dark-theme .watchlist-overview__stock-name {
+            color: #f0f0f0;
+        }
+
+        .dark-theme .watchlist-overview__row {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .dark-theme .strength-row__title {
+            color: #90caf9;
+        }
+
+        .dark-theme .strength-pill {
+            background: rgba(13, 71, 161, 0.18);
+            border-color: #90caf9;
+            color: #bbdefb;
+        }
+
+        .dark-theme .strength-pill--weak {
+            background: rgba(244, 67, 54, 0.18);
+            border-color: #ef9a9a;
+            color: #ef9a9a;
+        }
+
+        .dark-theme .strength-pill--strong {
+            background: rgba(67, 160, 71, 0.18);
+            border-color: #a5d6a7;
+            color: #c8e6c9;
+        }
+
+        .dark-theme .level-overview__item {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
 
 
         /* Stock Manager Styles */
@@ -1105,6 +1288,7 @@
             bsp2s_follow_2: false,
             max_bsp2s_lv: null,
             strict_bsp3: false,
+            bsp_filters: { ...DEFAULT_BSP_FILTERS },
         };
 
         const MA_OPTIONS = [5, 10, 20, 30, 45, 60, 120, 250];
@@ -1163,6 +1347,363 @@
             bsp2s_follow_2: false,
             max_bsp2s_lv: null,
             strict_bsp3: false,
+        };
+
+        const DEFAULT_BSP_FILTERS = {
+            directions: ['buy', 'sell'],
+            types: [],
+        };
+
+        const SignalUtils = {
+            normalizeBspType(value) {
+                const str = value == null ? '' : String(value).trim();
+                return str.length > 0 ? str : '未标注';
+            },
+            normalizeFilters(rawFilters) {
+                const source = rawFilters && typeof rawFilters === 'object' ? rawFilters : {};
+                const rawDirections = Array.isArray(source.directions) && source.directions.length > 0
+                    ? source.directions
+                    : DEFAULT_BSP_FILTERS.directions;
+                const rawTypes = Array.isArray(source.types) ? source.types : [];
+                const directions = Array.from(new Set(rawDirections.map(item => (item === 'sell' ? 'sell' : 'buy'))));
+                return {
+                    directions: directions.length > 0 ? directions : [...DEFAULT_BSP_FILTERS.directions],
+                    types: Array.from(new Set(rawTypes.map(value => {
+                        if (value == null) return '';
+                        const str = String(value).trim();
+                        return str.length > 0 ? str : '';
+                    }).filter(Boolean))),
+                };
+            },
+            filterSignals(list, normalizedFilters) {
+                if (!Array.isArray(list) || list.length === 0) {
+                    return [];
+                }
+                const filters = normalizedFilters
+                    ? normalizedFilters
+                    : DEFAULT_BSP_FILTERS;
+                return list.filter(item => {
+                    const dir = item && item.is_buy ? 'buy' : 'sell';
+                    if (!filters.directions.includes(dir)) {
+                        return false;
+                    }
+                    if (filters.types.length > 0) {
+                        const typeKey = SignalUtils.normalizeBspType(item?.type);
+                        return filters.types.includes(typeKey);
+                    }
+                    return true;
+                });
+            },
+            sortByTimestampDesc(list, convertFn) {
+                if (!Array.isArray(list) || list.length === 0) {
+                    return [];
+                }
+                return list
+                    .map(item => {
+                        const ts = convertFn(item.time);
+                        return {
+                            ...item,
+                            timestamp: ts,
+                        };
+                    })
+                    .filter(item => Number.isFinite(item.timestamp))
+                    .sort((a, b) => b.timestamp - a.timestamp);
+            },
+        };
+
+        const calculateMacdHistogram = (values, fastPeriod = 12, slowPeriod = 26, signalPeriod = 9) => {
+            if (!Array.isArray(values) || values.length === 0) {
+                return [];
+            }
+            const calcEma = (series, period) => {
+                const result = [];
+                if (!Array.isArray(series) || series.length === 0) {
+                    return result;
+                }
+                const smoothing = 2 / (period + 1);
+                let ema = series[0];
+                result[0] = ema;
+                for (let i = 1; i < series.length; i += 1) {
+                    const value = series[i];
+                    ema = (value * smoothing) + ema * (1 - smoothing);
+                    result[i] = ema;
+                }
+                return result;
+            };
+            const emaFast = calcEma(values, fastPeriod);
+            const emaSlow = calcEma(values, slowPeriod);
+            if (emaFast.length !== emaSlow.length) {
+                return [];
+            }
+            const macdLine = emaFast.map((ema, idx) => ema - emaSlow[idx]);
+            const signalLine = calcEma(macdLine, signalPeriod);
+            if (signalLine.length !== macdLine.length) {
+                return [];
+            }
+            return macdLine.map((line, idx) => line - signalLine[idx]);
+        };
+
+        const normalizeDirectionValue = (candidateDir, beginPrice, endPrice) => {
+            if (candidateDir === 'up' || candidateDir === 'down') {
+                return candidateDir;
+            }
+            if (Number.isFinite(beginPrice) && Number.isFinite(endPrice)) {
+                if (endPrice > beginPrice) return 'up';
+                if (endPrice < beginPrice) return 'down';
+            }
+            return null;
+        };
+
+        const buildStrengthMetrics = (items, getTimes, getPrices, getDir, getLabel, getExtraMetrics) => {
+            if (!Array.isArray(items)) {
+                return [];
+            }
+            return items.map((item, idx) => {
+                const { startTs, endTs } = getTimes(item);
+                const { beginPrice, endPrice } = getPrices(item);
+                const dir = normalizeDirectionValue(getDir(item), beginPrice, endPrice);
+                const duration = Number.isFinite(startTs) && Number.isFinite(endTs)
+                    ? Math.abs(endTs - startTs) / 60000
+                    : null;
+                const amplitude = (Number.isFinite(beginPrice) && Number.isFinite(endPrice))
+                    ? Math.abs(endPrice - beginPrice)
+                    : null;
+                const efficiency = Number.isFinite(duration) && duration > 0 && Number.isFinite(amplitude)
+                    ? amplitude / duration
+                    : null;
+                const extras = typeof getExtraMetrics === 'function' ? getExtraMetrics(startTs, endTs) : {};
+                return {
+                    idx,
+                    startTs,
+                    endTs,
+                    beginPrice,
+                    endPrice,
+                    dir,
+                    duration,
+                    amplitude,
+                    efficiency,
+                    volume: Number.isFinite(extras?.volume) ? extras.volume : null,
+                    macdAbs: Number.isFinite(extras?.macdAbs) ? extras.macdAbs : null,
+                    label: getLabel(item, idx),
+                };
+            }).filter(metric =>
+                metric.dir &&
+                Number.isFinite(metric.amplitude) &&
+                Number.isFinite(metric.duration) &&
+                metric.duration > 0 &&
+                metric.amplitude > 0 &&
+                Number.isFinite(metric.endTs)
+            );
+        };
+
+        const computeStrengthComparison = (metrics) => {
+            if (!Array.isArray(metrics) || metrics.length < 2) {
+                return null;
+            }
+            const ordered = metrics.slice().sort((a, b) => a.endTs - b.endTs);
+            const latest = ordered[ordered.length - 1];
+            let previous = null;
+            for (let i = ordered.length - 2; i >= 0; i -= 1) {
+                if (ordered[i].dir === latest.dir) {
+                    previous = ordered[i];
+                    break;
+                }
+            }
+            if (!previous) {
+                return null;
+            }
+            const amplitudeRatio = previous.amplitude > 0 ? latest.amplitude / previous.amplitude : null;
+            const durationRatio = previous.duration > 0 ? latest.duration / previous.duration : null;
+            const efficiencyRatio = (previous.efficiency && previous.efficiency > 0)
+                ? (latest.efficiency ?? 0) / previous.efficiency
+                : null;
+            const volumeRatio = (previous.volume && previous.volume > 0 && latest.volume != null)
+                ? latest.volume / previous.volume
+                : null;
+            const macdRatio = (previous.macdAbs && previous.macdAbs > 0 && latest.macdAbs != null)
+                ? latest.macdAbs / previous.macdAbs
+                : null;
+            const volumeWeakening = volumeRatio != null && volumeRatio < 1;
+            const macdWeakening = macdRatio != null && macdRatio < 1;
+            const strongMomentum = (amplitudeRatio != null && amplitudeRatio > 1.1)
+                || (macdRatio != null && macdRatio > 1.1);
+            const weakening = (amplitudeRatio != null && amplitudeRatio < 1)
+                && ((efficiencyRatio != null && efficiencyRatio < 1) || volumeWeakening || macdWeakening);
+            const hintNotes = [];
+            if (volumeWeakening) {
+                hintNotes.push('量能缩减');
+            } else if (volumeRatio != null && volumeRatio > 1.1) {
+                hintNotes.push('量能放大');
+            }
+            if (macdWeakening) {
+                hintNotes.push('MACD走弱');
+            } else if (macdRatio != null && macdRatio > 1.1) {
+                hintNotes.push('MACD走强');
+            }
+            let hint = '';
+            let hintType = null;
+            if (strongMomentum) {
+                hint = hintNotes.length > 0 ? hintNotes.join(' / ') : '力度增强';
+                hintType = 'strong';
+            } else if (weakening) {
+                hint = hintNotes.length > 0 ? hintNotes.join(' / ') : '力度减弱，关注背驰';
+                hintType = 'weak';
+            } else if (efficiencyRatio != null && efficiencyRatio < 0.8) {
+                hint = hintNotes.length > 0 ? hintNotes.join(' / ') : '效率下滑';
+                hintType = 'weak';
+            } else if (hintNotes.length > 0) {
+                hint = hintNotes.join(' / ');
+            }
+            return {
+                dir: latest.dir,
+                current: latest,
+                previous,
+                amplitudeRatio,
+                durationRatio,
+                efficiencyRatio,
+                volumeRatio,
+                macdRatio,
+                weakening,
+                volumeWeakening,
+                macdWeakening,
+                hint,
+                hintType,
+            };
+        };
+
+        const deriveStrengthMetrics = (data, chanConfig) => {
+            if (!data || typeof data !== 'object') {
+                return { biStrength: null, segStrength: null };
+            }
+            const safeNumber = (value) => {
+                if (typeof value === 'number') {
+                    return Number.isFinite(value) ? value : null;
+                }
+                if (value === null || value === undefined) {
+                    return null;
+                }
+                const parsed = parseFloat(value);
+                return Number.isFinite(parsed) ? parsed : null;
+            };
+            const candleSeriesRaw = Array.isArray(data.kline_data) ? data.kline_data : [];
+            const candleSeries = candleSeriesRaw.map(item => {
+                const timestamp = convertTime(item.time);
+                const close = safeNumber(item.close);
+                const volume = safeNumber(item.volume);
+                return {
+                    timestamp,
+                    close,
+                    volume: Number.isFinite(volume) ? volume : 0,
+                };
+            }).filter(item => Number.isFinite(item.timestamp) && Number.isFinite(item.close));
+            const candleTimestamps = candleSeries.map(item => item.timestamp);
+            const volumePrefix = [];
+            let volumeAccum = 0;
+            candleSeries.forEach((item, idx) => {
+                volumeAccum += item.volume;
+                volumePrefix[idx] = volumeAccum;
+            });
+            const macdParams = chanConfig?.macd || DEFAULT_CHAN_CONFIG.macd;
+            const macdFast = Number(macdParams?.fast) || DEFAULT_CHAN_CONFIG.macd.fast;
+            const macdSlow = Number(macdParams?.slow) || DEFAULT_CHAN_CONFIG.macd.slow;
+            const macdSignal = Number(macdParams?.signal) || DEFAULT_CHAN_CONFIG.macd.signal;
+            const macdHistogram = candleSeries.length > 0
+                ? calculateMacdHistogram(
+                    candleSeries.map(item => item.close),
+                    macdFast,
+                    macdSlow,
+                    macdSignal
+                )
+                : [];
+            const macdAbsPrefix = [];
+            let macdAccum = 0;
+            macdHistogram.forEach((value, idx) => {
+                const absVal = Number.isFinite(value) ? Math.abs(value) : 0;
+                macdAccum += absVal;
+                macdAbsPrefix[idx] = macdAccum;
+            });
+            const findCandleIndex = (ts) => {
+                if (!Number.isFinite(ts) || candleTimestamps.length === 0) {
+                    return null;
+                }
+                let left = 0;
+                let right = candleTimestamps.length - 1;
+                if (ts <= candleTimestamps[left]) return left;
+                if (ts >= candleTimestamps[right]) return right;
+                while (left <= right) {
+                    const mid = Math.floor((left + right) / 2);
+                    const midTs = candleTimestamps[mid];
+                    if (midTs === ts) {
+                        return mid;
+                    }
+                    if (midTs < ts) {
+                        left = mid + 1;
+                    } else {
+                        right = mid - 1;
+                    }
+                }
+                if (left >= candleTimestamps.length) return candleTimestamps.length - 1;
+                if (right < 0) return 0;
+                const leftDiff = Math.abs(candleTimestamps[left] - ts);
+                const rightDiff = Math.abs(candleTimestamps[right] - ts);
+                return leftDiff < rightDiff ? left : right;
+            };
+            const calcRangeMetrics = (startTs, endTs) => {
+                if (!Number.isFinite(startTs) || !Number.isFinite(endTs) || candleTimestamps.length === 0) {
+                    return {};
+                }
+                const startIdx = findCandleIndex(startTs);
+                const endIdx = findCandleIndex(endTs);
+                if (startIdx == null || endIdx == null) {
+                    return {};
+                }
+                const minIdx = Math.min(startIdx, endIdx);
+                const maxIdx = Math.max(startIdx, endIdx);
+                const volume = volumePrefix.length > 0
+                    ? volumePrefix[maxIdx] - (minIdx > 0 ? volumePrefix[minIdx - 1] : 0)
+                    : null;
+                const macdAbs = macdAbsPrefix.length > 0
+                    ? macdAbsPrefix[maxIdx] - (minIdx > 0 ? macdAbsPrefix[minIdx - 1] : 0)
+                    : null;
+                return { volume, macdAbs };
+            };
+            const biStrength = computeStrengthComparison(
+                buildStrengthMetrics(
+                    data.bi_list || [],
+                    (item) => {
+                        const startTs = convertTime(item.begin_time);
+                        const endTs = convertTime(item.end_time);
+                        return { startTs, endTs };
+                    },
+                    (item) => {
+                        const beginPrice = safeNumber(item.begin_price);
+                        const endPrice = safeNumber(item.end_price);
+                        return { beginPrice, endPrice };
+                    },
+                    (item) => item.dir || item.direction,
+                    (item, idx) => item.label || `笔#${item.idx ?? idx + 1}`,
+                    calcRangeMetrics
+                )
+            );
+            const segStrength = computeStrengthComparison(
+                buildStrengthMetrics(
+                    data.seg_list || [],
+                    (item) => {
+                        const startTs = convertTime(item.begin_time);
+                        const endTs = convertTime(item.end_time);
+                        return { startTs, endTs };
+                    },
+                    (item) => {
+                        const beginPrice = safeNumber(item.begin_price);
+                        const endPrice = safeNumber(item.end_price);
+                        return { beginPrice, endPrice };
+                    },
+                    (item) => item.dir || item.direction,
+                    (item, idx) => item.label || `段#${item.idx ?? idx + 1}`,
+                    calcRangeMetrics
+                )
+            );
+            return { biStrength, segStrength };
         };
 
         const BI_ALGO_OPTIONS = [
@@ -1356,8 +1897,15 @@
             if (!raw || typeof raw !== 'object') {
                 return {};
             }
-            const { bi_strict, seg_algo, zs_algo, ...rest } = raw;
-            return rest;
+            const { bi_strict, seg_algo, zs_algo, bsp_filters, ...rest } = raw;
+            let normalizedFilters = null;
+            if (bsp_filters && typeof bsp_filters === 'object') {
+                normalizedFilters = SignalUtils.normalizeFilters(bsp_filters);
+            }
+            return {
+                ...rest,
+                ...(normalizedFilters ? { bsp_filters: normalizedFilters } : {}),
+            };
         };
 
         // ============= API Service =============
@@ -1406,6 +1954,44 @@
                 const result = await response.json();
                 return Array.isArray(result.results) ? result.results : [];
             },
+            async listBacktestQueue() {
+                const response = await fetch(`${API_BASE}/api/backtest/queue`);
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+                return response.json();
+            },
+            async enqueueBacktestJob(payload) {
+                const response = await fetch(`${API_BASE}/api/backtest/queue`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+                return response.json();
+            },
+            async runBacktestJob(jobId, options = {}) {
+                const response = await fetch(`${API_BASE}/api/backtest/queue/${jobId}/run`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(options),
+                });
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+                return response.json();
+            },
+            async deleteBacktestJob(jobId) {
+                const response = await fetch(`${API_BASE}/api/backtest/queue/${jobId}`, {
+                    method: 'DELETE',
+                });
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.statusText}`);
+                }
+                return true;
+            },
         };
 
         // ============= App Context =============
@@ -1413,10 +1999,19 @@
         const useApp = () => useContext(AppContext);
 
         // ============= Chart Component =============
-        const ChartPanel = memo(({ stockCode, level, data, loading, stats }) => {
+        const ChartPanel = memo(({ stockCode, level, data, loading, stats, multiLevelStats }) => {
             const chartRef = useRef(null);
             const chartInstanceRef = useRef(null);
-            const { indicators, theme, registerChartInstance, unregisterChartInstance, syncVisibleRange } = useApp();
+            const {
+                indicators,
+                theme,
+                registerChartInstance,
+                unregisterChartInstance,
+                syncVisibleRange,
+                setActiveLevels,
+                chartFocusRequest,
+                acknowledgeChartFocus,
+            } = useApp();
             const chartKey = `${stockCode}-${level}`;
             const candleDataRef = useRef([]);
             const candleMapRef = useRef(new Map());
@@ -1432,6 +2027,7 @@
             const [detailData, setDetailData] = useState(null);
             const [detailTab, setDetailTab] = useState('bi');
             const [summaryCollapsed, setSummaryCollapsed] = useState(false);
+            const [preparedSignals, setPreparedSignals] = useState([]);
 
             const levelMeta = LEVEL_OPTIONS.find(option => option.value === level);
             const levelLabel = levelMeta?.label || level;
@@ -1443,6 +2039,51 @@
                 if (dir === 'down') return '向下';
                 return dir || '--';
             }, []);
+
+            const normalizedBspFilters = useMemo(
+                () => SignalUtils.normalizeFilters(indicators?.bsp_filters),
+                [indicators?.bsp_filters]
+            );
+
+            const filterSignals = useCallback(
+                (list) => SignalUtils.filterSignals(list, normalizedBspFilters),
+                [normalizedBspFilters]
+            );
+
+            const requestLevelFocus = useCallback((targetLevel) => {
+                if (!targetLevel || targetLevel === level) {
+                    return;
+                }
+                setActiveLevels(prev => {
+                    if (prev.includes(targetLevel)) {
+                        return prev;
+                    }
+                    return [...prev, targetLevel];
+                });
+                if (!timestampsRef.current.length) {
+                    return;
+                }
+                const chart = chartInstanceRef.current;
+                if (!chart || typeof chart.getVisibleRange !== 'function') {
+                    return;
+                }
+                const range = chart.getVisibleRange();
+                if (!range) {
+                    return;
+                }
+                const rawFrom = Number.isFinite(range.realFrom) ? range.realFrom : range.from;
+                const rawTo = Number.isFinite(range.realTo) ? range.realTo : range.to;
+                if (!Number.isFinite(rawFrom) || !Number.isFinite(rawTo)) {
+                    return;
+                }
+                const minIdx = clamp(Math.floor(Math.min(rawFrom, rawTo)), 0, timestampsRef.current.length - 1);
+                const maxIdx = clamp(Math.ceil(Math.max(rawFrom, rawTo)), 0, timestampsRef.current.length - 1);
+                const fromTs = timestampsRef.current[minIdx];
+                const toTs = timestampsRef.current[maxIdx];
+                if (Number.isFinite(fromTs) && Number.isFinite(toTs)) {
+                    syncVisibleRange(`${stockCode}-${level}`, fromTs, toTs);
+                }
+            }, [level, setActiveLevels, syncVisibleRange, stockCode]);
 
             const findNearestIndex = useCallback((timestamp) => {
                 const list = timestampsRef.current;
@@ -1598,6 +2239,35 @@
                     structures,
                 });
             }, [calcStructureSnapshot]);
+
+            const focusOnTimestamp = useCallback((timestamp) => {
+                if (!Number.isFinite(timestamp)) {
+                    return;
+                }
+                const chart = chartInstanceRef.current;
+                if (!chart) {
+                    return;
+                }
+                const idx = findNearestIndex(timestamp);
+                if (idx == null) {
+                    return;
+                }
+                if (typeof chart.scrollToDataIndex === 'function') {
+                    suppressBroadcastRef.current = true;
+                    chart.scrollToDataIndex(idx, 0.3);
+                } else if (typeof chart.scrollToTimestamp === 'function') {
+                    suppressBroadcastRef.current = true;
+                    chart.scrollToTimestamp(timestamp, 0.3);
+                }
+                const window = 30;
+                const fromIdx = Math.max(0, idx - window);
+                const toIdx = Math.min(timestampsRef.current.length - 1, idx + window);
+                const fromTs = timestampsRef.current[fromIdx];
+                    const toTs = timestampsRef.current[toIdx];
+                    if (Number.isFinite(fromTs) && Number.isFinite(toTs)) {
+                        syncVisibleRange(chartKey, fromTs, toTs);
+                    }
+            }, [findNearestIndex, syncVisibleRange, chartKey]);
 
             const buildStructureSnapshot = useCallback(() => ({
                 generatedAt: new Date().toISOString(),
@@ -1967,6 +2637,7 @@
                     biListRef.current = [];
                     segListRef.current = [];
                     zsListRef.current = [];
+                    setPreparedSignals([]);
                     return;
                 }
 
@@ -2065,18 +2736,31 @@
                 });
                 candleMapRef.current = candleMap;
 
+                const rawBspList = Array.isArray(data.bsp_list) ? data.bsp_list : [];
+                const filteredBspList = filterSignals(rawBspList);
                 const bspMap = new Map();
-                if (Array.isArray(data.bsp_list)) {
-                    data.bsp_list.forEach(bsp => {
-                        const ts = convertTime(bsp.time);
-                        if (!ts) return;
-                        if (!bspMap.has(ts)) {
-                            bspMap.set(ts, []);
-                        }
-                        bspMap.get(ts).push(bsp);
-                    });
-                }
+                filteredBspList.forEach(bsp => {
+                    const ts = convertTime(bsp.time);
+                    if (!ts) return;
+                    if (!bspMap.has(ts)) {
+                        bspMap.set(ts, []);
+                    }
+                    bspMap.get(ts).push(bsp);
+                });
                 bspMapRef.current = bspMap;
+                if (indicators.plot_bsp) {
+                    const prepared = SignalUtils.sortByTimestampDesc(filteredBspList, convertTime).map(item => {
+                        const numericPrice = Number.parseFloat(item.price);
+                        return {
+                            ...item,
+                            price: Number.isFinite(numericPrice) ? numericPrice : null,
+                            typeKey: SignalUtils.normalizeBspType(item.type),
+                        };
+                    });
+                    setPreparedSignals(prepared);
+                } else {
+                    setPreparedSignals([]);
+                }
 
                 biListRef.current = Array.isArray(data.bi_list)
                     ? data.bi_list.map((bi, idx) => {
@@ -2575,9 +3259,15 @@
                 }
 
                 // 4. 绘制买卖点 (BuySellPoint) - 箭头标记
-                if (indicators.plot_bsp && data.bsp_list && data.bsp_list.length > 0) {
-                    debugLog('📊 [BSP] Adding', data.bsp_list.length, 'buy/sell points');
-                    data.bsp_list.forEach((bsp, idx) => {
+                try {
+                    chart.removeOverlay({ groupId: 'bsp_group' });
+                } catch (error) {
+                    // ignore when no previous overlays
+                }
+
+                if (indicators.plot_bsp && filteredBspList.length > 0) {
+                    debugLog('📊 [BSP] Adding', filteredBspList.length, 'buy/sell points (filtered)');
+                    filteredBspList.forEach((bsp, idx) => {
                         const timestamp = convertTime(bsp.time);
                         const price = parseFloat(bsp.price);
                         const isBuy = bsp.is_buy;
@@ -2605,6 +3295,77 @@
                     });
                     debugLog('✅ [BSP] Added successfully');
                 }
+
+                try {
+                    chart.removeOverlay({ groupId: 'strength_group' });
+                } catch (error) {
+                    // ignore removal errors
+                }
+
+                const addStrengthOverlay = (strength, label) => {
+                    if (!strength) {
+                        return;
+                    }
+                    const timestamp = Number(strength.current?.endTs);
+                    const price = Number(strength.current?.endPrice);
+                    if (!Number.isFinite(timestamp) || !Number.isFinite(price)) {
+                        return;
+                    }
+                    const dir = strength.dir === 'down' ? 'down' : 'up';
+                    const hintType = strength.hintType;
+                    const weakening = strength.weakening;
+                    const baseColor = hintType === 'strong'
+                        ? '#2E7D32'
+                        : weakening
+                            ? '#C62828'
+                            : '#0277BD';
+                    const baseLabel = hintType === 'strong'
+                        ? `${label}增强`
+                        : weakening
+                            ? `${label}减弱`
+                            : `${label}观察`;
+                    const cues = [];
+                    if (strength.volumeRatio != null) {
+                        cues.push(strength.volumeRatio > 1 ? '量↑' : strength.volumeRatio < 1 ? '量↓' : null);
+                    }
+                    if (strength.macdRatio != null) {
+                        cues.push(strength.macdRatio > 1 ? 'MACD↑' : strength.macdRatio < 1 ? 'MACD↓' : null);
+                    }
+                    const extraLabel = cues.filter(Boolean).join('/');
+                    const textLabel = extraLabel ? `${baseLabel} ${extraLabel}` : baseLabel;
+                    const symbolType = dir === 'up'
+                        ? (hintType === 'strong' ? 'arrow_up' : 'triangle')
+                        : (weakening ? 'arrow_down' : 'triangle_down');
+                    const position = dir === 'up' ? 'top' : 'bottom';
+                    const offsetY = dir === 'up' ? -18 : 18;
+                    chart.createOverlay({
+                        name: 'simpleAnnotation',
+                        id: `strength_${label}_${timestamp}`,
+                        groupId: 'strength_group',
+                        paneId: 'candle_pane',
+                        points: [{ timestamp, value: price }],
+                        styles: {
+                            position,
+                            offset: [0, offsetY],
+                            symbol: {
+                                type: symbolType,
+                                size: 12,
+                                color: baseColor,
+                                activeColor: baseColor,
+                            },
+                            text: {
+                                value: textLabel,
+                                color: baseColor,
+                                offset: [0, position === 'top' ? -14 : 14],
+                                size: 11,
+                                weight: '600',
+                            },
+                        },
+                    });
+                };
+
+                addStrengthOverlay(stats?.biStrength, '笔');
+                addStrengthOverlay(stats?.segStrength, '段');
 
                 const applySyncedIndexRange = (fromIdx, toIdx) => {
                     const chartInst = chartInstanceRef.current;
@@ -2697,6 +3458,11 @@
                         },
                     });
                     debugLog('📝 [ChartRegistry] Registered', chartKey, 'candles:', timestampsRef.current.length);
+                }
+
+                if (chartFocusRequest && !chartFocusRequest.acknowledged && chartFocusRequest.stockCode === stockCode && chartFocusRequest.level === level) {
+                    focusOnTimestamp(chartFocusRequest.timestamp);
+                    acknowledgeChartFocus(chartFocusRequest.id);
                 }
 
                 const visibleRangeAction = (klinecharts.ActionType && klinecharts.ActionType.OnVisibleRangeChange) || 'onVisibleRangeChange';
@@ -2845,7 +3611,7 @@
                     timestampsRef.current = [];
                     chartInstanceRef.current = null;
                 };
-            }, [data, indicators, theme, updateHoverInfo, registerChartInstance, unregisterChartInstance, syncVisibleRange, chartKey, getIndexRangeForTimestamps, detailVisible, buildStructureSnapshot]);
+            }, [data, indicators, theme, updateHoverInfo, registerChartInstance, unregisterChartInstance, syncVisibleRange, chartKey, getIndexRangeForTimestamps, detailVisible, buildStructureSnapshot, filterSignals, stats, chartFocusRequest, acknowledgeChartFocus]);
 
             if (loading) {
                 return (
@@ -2896,6 +3662,10 @@
                             level={level}
                             stockCode={stockCode}
                             onOpenDetail={openStructureDetail}
+                            multiLevelStats={multiLevelStats}
+                            allSignals={preparedSignals}
+                            onFocusSignal={focusOnTimestamp}
+                            onDrillDownLevel={requestLevelFocus}
                         />
                     )}
                     <div className="chart-wrapper">
@@ -2934,13 +3704,15 @@
             </Tooltip>
         );
 
-        function ChartSummaryComponent({ hoverInfo, stats, level, stockCode, onOpenDetail }) {
+        function ChartSummaryComponent({ hoverInfo, stats, level, stockCode, onOpenDetail, multiLevelStats, allSignals = [], onFocusSignal = () => {}, onDrillDownLevel }) {
             const { indicators, setIndicators } = useApp();
             const handleChange = useCallback((key, value) => {
                 setIndicators(prev => ({ ...prev, [key]: value }));
             }, [setIndicators]);
             const [statsCollapsed, setStatsCollapsed] = useState(true);
             const [hoverCollapsed, setHoverCollapsed] = useState(false);
+            const [replayVisible, setReplayVisible] = useState(false);
+            const [replayIndex, setReplayIndex] = useState(0);
 
             if (!indicators) {
                 return null;
@@ -2956,16 +3728,141 @@
                  ((structureData.seg || []).length > 0) ||
                  ((structureData.zs || []).length > 0)));
             const statPairs = [];
+            const currentFilters = useMemo(() => {
+                const raw = indicators?.bsp_filters || DEFAULT_BSP_FILTERS;
+                const directions = Array.isArray(raw.directions) && raw.directions.length > 0
+                    ? raw.directions
+                    : DEFAULT_BSP_FILTERS.directions;
+                const types = Array.isArray(raw.types) ? raw.types : [];
+                return {
+                    directions,
+                    types,
+                };
+            }, [indicators?.bsp_filters]);
+            const directionOptions = useMemo(() => ([
+                { label: '买点', value: 'buy' },
+                { label: '卖点', value: 'sell' },
+            ]), []);
+            const typeOptions = useMemo(() => {
+                if (!stats?.rawBspTypes) {
+                    return [];
+                }
+                return Object.keys(stats.rawBspTypes)
+                    .map(type => ({ label: type, value: type }))
+                    .sort((a, b) => a.label.localeCompare(b.label, 'zh-CN'));
+            }, [stats?.rawBspTypes]);
+
+            const applyBspFilters = useCallback((nextFilters) => {
+                setIndicators(prev => ({
+                    ...prev,
+                    bsp_filters: {
+                        directions: nextFilters.directions.length > 0 ? nextFilters.directions : [...DEFAULT_BSP_FILTERS.directions],
+                        types: Array.from(new Set(nextFilters.types)),
+                    },
+                }));
+            }, [setIndicators]);
+
+            const handleDirectionFilterChange = useCallback((values) => {
+                if (values.length === 0) {
+                    message.warning('至少保留一个方向');
+                    applyBspFilters({
+                        directions: [...DEFAULT_BSP_FILTERS.directions],
+                        types: currentFilters.types,
+                    });
+                    return;
+                }
+                applyBspFilters({
+                    directions: values,
+                    types: currentFilters.types,
+                });
+            }, [applyBspFilters, currentFilters.types]);
+
+            const handleTypeFilterChange = useCallback((values) => {
+                applyBspFilters({
+                    directions: currentFilters.directions,
+                    types: values,
+                });
+            }, [applyBspFilters, currentFilters.directions]);
+            const replaySignals = useMemo(() => (
+                Array.isArray(allSignals)
+                    ? allSignals
+                        .filter(item => Number.isFinite(item.timestamp))
+                        .sort((a, b) => b.timestamp - a.timestamp)
+                    : []
+            ), [allSignals]);
+            useEffect(() => {
+                if (replayIndex >= replaySignals.length) {
+                    setReplayIndex(replaySignals.length > 0 ? 0 : 0);
+                }
+            }, [replaySignals.length, replayIndex]);
+            const activeReplaySignal = replaySignals[replayIndex] || null;
+            const handleReplayOpen = useCallback(() => {
+                if (replaySignals.length === 0) {
+                    message.info('当前筛选结果暂无可回放的买卖点');
+                    return;
+                }
+                setReplayVisible(true);
+                setReplayIndex(0);
+            }, [replaySignals.length]);
+            const handleReplayClose = useCallback(() => {
+                setReplayVisible(false);
+            }, []);
+            const handleReplayIndexChange = useCallback((nextIndex) => {
+                if (nextIndex < 0 || nextIndex >= replaySignals.length) {
+                    return;
+                }
+                setReplayIndex(nextIndex);
+            }, [replaySignals.length]);
+            const handleJumpToSignal = useCallback((signal) => {
+                if (!signal || !Number.isFinite(signal.timestamp)) {
+                    return;
+                }
+                onFocusSignal(signal.timestamp);
+            }, [onFocusSignal]);
+            const handleJumpCurrent = useCallback(() => {
+                if (activeReplaySignal) {
+                    handleJumpToSignal(activeReplaySignal);
+                }
+            }, [activeReplaySignal, handleJumpToSignal]);
+            const formatReplayLine = useCallback((signal) => {
+                if (!signal || !Number.isFinite(signal.timestamp)) {
+                    return '--';
+                }
+                const typeText = signal.typeKey || SignalUtils.normalizeBspType(signal.type);
+                const timeText = dayjs(signal.timestamp).format('YYYY-MM-DD HH:mm');
+                return `${signal.is_buy ? '买' : '卖'} · ${typeText} · ${timeText}`;
+            }, []);
+            const ratioPercent = (ratio) => ratio == null ? '--' : `${((ratio - 1) * 100).toFixed(1)}%`;
+            const pillClass = (ratio) => {
+                if (ratio == null) return 'strength-pill';
+                if (ratio < 0.95) return 'strength-pill strength-pill--weak';
+                if (ratio > 1.05) return 'strength-pill strength-pill--strong';
+                return 'strength-pill';
+            };
+            const directionText = (dir) => {
+                if (dir === 'up') return '向上';
+                if (dir === 'down') return '向下';
+                return '未判定';
+            };
             if (stats) {
                 statPairs.push(
                     { label: 'K线', value: stats.kline },
                     { label: '笔', value: stats.bi },
                     { label: '线段', value: stats.seg },
                     { label: '中枢', value: stats.zs },
-                    { label: '买卖点', value: stats.bsp },
-                    { label: '买点', value: stats.buy },
-                    { label: '卖点', value: stats.sell },
+                    { label: '买卖点(筛选)', value: stats.bsp },
+                    { label: '买点(筛选)', value: stats.buy },
+                    { label: '卖点(筛选)', value: stats.sell },
                 );
+                if (typeof stats.rawBspCount === 'number' && stats.rawBspCount !== stats.bsp) {
+                    statPairs.push({ label: '买卖点(总)', value: stats.rawBspCount });
+                }
+                if (typeof stats.rawBuyCount === 'number' && stats.rawBuyCount !== stats.buy) {
+                    statPairs.push({ label: '买点(总)', value: stats.rawBuyCount });
+                }
+                if (typeof stats.rawSellCount === 'number' && stats.rawSellCount !== stats.sell) {
+                    statPairs.push({ label: '卖点(总)', value: stats.rawSellCount });
+                }
                 if (Number.isFinite(stats.biAvgAmplitude)) {
                     statPairs.push({ label: '笔振幅均值', value: formatNumber(stats.biAvgAmplitude, 2) });
                 }
@@ -2982,7 +3879,25 @@
                     statPairs.push({ label: '确定中枢占比', value: percentLabel(stats.zsSureRatio) });
                 }
             }
-            const bspTypeEntries = stats && stats.bspTypes ? Object.entries(stats.bspTypes) : [];
+            const biStrength = stats?.biStrength;
+            const segStrength = stats?.segStrength;
+            const latestSignals = stats?.latestSignals || [];
+            const multiLevelEntries = useMemo(() => {
+                if (!multiLevelStats) return [];
+                return LEVEL_OPTIONS
+                    .map(option => ({
+                        key: option.value,
+                        label: option.label,
+                        stats: multiLevelStats[option.value],
+                    }))
+                    .filter(entry => entry.stats);
+            }, [multiLevelStats]);
+            const totalTypeEntries = stats?.rawBspTypes ? Object.entries(stats.rawBspTypes) : [];
+            const handleDrillDown = useCallback((targetLevel) => {
+                if (typeof onDrillDownLevel === 'function') {
+                    onDrillDownLevel(targetLevel);
+                }
+            }, [onDrillDownLevel]);
             const copyStatsToClipboard = useCallback(() => {
                 if (!stats) {
                     message.warning('暂无统计数据');
@@ -3041,6 +3956,9 @@
                                         结构明细
                                     </Button>
                                 )}
+                                <Button size="small" type="link" onClick={handleReplayOpen}>
+                                    回放
+                                </Button>
                                 <Button size="small" type="link" onClick={copyStatsToClipboard}>
                                     复制统计
                                 </Button>
@@ -3060,13 +3978,17 @@
                                             </div>
                                         ))}
                                     </div>
-                                    {bspTypeEntries.length > 0 && (
+                                    {totalTypeEntries.length > 0 && (
                                         <div className="chart-bsp-types">
-                                            {bspTypeEntries.map(([type, count]) => (
+                                            {totalTypeEntries.map(([type, total]) => {
+                                                const filtered = stats?.bspTypes?.[type] ?? 0;
+                                                const display = filtered !== total ? `${filtered}/${total}` : `${total}`;
+                                                return (
                                                 <span className="chart-type-chip" key={type}>
-                                                    {type} × {count}
+                                                    {type} × {display}
                                                 </span>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </>
@@ -3082,6 +4004,137 @@
                                 >
                                     显示合成标注
                                 </Checkbox>
+                            </div>
+                        )}
+                        <div className="signal-filter">
+                            <div className="signal-filter__row">
+                                <span style={{ color: '#666' }}>信号方向</span>
+                                <Checkbox.Group
+                                    options={directionOptions}
+                                    value={currentFilters.directions}
+                                    onChange={handleDirectionFilterChange}
+                                />
+                            </div>
+                            {typeOptions.length > 0 && (
+                                <div className="signal-filter__row">
+                                    <span style={{ color: '#666' }}>信号类型</span>
+                                    <Checkbox.Group
+                                        options={typeOptions}
+                                        value={currentFilters.types}
+                                        onChange={handleTypeFilterChange}
+                                    />
+                                    {currentFilters.types.length === 0 && (
+                                        <Tag color="blue">全部</Tag>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                        {(biStrength || segStrength) && (
+                            <div className="strength-section">
+                                <div style={{ fontSize: 12, fontWeight: 600, color: '#595959' }}>力度对比</div>
+                                {biStrength && (
+                                    <div className="strength-row">
+                                        <div className="strength-row__title">笔 · {directionText(biStrength.dir)}</div>
+                                        <div className="strength-row__metrics">
+                                            <span className={pillClass(biStrength.amplitudeRatio)}>
+                                                振幅 {ratioPercent(biStrength.amplitudeRatio)}
+                                            </span>
+                                            <span className={pillClass(biStrength.durationRatio)}>
+                                                耗时 {ratioPercent(biStrength.durationRatio)}
+                                            </span>
+                                            <span className={pillClass(biStrength.efficiencyRatio)}>
+                                                效率 {ratioPercent(biStrength.efficiencyRatio)}
+                                            </span>
+                                            <span className={pillClass(biStrength.volumeRatio)}>
+                                                量能 {ratioPercent(biStrength.volumeRatio)}
+                                            </span>
+                                            <span className={pillClass(biStrength.macdRatio)}>
+                                                MACD {ratioPercent(biStrength.macdRatio)}
+                                            </span>
+                                            {biStrength.hint && (
+                                                <span className={biStrength.hintType === 'strong' ? 'strength-pill strength-pill--strong' : 'strength-pill strength-pill--weak'}>
+                                                    {biStrength.hint}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                                {segStrength && (
+                                    <div className="strength-row">
+                                        <div className="strength-row__title">线段 · {directionText(segStrength.dir)}</div>
+                                        <div className="strength-row__metrics">
+                                            <span className={pillClass(segStrength.amplitudeRatio)}>
+                                                振幅 {ratioPercent(segStrength.amplitudeRatio)}
+                                            </span>
+                                            <span className={pillClass(segStrength.durationRatio)}>
+                                                耗时 {ratioPercent(segStrength.durationRatio)}
+                                            </span>
+                                            <span className={pillClass(segStrength.efficiencyRatio)}>
+                                                效率 {ratioPercent(segStrength.efficiencyRatio)}
+                                            </span>
+                                            <span className={pillClass(segStrength.volumeRatio)}>
+                                                量能 {ratioPercent(segStrength.volumeRatio)}
+                                            </span>
+                                            <span className={pillClass(segStrength.macdRatio)}>
+                                                MACD {ratioPercent(segStrength.macdRatio)}
+                                            </span>
+                                            {segStrength.hint && (
+                                                <span className={segStrength.hintType === 'strong' ? 'strength-pill strength-pill--strong' : 'strength-pill strength-pill--weak'}>
+                                                    {segStrength.hint}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {latestSignals.length > 0 && (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 8 }}>
+                                <div style={{ fontSize: 12, fontWeight: 600, color: '#595959' }}>最近信号</div>
+                                <Space size={[6, 6]} wrap>
+                                    {latestSignals.map(signal => (
+                                        <Tag
+                                            key={`${signal.type}-${signal.timestamp}`}
+                                            color={signal.is_buy ? 'green' : 'volcano'}
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() => onFocusSignal(signal.timestamp)}
+                                        >
+                                            {signal.type} · {signal.price != null ? signal.price.toFixed(2) : '--'} · {dayjs(signal.timestamp).format('MM-DD HH:mm')}
+                                        </Tag>
+                                    ))}
+                                </Space>
+                            </div>
+                        )}
+                        {multiLevelEntries.length > 1 && (
+                            <div className="level-overview">
+                                <div style={{ fontSize: 12, fontWeight: 600, color: '#595959' }}>多级别联立</div>
+                                {multiLevelEntries.map(entry => {
+                                    const strength = entry.stats?.biStrength;
+                                    const amplitudeText = strength ? ratioPercent(strength.amplitudeRatio) : '--';
+                                    const statusText = strength
+                                        ? (strength.hintType === 'strong'
+                                            ? '📈 增强'
+                                            : (strength.weakening || strength.hintType === 'weak') ? '⚠️ 减弱' : '✅ 稳定')
+                                        : '—';
+                                    const dirText = strength ? directionText(strength.dir) : '—';
+                                    return (
+                                        <div
+                                            key={entry.key}
+                                            className="level-overview__item"
+                                            style={entry.key === level ? { border: '1px solid #1976d2' } : undefined}
+                                        >
+                                            <span>{entry.label}{entry.key === level ? ' · 当前' : ''} · {dirText}</span>
+                                            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                <span>{statusText} · 振幅 {amplitudeText}</span>
+                                                {entry.key !== level && (
+                                                    <Button size="small" type="link" onClick={() => handleDrillDown(entry.key)}>
+                                                        联动
+                                                    </Button>
+                                                )}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
                             </div>
                         )}
                     </div>
@@ -3128,6 +4181,8 @@
                                             <Tag
                                                 key={`${signal.isBuy ? 'buy' : 'sell'}-${idx}`}
                                                 color={signal.isBuy ? 'green' : 'volcano'}
+                                                style={{ cursor: 'pointer' }}
+                                                onClick={() => onFocusSignal(hoverInfo.timestamp)}
                                             >
                                                 {signal.isBuy ? '买' : '卖'}{signal.type || ''}
                                             </Tag>
@@ -3261,6 +4316,86 @@
                             <span className="chart-info-placeholder">将鼠标移动到K线查看详细数据</span>
                         )}
                     </div>
+                    <Drawer
+                        open={replayVisible}
+                        width={420}
+                        onClose={handleReplayClose}
+                        destroyOnClose
+                        title={`信号回放 · ${stockCode} · ${levelLabel}`}
+                    >
+                        {replaySignals.length === 0 ? (
+                            <Empty description="尚无买卖点信号" />
+                        ) : (
+                            <>
+                                <div style={{ marginBottom: 12, fontSize: 12, color: '#666' }}>
+                                    第 {replayIndex + 1} 条 / 共 {replaySignals.length} 条
+                                </div>
+                                <Space size="small" style={{ marginBottom: 12 }}>
+                                    <Button
+                                        size="small"
+                                        disabled={replayIndex <= 0}
+                                        onClick={() => handleReplayIndexChange(replayIndex - 1)}
+                                    >
+                                        上一条
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        disabled={replayIndex >= replaySignals.length - 1}
+                                        onClick={() => handleReplayIndexChange(replayIndex + 1)}
+                                    >
+                                        下一条
+                                    </Button>
+                                    <Button
+                                        size="small"
+                                        type="primary"
+                                        onClick={handleJumpCurrent}
+                                        disabled={!activeReplaySignal}
+                                    >
+                                        跳转图表
+                                    </Button>
+                                </Space>
+                                <div style={{ marginBottom: 12, padding: 8, borderRadius: 6, background: 'rgba(24,144,255,0.08)' }}>
+                                    <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                                        当前信号
+                                    </div>
+                                    <div style={{ fontSize: 12, color: '#555' }}>
+                                        {formatReplayLine(activeReplaySignal)}
+                                    </div>
+                                    {activeReplaySignal?.price != null && (
+                                        <div style={{ fontSize: 12, color: '#555', marginTop: 4 }}>
+                                            价格：{formatNumber(activeReplaySignal.price, 2)}
+                                        </div>
+                                    )}
+                                </div>
+                                <div style={{ maxHeight: 260, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                    {replaySignals.map((signal, idx) => {
+                                        const isActive = idx === replayIndex;
+                                        return (
+                                            <div
+                                                key={`${signal.timestamp}-${signal.type || idx}`}
+                                                style={{
+                                                    padding: 8,
+                                                    borderRadius: 6,
+                                                    background: isActive ? 'rgba(24,144,255,0.12)' : 'rgba(0,0,0,0.04)',
+                                                    display: 'flex',
+                                                    justifyContent: 'space-between',
+                                                    alignItems: 'center',
+                                                    fontSize: 12,
+                                                    cursor: 'pointer',
+                                                }}
+                                                onClick={() => handleReplayIndexChange(idx)}
+                                            >
+                                                <span>{formatReplayLine(signal)}</span>
+                                                <Button size="small" type="link" onClick={() => handleJumpToSignal(signal)}>
+                                                    定位
+                                                </Button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </>
+                        )}
+                    </Drawer>
                 </div>
             );
         }
@@ -3280,6 +4415,7 @@
                 refreshAllCharts,
                 indicators,
                 setIndicators,
+                chanConfig,
             } = useApp();
 
             useEffect(() => {
@@ -3316,6 +4452,27 @@
                 }
             };
 
+            const normalizedBspFilters = useMemo(
+                () => SignalUtils.normalizeFilters(indicators?.bsp_filters),
+                [indicators?.bsp_filters]
+            );
+
+            const filterBspList = useCallback(
+                (list) => SignalUtils.filterSignals(list, normalizedBspFilters),
+                [normalizedBspFilters]
+            );
+
+            const aggregateBspTypes = useCallback((list) => {
+                if (!Array.isArray(list) || list.length === 0) {
+                    return {};
+                }
+                return list.reduce((map, item) => {
+                    const typeKey = SignalUtils.normalizeBspType(item.type);
+                    map[typeKey] = (map[typeKey] || 0) + 1;
+                    return map;
+                }, {});
+            }, []);
+
             const statsByLevel = activeLevels.reduce((acc, level) => {
                 const key = `${activeStock.code}-${level}`;
                 const data = chartData[key];
@@ -3325,6 +4482,7 @@
                 }
                 const meta = data.meta || {};
                 const bspList = data.bsp_list || [];
+                const filteredBspList = filterBspList(bspList);
                 const safeNumber = (value) => {
                     if (typeof value === 'number') {
                         return Number.isFinite(value) ? value : null;
@@ -3353,6 +4511,8 @@
                     const total = values.reduce((sum, item) => sum + item, 0);
                     return total / values.length;
                 };
+
+                const { biStrength, segStrength } = deriveStrengthMetrics(data, chanConfig);
 
                 const biDurations = [];
                 const biAmplitudes = [];
@@ -3386,24 +4546,41 @@
                 const zsSureCount = zsList.filter(item => item && item.is_sure).length;
                 const zsSureRatio = zsList.length > 0 ? zsSureCount / zsList.length : null;
 
+                const latestSignals = SignalUtils.sortByTimestampDesc(filteredBspList, convertTime)
+                    .map(item => ({
+                        ...item,
+                        price: safeNumber(item.price),
+                    }))
+                    .slice(0, 4);
+
+                const rawBspCount = bspList.length;
+                const rawBuyCount = bspList.filter(item => item.is_buy).length;
+                const filteredBuyCount = filteredBspList.filter(item => item.is_buy).length;
+                const filteredSellCount = filteredBspList.length - filteredBuyCount;
+                const filteredTypeMap = aggregateBspTypes(filteredBspList);
+                const rawTypeMap = aggregateBspTypes(bspList);
+
                 acc[level] = {
                     kline: meta.total_klines ?? data.kline_data?.length ?? 0,
                     bi: meta.bi_count ?? data.bi_list?.length ?? 0,
                     seg: meta.seg_count ?? data.seg_list?.length ?? 0,
                     zs: meta.zs_count ?? data.zs_list?.length ?? 0,
-                    bsp: meta.bsp_count ?? bspList.length,
-                    buy: bspList.filter(item => item.is_buy).length,
-                    sell: bspList.filter(item => !item.is_buy).length,
+                    bsp: filteredBspList.length,
+                    buy: filteredBuyCount,
+                    sell: filteredSellCount,
+                    rawBspCount,
+                    rawBuyCount,
+                    rawSellCount: rawBspCount - rawBuyCount,
                     biAvgDuration: average(biDurations),
                     biAvgAmplitude: average(biAmplitudes),
                     segAvgDuration: average(segDurations),
                     segAvgAmplitude: average(segAmplitudes),
                     zsSureRatio,
-                    bspTypes: bspList.reduce((map, item) => {
-                        const type = item.type || '未知';
-                        map[type] = (map[type] || 0) + 1;
-                        return map;
-                    }, {}),
+                    bspTypes: filteredTypeMap,
+                    rawBspTypes: rawTypeMap,
+                    biStrength,
+                    segStrength,
+                    latestSignals,
                 };
                 return acc;
             }, {});
@@ -3475,6 +4652,7 @@
                                     data={chartData[key]}
                                     loading={loadingCharts[key]}
                                     stats={statsByLevel[level]}
+                                    multiLevelStats={statsByLevel}
                                 />
                             );
                         })}
@@ -3660,6 +4838,622 @@
                             renderItem={(stock) => <WatchlistItem stock={stock} />}
                         />
                     )}
+                    <WatchlistOverview />
+                </div>
+            );
+        });
+
+        const WatchlistOverview = memo(() => {
+            const {
+                stocks,
+                chartData,
+                analyzeStock,
+                activeLevels,
+                setActiveStockCode,
+                setActiveLevels,
+                indicators,
+                chanConfig,
+            } = useApp();
+
+            const overviewLevels = useMemo(() => (
+                activeLevels && activeLevels.length > 0 ? activeLevels : [DEFAULT_LEVEL]
+            ), [activeLevels]);
+
+            const normalizedBspFilters = useMemo(
+                () => SignalUtils.normalizeFilters(indicators?.bsp_filters),
+                [indicators?.bsp_filters]
+            );
+
+            const filterSignals = useCallback(
+                (list) => SignalUtils.filterSignals(list, normalizedBspFilters),
+                [normalizedBspFilters]
+            );
+
+            const safeNumber = useCallback((value) => {
+                if (typeof value === 'number') {
+                    return Number.isFinite(value) ? value : null;
+                }
+                if (value === null || value === undefined) {
+                    return null;
+                }
+                const parsed = parseFloat(value);
+                return Number.isFinite(parsed) ? parsed : null;
+            }, []);
+
+            const summarizeLevel = useCallback((stockCode, level) => {
+                const key = `${stockCode}-${level}`;
+                const data = chartData[key];
+                if (!data) {
+                    return { level, status: 'missing' };
+                }
+                const filteredSignals = filterSignals(data.bsp_list || []);
+                let latestSignal = null;
+                if (filteredSignals.length > 0) {
+                    const sorted = SignalUtils.sortByTimestampDesc(filteredSignals, convertTime)
+                        .map(item => ({
+                            ...item,
+                            price: safeNumber(item.price),
+                            typeKey: SignalUtils.normalizeBspType(item.type),
+                        }));
+                    if (sorted.length > 0) {
+                        const top = sorted[0];
+                        latestSignal = {
+                            isBuy: !!top.is_buy,
+                            type: top.typeKey,
+                            timestamp: top.timestamp,
+                            price: top.price,
+                        };
+                    }
+                }
+                const { biStrength, segStrength } = deriveStrengthMetrics(data, chanConfig);
+                return {
+                    level,
+                    status: 'ready',
+                    latestSignal,
+                    biStrength,
+                    segStrength,
+                };
+            }, [chartData, filterSignals, chanConfig, safeNumber]);
+
+            const rows = useMemo(() => (
+                stocks.map(stock => ({
+                    stock,
+                    entries: overviewLevels.map(level => summarizeLevel(stock.code, level)),
+                }))
+            ), [stocks, overviewLevels, summarizeLevel]);
+
+            if (stocks.length === 0) {
+                return null;
+            }
+
+            const handleActivate = (stockCode, level) => {
+                setActiveStockCode(stockCode);
+                setActiveLevels(prev => {
+                    if (prev.includes(level)) {
+                        return prev;
+                    }
+                    return [...prev, level];
+                });
+            };
+
+            const handleAnalyze = (stockCode, level) => {
+                analyzeStock(stockCode, level, true);
+            };
+
+            const formatSignal = (info) => {
+                if (!info) {
+                    return '无信号';
+                }
+                const timeText = dayjs(info.timestamp).format('MM-DD HH:mm');
+                return `${info.isBuy ? '买' : '卖'} · ${info.type} · ${timeText}`;
+            };
+
+            const strengthSummary = (strength) => {
+                if (!strength) return '未计算';
+                if (strength.hint) {
+                    return strength.hint;
+                }
+                if (strength.amplitudeRatio != null) {
+                    const percent = ((strength.amplitudeRatio - 1) * 100).toFixed(1);
+                    return `振幅 ${percent}%`;
+                }
+                return '无数据';
+            };
+
+            return (
+                <div className="watchlist-overview">
+                    <div className="watchlist-overview__header">看盘概览</div>
+                    {rows.map(({ stock, entries }) => (
+                        <div className="watchlist-overview__stock" key={stock.code}>
+                            <div className="watchlist-overview__stock-name">
+                                {stock.name ? `${stock.name} · ${stock.code}` : stock.code}
+                            </div>
+                            <div className="watchlist-overview__rows">
+                                {entries.map(entry => (
+                                    <div className="watchlist-overview__row" key={`${stock.code}-${entry.level}`}>
+                                        <div className="watchlist-overview__level-info">
+                                            <span>{LEVEL_OPTIONS.find(opt => opt.value === entry.level)?.label || entry.level}</span>
+                                            {entry.status === 'ready' ? (
+                                                <>
+                                                    <span>{formatSignal(entry.latestSignal)}</span>
+                                                    <span>笔：{strengthSummary(entry.biStrength)} / 段：{strengthSummary(entry.segStrength)}</span>
+                                                </>
+                                            ) : (
+                                                <span>尚未分析</span>
+                                            )}
+                                        </div>
+                                        <div className="watchlist-overview__actions">
+                                            <Button size="small" onClick={() => handleActivate(stock.code, entry.level)}>
+                                                查看
+                                            </Button>
+                                            <Button size="small" type="link" onClick={() => handleAnalyze(stock.code, entry.level)}>
+                                                {entry.status === 'ready' ? '刷新' : '分析'}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            );
+        });
+
+        // 回测控制台：对接后端回测队列能力
+        const BacktestConsole = memo(() => {
+            const {
+                stocks,
+                indicators,
+                chartData,
+                analyzeStock,
+                setActiveStockCode,
+                setActiveLevels,
+                requestChartFocus,
+                chanConfig,
+            } = useApp();
+
+            const [form, setForm] = useState(() => ({
+                stockCode: '',
+                level: DEFAULT_LEVEL,
+                directions: [...DEFAULT_BSP_FILTERS.directions],
+                types: [],
+            }));
+            const [queue, setQueue] = useState([]);
+            const [loadingQueue, setLoadingQueue] = useState(false);
+
+            useEffect(() => {
+                if (stocks.length > 0 && !form.stockCode) {
+                    setForm(prev => ({ ...prev, stockCode: stocks[0].code }));
+                }
+            }, [stocks, form.stockCode]);
+
+            useEffect(() => {
+                try {
+                    localStorage.setItem('chan_backtest_queue', JSON.stringify(queue));
+                } catch (err) {
+                    debugWarn('⚠️ Failed to persist backtest queue:', err);
+                }
+            }, [queue]);
+
+            const syncQueueFromServer = useCallback(async () => {
+                setLoadingQueue(true);
+                try {
+                    const result = await api.listBacktestQueue();
+                    const hydrated = Array.isArray(result) ? result.map(hydrateJob).filter(Boolean) : [];
+                    setQueue(hydrated.length > 0 ? sortByCreated(hydrated) : []);
+                } catch (error) {
+                    debugError('加载回测队列失败:', error);
+                    message.error(`回测队列加载失败：${error.message}`);
+                } finally {
+                    setLoadingQueue(false);
+                }
+            }, [hydrateJob, sortByCreated]);
+
+            useEffect(() => {
+                syncQueueFromServer();
+            }, [syncQueueFromServer]);
+
+            const normalizeFilters = useCallback(
+                (filters) => SignalUtils.normalizeFilters({
+                    directions: filters?.directions ?? DEFAULT_BSP_FILTERS.directions,
+                    types: filters?.types ?? [],
+                }),
+                []
+            );
+
+            const ensureSampleTimestamp = useCallback((sample) => {
+                if (!sample) {
+                    return null;
+                }
+                if (Number.isFinite(sample.timestamp)) {
+                    return sample;
+                }
+                const ts = convertTime(sample.timestamp ?? sample.time);
+                if (!Number.isFinite(ts)) {
+                    return sample;
+                }
+                return { ...sample, timestamp: ts };
+            }, []);
+
+            const sortByCreated = useCallback((list) => (
+                list.slice().sort((a, b) => dayjs(b.createdAt).valueOf() - dayjs(a.createdAt).valueOf())
+            ), []);
+
+            const hydrateJob = useCallback((job) => {
+                if (!job) {
+                    return null;
+                }
+                const filters = normalizeFilters(job.filters);
+                const status = job.status ? String(job.status).toLowerCase() : 'pending';
+                const createdAt = job.createdAt || job.created_at || new Date().toISOString();
+                const lastRunAt = job.lastRunAt || job.last_run_at || null;
+                const errorMessage = job.errorMessage || job.error_message || null;
+                let summary = null;
+                if (job.lastSummary) {
+                    summary = {
+                        ...job.lastSummary,
+                        sampleSignal: ensureSampleTimestamp(job.lastSummary.sampleSignal),
+                        strength: job.lastSummary.strength || null,
+                    };
+                }
+                return {
+                    ...job,
+                    status,
+                    filters,
+                    createdAt,
+                    lastRunAt,
+                    errorMessage,
+                    lastSummary: summary,
+                };
+            }, [normalizeFilters, ensureSampleTimestamp]);
+
+            const mergeHydratedJob = useCallback((hydrated) => {
+                if (!hydrated) {
+                    return;
+                }
+                setQueue(prev => sortByCreated([
+                    hydrated,
+                    ...prev.filter(item => item.id !== hydrated.id),
+                ]));
+            }, [sortByCreated]);
+
+            const mergeJob = useCallback((job) => {
+                const hydrated = hydrateJob(job);
+                if (hydrated) {
+                    mergeHydratedJob(hydrated);
+                }
+            }, [hydrateJob, mergeHydratedJob]);
+
+            useEffect(() => {
+                try {
+                    const saved = localStorage.getItem('chan_backtest_queue');
+                    if (!saved) {
+                        return;
+                    }
+                    const parsed = JSON.parse(saved);
+                    if (!Array.isArray(parsed) || parsed.length === 0) {
+                        return;
+                    }
+                    const hydrated = parsed.map(hydrateJob).filter(Boolean);
+                    if (hydrated.length > 0) {
+                        setQueue(prev => (prev.length > 0 ? prev : sortByCreated(hydrated)));
+                    }
+                } catch (err) {
+                    debugWarn('⚠️ Failed to load backtest queue:', err);
+                }
+            }, [hydrateJob, sortByCreated]);
+
+            const computeSummary = useCallback((entry) => {
+                const key = `${entry.stockCode}-${entry.level}`;
+                const data = chartData[key];
+                const filters = normalizeFilters(entry.filters);
+                if (data) {
+                    const filtered = SignalUtils.filterSignals(data.bsp_list || [], filters);
+                    const sorted = SignalUtils.sortByTimestampDesc(filtered, convertTime);
+                    const sample = sorted.length > 0 ? sorted[0] : null;
+                    const { biStrength, segStrength } = deriveStrengthMetrics(data, chanConfig);
+                    return {
+                        status: 'ready',
+                        signalCount: filtered.length,
+                        sampleSignal: sample,
+                        strength: { biStrength, segStrength },
+                    };
+                }
+                if (entry.lastSummary) {
+                    return {
+                        ...entry.lastSummary,
+                        sampleSignal: ensureSampleTimestamp(entry.lastSummary.sampleSignal),
+                        strength: entry.lastSummary.strength || null,
+                    };
+                }
+                return {
+                    status: 'pending',
+                    signalCount: 0,
+                    sampleSignal: null,
+                    strength: null,
+                };
+            }, [chartData, normalizeFilters, chanConfig, ensureSampleTimestamp]);
+
+            const handleFormChange = useCallback((patch) => {
+                setForm(prev => ({ ...prev, ...patch }));
+            }, []);
+
+            const handleAddToQueue = useCallback(async () => {
+                if (!form.stockCode) {
+                    message.warning('请选择股票');
+                    return;
+                }
+                try {
+                    const filters = normalizeFilters({ directions: form.directions, types: form.types });
+                    const payload = {
+                        stockCode: form.stockCode,
+                        level: form.level,
+                        dataSrc: 'BAO_STOCK',
+                        filters,
+                        chanConfig,
+                        indicatorOverrides: indicators,
+                    };
+                    const job = await api.enqueueBacktestJob(payload);
+                    mergeJob(job);
+                    message.success('已加入回测队列');
+                } catch (error) {
+                    debugError('加入回测队列失败:', error);
+                    message.error(`加入回测队列失败：${error.message}`);
+                }
+            }, [form, normalizeFilters, chanConfig, indicators, mergeJob]);
+
+            const removeEntry = useCallback(async (id) => {
+                try {
+                    await api.deleteBacktestJob(id);
+                    setQueue(prev => prev.filter(item => item.id !== id));
+                    message.success('已删除回测任务');
+                } catch (error) {
+                    debugError('删除回测任务失败:', error);
+                    message.error(`删除失败：${error.message}`);
+                }
+            }, []);
+
+            const ensureChartData = useCallback(async (stockCode, level) => {
+                const key = `${stockCode}-${level}`;
+                if (!chartData[key]) {
+                    await analyzeStock(stockCode, level, true);
+                    return false;
+                }
+                return true;
+            }, [chartData, analyzeStock]);
+
+            const handleRunEntry = useCallback(async (entry) => {
+                try {
+                    setQueue(prev => prev.map(item => item.id === entry.id ? { ...item, status: 'running' } : item));
+                    const job = await api.runBacktestJob(entry.id, { forceRefresh: false });
+                    const hydrated = hydrateJob(job);
+                    mergeHydratedJob(hydrated);
+                    const signal = hydrated?.lastSummary?.sampleSignal;
+                    if (!signal) {
+                        message.info('筛选条件下暂无信号');
+                        return;
+                    }
+                    const timestamp = Number.isFinite(signal.timestamp)
+                        ? signal.timestamp
+                        : convertTime(signal.timestamp ?? signal.time);
+                    if (!Number.isFinite(timestamp)) {
+                        message.warning('返回信号缺少时间信息');
+                        return;
+                    }
+                    const ready = await ensureChartData(hydrated.stockCode, hydrated.level);
+                    if (!ready) {
+                        message.info('已请求最新数据，稍后可再次运行');
+                        return;
+                    }
+                    setActiveStockCode(hydrated.stockCode);
+                    setActiveLevels(prev => (prev.includes(hydrated.level) ? prev : [...prev, hydrated.level]));
+                    requestChartFocus({ stockCode: hydrated.stockCode, level: hydrated.level, timestamp });
+                    message.success('已定位至最新信号');
+                } catch (error) {
+                    debugError('执行回测失败:', error);
+                    setQueue(prev => prev.map(item => item.id === entry.id ? { ...item, status: 'failed', errorMessage: error.message } : item));
+                    message.error(`执行失败：${error.message}`);
+                }
+            }, [hydrateJob, mergeHydratedJob, ensureChartData, setActiveStockCode, setActiveLevels, requestChartFocus]);
+
+            const handleRefreshEntry = useCallback(async (entry) => {
+                try {
+                    setQueue(prev => prev.map(item => item.id === entry.id ? { ...item, status: 'running' } : item));
+                    const job = await api.runBacktestJob(entry.id, { forceRefresh: true });
+                    mergeJob(job);
+                    await analyzeStock(entry.stockCode, entry.level, true);
+                    message.success('已刷新该周期数据');
+                } catch (error) {
+                    debugError('刷新回测数据失败:', error);
+                    setQueue(prev => prev.map(item => item.id === entry.id ? { ...item, status: 'failed', errorMessage: error.message } : item));
+                    message.error(`刷新失败：${error.message}`);
+                }
+            }, [mergeJob, analyzeStock]);
+
+            const allTypes = useMemo(() => {
+                const key = form.stockCode ? `${form.stockCode}-${form.level}` : null;
+                if (!key || !chartData[key]) return [];
+                const list = chartData[key].bsp_list || [];
+                return Array.from(new Set(list.map(item => SignalUtils.normalizeBspType(item.type))));
+            }, [chartData, form.stockCode, form.level]);
+
+            const statusLabel = {
+                pending: '待执行',
+                running: '执行中',
+                completed: '已运行',
+                failed: '失败',
+            };
+
+            return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                    <div className="config-section">
+                        <div className="config-section-title">回测设置</div>
+                        <div className="config-grid config-grid--two">
+                            <div className="config-field">
+                                <label>股票</label>
+                                <Select
+                                    size="small"
+                                    placeholder="选择股票"
+                                    value={form.stockCode || undefined}
+                                    onChange={value => handleFormChange({ stockCode: value })}
+                                    options={stocks.map(stock => ({
+                                        value: stock.code,
+                                        label: stock.name ? `${stock.name} · ${stock.code}` : stock.code,
+                                    }))}
+                                />
+                            </div>
+                            <div className="config-field">
+                                <label>级别</label>
+                                <Select
+                                    size="small"
+                                    value={form.level}
+                                    onChange={value => handleFormChange({ level: value })}
+                                    options={LEVEL_OPTIONS}
+                                />
+                            </div>
+                            <div className="config-field config-field--full">
+                                <label>方向筛选</label>
+                                <Checkbox.Group
+                                    options={[
+                                        { label: '买点', value: 'buy' },
+                                        { label: '卖点', value: 'sell' },
+                                    ]}
+                                    value={form.directions}
+                                    onChange={(values) => handleFormChange({ directions: values })}
+                                />
+                            </div>
+                            <div className="config-field config-field--full">
+                                <label>类型筛选</label>
+                                <Select
+                                    mode="tags"
+                                    allowClear
+                                    size="small"
+                                    value={form.types}
+                                    onChange={(values) => handleFormChange({ types: values })}
+                                    placeholder="可输入信号类型，如 1, 1p"
+                                    options={allTypes.map(type => ({ value: type, label: type }))}
+                                />
+                                <span className="config-hint">留空默认全部类型</span>
+                            </div>
+                        </div>
+                        <Button
+                            size="small"
+                            type="primary"
+                            style={{ marginTop: 8 }}
+                            onClick={handleAddToQueue}
+                            disabled={!form.stockCode}
+                        >
+                            加入队列
+                        </Button>
+                    </div>
+                    <div className="config-section">
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                            <div className="config-section-title" style={{ marginBottom: 0 }}>队列</div>
+                            <Button size="small" onClick={syncQueueFromServer} loading={loadingQueue}>
+                                刷新
+                            </Button>
+                        </div>
+                        {loadingQueue ? (
+                            <div style={{ padding: 24, textAlign: 'center' }}>
+                                <Spin size="small" />
+                            </div>
+                        ) : queue.length === 0 ? (
+                            <Empty description="暂无待执行任务" />
+                        ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                {queue.map(entry => {
+                                    const summary = computeSummary(entry);
+                                    const typeText = entry.filters.types.length > 0 ? entry.filters.types.join(', ') : '全部';
+                                    const statusColor = entry.status === 'completed'
+                                        ? 'green'
+                                        : entry.status === 'running'
+                                            ? 'blue'
+                                            : entry.status === 'failed'
+                                                ? 'red'
+                                                : 'default';
+                                    const statusText = statusLabel[entry.status] || statusLabel.pending;
+                                    const directionText = entry.filters.directions.length > 0
+                                        ? entry.filters.directions.map(dir => (dir === 'sell' ? '卖点' : '买点')).join(', ')
+                                        : '全部';
+                                    const signalText = summary.status === 'ready'
+                                        ? `信号数：${summary.signalCount}`
+                                        : '等待加载';
+                                    return (
+                                        <div
+                                            key={entry.id}
+                                            style={{
+                                                border: '1px solid #e5e5e5',
+                                                borderRadius: 8,
+                                                padding: 12,
+                                                background: '#fafafa',
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: 6,
+                                            }}
+                                        >
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                <div style={{ fontSize: 13, fontWeight: 600 }}>
+                                                    {entry.stockCode} · {LEVEL_OPTIONS.find(opt => opt.value === entry.level)?.label || entry.level}
+                                                </div>
+                                                <Space size="small">
+                                                    <Tag color={statusColor}>{statusText}</Tag>
+                                                    <Button
+                                                        size="small"
+                                                        onClick={() => handleRunEntry(entry)}
+                                                        disabled={entry.status === 'running'}
+                                                        loading={entry.status === 'running'}
+                                                    >
+                                                        运行
+                                                    </Button>
+                                                    <Button
+                                                        size="small"
+                                                        onClick={() => handleRefreshEntry(entry)}
+                                                        disabled={entry.status === 'running'}
+                                                    >
+                                                        刷新数据
+                                                    </Button>
+                                                    <Button size="small" danger onClick={() => removeEntry(entry.id)}>
+                                                        删除
+                                                    </Button>
+                                                </Space>
+                                            </div>
+                                            <div style={{ fontSize: 12, color: '#666' }}>
+                                                方向：{directionText} ｜ 类型：{typeText}
+                                            </div>
+                                            <div style={{ fontSize: 12, color: '#555' }}>
+                                                {signalText}
+                                                {summary.sampleSignal && (
+                                                    <span>
+                                                        {' '}· 最近：{dayjs(summary.sampleSignal.timestamp).format('MM-DD HH:mm')}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {summary.strength?.biStrength && (
+                                                <div style={{ fontSize: 12, color: '#555' }}>
+                                                    笔力度：{summary.strength.biStrength.hint || '—'}
+                                                </div>
+                                            )}
+                                            {summary.strength?.segStrength && (
+                                                <div style={{ fontSize: 12, color: '#555' }}>
+                                                    段力度：{summary.strength.segStrength.hint || '—'}
+                                                </div>
+                                            )}
+                                            {entry.lastRunAt && (
+                                                <div style={{ fontSize: 11, color: '#888' }}>
+                                                    上次运行：{dayjs(entry.lastRunAt).format('MM-DD HH:mm')}
+                                                </div>
+                                            )}
+                                            {entry.status === 'failed' && entry.errorMessage && (
+                                                <div style={{ fontSize: 11, color: '#d4380d' }}>
+                                                    错误：{entry.errorMessage}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
                 </div>
             );
         });
@@ -4855,6 +6649,7 @@
                 items={[
                     { key: 'view', label: '显示设置', children: <IndicatorConfig /> },
                     { key: 'chan', label: '缠论配置', children: <ChanConfigPanel /> },
+                    { key: 'backtest', label: '回测工具', children: <BacktestConsole /> },
                     { key: 'alerts', label: '盯盘报警', children: <AlertPanel /> },
                 ]}
             />
@@ -4904,6 +6699,14 @@
             const [indicators, setIndicators] = useState(() => ({
                 ...DEFAULT_INDICATORS,
                 ...savedIndicators,
+                bsp_filters: {
+                    ...(savedIndicators?.bsp_filters
+                        ? {
+                            directions: [...(savedIndicators.bsp_filters.directions || DEFAULT_BSP_FILTERS.directions)],
+                            types: [...(savedIndicators.bsp_filters.types || [])],
+                        }
+                        : { ...DEFAULT_BSP_FILTERS }),
+                },
             }));
             const [chanConfig, setChanConfig] = useState(() => {
                 const savedChan = savedConfig?.chanConfig || {};
@@ -4920,6 +6723,19 @@
                     },
                 };
             });
+            const focusRequestIdRef = useRef(0);
+            const [chartFocusRequest, setChartFocusRequest] = useState(null);
+            const requestChartFocus = useCallback(({ stockCode, level, timestamp }) => {
+                if (!stockCode || !level || !Number.isFinite(timestamp)) {
+                    message.warning('无法定位信号：信息不完整');
+                    return;
+                }
+                focusRequestIdRef.current += 1;
+                setChartFocusRequest({ id: focusRequestIdRef.current, stockCode, level, timestamp, acknowledged: false });
+            }, []);
+            const acknowledgeChartFocus = useCallback((id) => {
+                setChartFocusRequest(prev => (prev && prev.id === id ? { ...prev, acknowledged: true } : prev));
+            }, []);
             const [chartData, setChartData] = useState({});
             const [loadingCharts, setLoadingCharts] = useState({});
             const [theme, setTheme] = useState(savedConfig?.theme || 'light');
@@ -5058,7 +6874,7 @@
             const prevIndicatorsRef = useRef(indicators);
             useEffect(() => {
                 const prev = prevIndicatorsRef.current;
-                const changed = ['plot_bi', 'plot_seg', 'plot_zs', 'plot_bsp', 'plot_ma', 'plot_macd', 'plot_boll', 'plot_kdj', 'plot_rsi', 'plot_volume']
+                const changed = ['plot_bi', 'plot_seg', 'plot_zs', 'plot_bsp', 'plot_ma', 'plot_macd', 'plot_boll', 'plot_kdj', 'plot_rsi', 'plot_volume', 'bsp_filters']
                     .some(key => prev[key] !== indicators[key]);
 
                 if (changed && Object.keys(prev).length > 0 && activeStock) {
@@ -5389,6 +7205,9 @@
                 registerChartInstance,
                 unregisterChartInstance,
                 syncVisibleRange,
+                chartFocusRequest,
+                requestChartFocus,
+                acknowledgeChartFocus,
                 theme,
                 alertHistory,
                 alertConnected,
