@@ -1112,7 +1112,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { Layout, Button, Input, Select, Checkbox, message, Spin, Tag, Space, Tooltip, Radio, InputNumber, Slider, Switch, Tabs, Collapse, Divider, Popover, DatePicker, Segmented, List, Empty, AutoComplete, Drawer, Table } = antd;
+        const { Layout, Button, Input, Select, Checkbox, message, Spin, Tag, Space, Tooltip, Radio, InputNumber, Slider, Switch, Tabs, Collapse, Divider, Popover, DatePicker, Segmented, List, Empty, AutoComplete, Drawer, Table, Modal } = antd;
         const { Header, Sider, Content } = Layout;
         const { useState, useEffect, useCallback, useContext, createContext, useRef, memo, useMemo } = React;
         const dayjs = window.dayjs;
@@ -6055,6 +6055,9 @@
 
         const ChanConfigPanel = memo(() => {
             const { chanConfig, setChanConfig } = useApp();
+            const [jsonModalVisible, setJsonModalVisible] = useState(false);
+            const [jsonEditorValue, setJsonEditorValue] = useState('');
+            const [jsonParseError, setJsonParseError] = useState(null);
 
             const mergeConfig = useCallback((patch) => {
                 setChanConfig(prev => ({ ...prev, ...patch }));
@@ -6170,6 +6173,66 @@
                 return defaultBsTypeArray;
             }, [chanConfig.bs_type, defaultBsTypeArray]);
 
+            const configJson = useMemo(() => JSON.stringify(chanConfig, null, 2), [chanConfig]);
+            const openJsonModal = useCallback(() => {
+                setJsonEditorValue(JSON.stringify(chanConfig, null, 2));
+                setJsonParseError(null);
+                setJsonModalVisible(true);
+            }, [chanConfig]);
+            const closeJsonModal = useCallback(() => {
+                setJsonModalVisible(false);
+                setJsonParseError(null);
+            }, []);
+            const handleCopyJson = useCallback(() => {
+                const copyText = async () => {
+                    if (navigator?.clipboard?.writeText) {
+                        await navigator.clipboard.writeText(jsonEditorValue || configJson);
+                        message.success('已复制到剪贴板');
+                    } else {
+                        throw new Error('clipboard api unavailable');
+                    }
+                };
+                copyText().catch(() => {
+                    try {
+                        const textarea = document.createElement('textarea');
+                        textarea.value = jsonEditorValue || configJson;
+                        textarea.style.position = 'fixed';
+                        textarea.style.opacity = '0';
+                        document.body.appendChild(textarea);
+                        textarea.focus();
+                        textarea.select();
+                        const succeeded = document.execCommand('copy');
+                        document.body.removeChild(textarea);
+                        if (succeeded) {
+                            message.success('已复制到剪贴板');
+                            return;
+                        }
+                    } catch (err) {
+                        // ignore
+                    }
+                    message.warning('复制失败，请手动选中内容复制');
+                });
+            }, [configJson, jsonEditorValue]);
+            const handleJsonChange = useCallback((event) => {
+                setJsonEditorValue(event.target.value);
+                setJsonParseError(null);
+            }, []);
+            const handleJsonApply = useCallback(() => {
+                try {
+                    const parsed = JSON.parse(jsonEditorValue || '{}');
+                    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+                        throw new Error('配置必须是对象');
+                    }
+                    setChanConfig(() => parsed);
+                    message.success('已应用JSON配置');
+                    setJsonParseError(null);
+                } catch (err) {
+                    const detail = err instanceof Error ? err.message : String(err);
+                    setJsonParseError(detail);
+                    message.error(`解析失败：${detail}`);
+                }
+            }, [jsonEditorValue, setChanConfig]);
+
             const effectiveDivergenceRate = Number.isFinite(chanConfig.divergence_rate)
                 ? chanConfig.divergence_rate
                 : (Number.isFinite(DEFAULT_CHAN_CONFIG.divergence_rate) ? DEFAULT_CHAN_CONFIG.divergence_rate : Number.POSITIVE_INFINITY);
@@ -6229,7 +6292,10 @@
                     <div className="config-section">
                         <div className="config-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span>核心参数</span>
-                            <Button size="small" onClick={resetAllToDefault}>恢复默认</Button>
+                            <Space size={8}>
+                                <Button size="small" onClick={openJsonModal}>查看JSON</Button>
+                                <Button size="small" onClick={resetAllToDefault}>恢复默认</Button>
+                            </Space>
                         </div>
                         <div className="config-grid config-grid--two">
                             <div className="config-field">
@@ -6686,14 +6752,40 @@
             ];
 
             return (
-                <Tabs
-                    size="small"
-                    defaultActiveKey="basic"
-                    items={[
-                        { key: 'basic', label: '基础设置', children: basicContent },
-                        { key: 'advanced', label: '高级设置', children: <Collapse ghost defaultActiveKey={[]} items={advancedItems} /> },
-                    ]}
-                />
+                <>
+                    <Tabs
+                        size="small"
+                        defaultActiveKey="basic"
+                        items={[
+                            { key: 'basic', label: '基础设置', children: basicContent },
+                            { key: 'advanced', label: '高级设置', children: <Collapse ghost defaultActiveKey={[]} items={advancedItems} /> },
+                        ]}
+                    />
+                    <Modal
+                        width={720}
+                        title="缠论配置 JSON"
+                        open={jsonModalVisible}
+                        onCancel={closeJsonModal}
+                        destroyOnClose
+                        footer={[
+                            <Button key="copy" onClick={handleCopyJson}>复制</Button>,
+                            <Button key="apply" type="primary" onClick={handleJsonApply}>应用</Button>,
+                            <Button key="close" onClick={closeJsonModal}>关闭</Button>,
+                        ]}
+                    >
+                        <Input.TextArea
+                            value={jsonEditorValue}
+                            onChange={handleJsonChange}
+                            autoSize={{ minRows: 12, maxRows: 18 }}
+                            spellCheck={false}
+                        />
+                        {jsonParseError && (
+                            <div style={{ marginTop: 8, color: '#d4380d', fontSize: 12 }}>
+                                {jsonParseError}
+                            </div>
+                        )}
+                    </Modal>
+                </>
             );
         });
 
