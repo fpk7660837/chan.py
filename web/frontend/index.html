@@ -802,6 +802,28 @@
             padding: 8px;
         }
 
+        .chart-hover-card {
+            display: flex;
+            flex-direction: column;
+            min-height: 320px;
+            max-height: 460px;
+        }
+
+        .chart-hover-card__body {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .chart-hover-card--collapsed {
+            min-height: auto;
+            max-height: none;
+        }
+
+        .chart-hover-card--collapsed .chart-hover-card__body {
+            overflow: visible;
+        }
+
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -4204,13 +4226,14 @@
                             </div>
                         )}
                     </div>
-                    <div className="chart-hover-card">
+                    <div className={`chart-hover-card${hoverCollapsed ? ' chart-hover-card--collapsed' : ''}`}>
                         <div className="card-header">
                             <span className="card-title">K线数据</span>
                             <Button size="small" type="link" onClick={() => setHoverCollapsed(prev => !prev)}>
                                 {hoverCollapsed ? '展开' : '收起'}
                             </Button>
                         </div>
+                        <div className="chart-hover-card__body">
                         {hoverCollapsed ? (
                             <span className="chart-info-placeholder">信息已收起，点击右上角展开</span>
                         ) : hoverInfo ? (
@@ -4381,6 +4404,7 @@
                         ) : (
                             <span className="chart-info-placeholder">将鼠标移动到K线查看详细数据</span>
                         )}
+                        </div>
                     </div>
                     <Drawer
                         open={replayVisible}

@@ -1,5 +1,8 @@
 # Repository Guidelines
 
+## First Rule
+Always response by chinese.
+
 ## Project Structure & Module Organization
 Core Chan-computation modules live at the repository root (`Chan.py`, `ChanConfig.py`, `Bi/`, `Seg/`, `ZS/`, `KLine/`, `BuySellPoint/`) and are imported directly by `main.py`. Supporting utilities and experiments are gathered under `src/` and validated by suites in `tests/`. The browser console uses a FastAPI backend (`web/backend`) plus a single-page React bundle (`web/frontend/index.html`) that renders draggable sidebars, multi-period charts, and indicator overlays via KLineCharts.
 
