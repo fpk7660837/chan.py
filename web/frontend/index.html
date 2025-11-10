@@ -691,14 +691,14 @@
     display: grid;
     flex: 1;
     min-height: 0;
-    gap: 16px;
+    gap: 26px;
     overflow: auto;
-    grid-auto-rows: minmax(520px, 1fr);
+    grid-auto-rows: minmax(680px, 1fr);
 }
 
 .stock-chart-panels.columns-1 {
     grid-template-columns: 1fr;
-    grid-auto-rows: minmax(640px, auto);
+    grid-auto-rows: minmax(780px, auto);
 }
 
         .stock-chart-panels.columns-2 {
@@ -711,7 +711,54 @@
 
 .stock-chart-panels.columns-4 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-auto-rows: minmax(320px, 1fr);
+    grid-auto-rows: minmax(460px, 1fr);
+}
+
+.stock-chart-panels.density-wide {
+    gap: 32px;
+    grid-auto-rows: minmax(780px, 1fr);
+}
+
+.stock-chart-panels.density-wide.columns-1 {
+    grid-auto-rows: minmax(880px, auto);
+}
+
+.stock-chart-panels.density-ultra {
+    gap: 40px;
+    grid-auto-rows: minmax(900px, 1fr);
+}
+
+.stock-chart-panels.density-ultra.columns-1 {
+    grid-auto-rows: minmax(1020px, auto);
+}
+
+.stock-chart-panels.density-mega {
+    gap: 48px;
+    grid-auto-rows: minmax(1040px, 1fr);
+}
+
+.stock-chart-panels.density-mega.columns-1 {
+    grid-auto-rows: minmax(1180px, auto);
+}
+
+.stock-chart-panels .chart-card {
+    min-height: 640px;
+    padding: 20px;
+}
+
+.stock-chart-panels.density-wide .chart-card {
+    min-height: 780px;
+    padding: 24px;
+}
+
+.stock-chart-panels.density-ultra .chart-card {
+    min-height: 900px;
+    padding: 28px;
+}
+
+.stock-chart-panels.density-mega .chart-card {
+    min-height: 1040px;
+    padding: 32px;
 }
 
         .chart-header {
@@ -1293,6 +1340,7 @@
 
         const MA_OPTIONS = [5, 10, 20, 30, 45, 60, 120, 250];
         const ALERT_HISTORY_LIMIT = 120;
+        const INDICATOR_PROFILE_STORAGE_KEY = 'chanlun_indicator_profiles';
 
         const DEFAULT_CHAN_CONFIG = {
             bi_algo: 'normal',
@@ -1313,7 +1361,7 @@
             max_kl_misalgin_cnt: 2,
             max_kl_inconsistent_cnt: 5,
             auto_skip_illegal_sub_lv: false,
-            print_warning: false,
+            print_warning: true,
             print_err_time: true,
             mean_metrics: [],
             trend_metrics: [],
@@ -1348,6 +1396,24 @@
             max_bsp2s_lv: null,
             strict_bsp3: false,
         };
+        const CORE_CHAN_FIELDS = [
+            'bi_algo',
+            'seg_algo',
+            'zs_algo',
+            'left_seg_method',
+            'bi_strict',
+            'bi_fx_check',
+            'gap_as_kl',
+            'bi_end_is_peak',
+            'bi_allow_sub_peak',
+            'zs_combine',
+            'zs_combine_mode',
+            'one_bi_zs',
+        ];
+        const CORE_CHAN_DEFAULTS = CORE_CHAN_FIELDS.reduce((acc, field) => {
+            acc[field] = DEFAULT_CHAN_CONFIG[field];
+            return acc;
+        }, {});
 
         const DEFAULT_BSP_FILTERS = {
             directions: ['buy', 'sell'],
@@ -4409,6 +4475,8 @@
                 setActiveLevels,
                 levelLayout,
                 setLevelLayout,
+                chartDensity,
+                setChartDensity,
                 chartData,
                 loadingCharts,
                 analyzeStock,
@@ -4617,7 +4685,7 @@
                                 );
                             })}
                         </div>
-                        <Space size="small" align="center">
+                        <Space size="small" align="center" wrap>
                             <Radio.Group
                                 size="small"
                                 value={levelLayout}
@@ -4627,6 +4695,18 @@
                                 <Radio.Button value="stack">纵向</Radio.Button>
                                 <Radio.Button value="grid" disabled={activeLevels.length < 2}>并排</Radio.Button>
                             </Radio.Group>
+                            <Tooltip title="进一步拉开单图高度与间距">
+                                <Segmented
+                                    size="small"
+                                    value={chartDensity}
+                                    onChange={setChartDensity}
+                                    options={[
+                                        { label: '宽松', value: 'wide' },
+                                        { label: '更宽', value: 'ultra' },
+                                        { label: '超宽', value: 'mega' },
+                                    ]}
+                                />
+                            </Tooltip>
                             {(indicators.indicator_layout === 'tab' && LOWER_INDICATOR_KEYS.some(key => indicators[`plot_${key}`])) && (
                                 <Select
                                     size="small"
@@ -4641,7 +4721,7 @@
                             )}
                         </Space>
                     </div>
-                    <div className={`stock-chart-panels ${columnsClass}`}>
+                    <div className={`stock-chart-panels ${columnsClass} density-${chartDensity}`}>
                         {activeLevels.map(level => {
                             const key = `${activeStock.code}-${level}`;
                             return (
@@ -5583,6 +5663,34 @@
             });
             const { RangePicker } = DatePicker;
             const [limitCount, setLimitCount] = useState(indicators.limit_kl_count || null);
+            const [profileName, setProfileName] = useState('');
+            const [customProfiles, setCustomProfiles] = useState(() => {
+                if (typeof window === 'undefined') {
+                    return [];
+                }
+                try {
+                    const stored = localStorage.getItem(INDICATOR_PROFILE_STORAGE_KEY);
+                    const parsed = stored ? JSON.parse(stored) : [];
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch (err) {
+                    debugError('Failed to load indicator profiles:', err);
+                    return [];
+                }
+            });
+            const persistProfiles = useCallback((updater) => {
+                setCustomProfiles(prev => {
+                    const next = typeof updater === 'function' ? updater(prev) : updater;
+                    const normalized = Array.isArray(next) ? next : [];
+                    if (typeof window !== 'undefined') {
+                        try {
+                            localStorage.setItem(INDICATOR_PROFILE_STORAGE_KEY, JSON.stringify(normalized));
+                        } catch (err) {
+                            debugError('Failed to save indicator profiles:', err);
+                        }
+                    }
+                    return normalized;
+                });
+            }, []);
 
             useEffect(() => {
                 setLimitCount(indicators.limit_kl_count || null);
@@ -5665,6 +5773,46 @@
                 }
                 setIndicators(prev => ({ ...prev, [key]: value }));
             };
+
+            const handleSaveProfile = useCallback(() => {
+                const name = profileName.trim();
+                if (!name) {
+                    message.warning('请输入模板名称');
+                    return;
+                }
+                let snapshot = {};
+                try {
+                    snapshot = JSON.parse(JSON.stringify(indicators));
+                } catch (err) {
+                    snapshot = { ...indicators };
+                }
+                persistProfiles(prev => {
+                    const filtered = prev.filter(profile => profile.name !== name);
+                    return [
+                        ...filtered,
+                        {
+                            id: Date.now(),
+                            name,
+                            config: snapshot,
+                        },
+                    ];
+                });
+                message.success(`已保存模板「${name}」`);
+                setProfileName('');
+            }, [indicators, persistProfiles, profileName]);
+
+            const handleApplyProfile = useCallback((profile) => {
+                if (!profile || !profile.config) {
+                    return;
+                }
+                setIndicators(prev => ({ ...prev, ...profile.config }));
+                message.success(`已应用模板「${profile.name}」`);
+            }, [setIndicators]);
+
+            const handleDeleteProfile = useCallback((id) => {
+                persistProfiles(prev => prev.filter(profile => profile.id !== id));
+                message.success('已删除模板');
+            }, [persistProfiles]);
 
             const handleTimeRangeChange = (range) => {
                 setTimeRange(range);
@@ -6022,6 +6170,54 @@
                     </div>
 
                     <div className="indicator-section">
+                        <div className="indicator-section-title">指标模板</div>
+                        <div className="indicator-item" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                            <Input
+                                size="small"
+                                placeholder="输入模板名称"
+                                value={profileName}
+                                onChange={e => setProfileName(e.target.value)}
+                                style={{ flex: '1 1 140px', minWidth: 140 }}
+                            />
+                            <Button size="small" type="primary" onClick={handleSaveProfile}>
+                                保存当前设置
+                            </Button>
+                        </div>
+                        <div className="indicator-item" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            {customProfiles.length === 0 ? (
+                                <div className="chart-info-placeholder" style={{ margin: 0 }}>
+                                    暂无自定义模板，保存后可一键切换
+                                </div>
+                            ) : (
+                                customProfiles.map(profile => (
+                                    <div
+                                        key={profile.id}
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            alignItems: 'center',
+                                            padding: '6px 10px',
+                                            border: '1px solid #f0f0f0',
+                                            borderRadius: 6,
+                                            background: '#fafafa',
+                                        }}
+                                    >
+                                        <span style={{ fontWeight: 500 }}>{profile.name}</span>
+                                        <Space size={4}>
+                                            <Button size="small" type="link" onClick={() => handleApplyProfile(profile)}>
+                                                应用
+                                            </Button>
+                                            <Button size="small" type="link" danger onClick={() => handleDeleteProfile(profile.id)}>
+                                                删除
+                                            </Button>
+                                        </Space>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="indicator-section">
                         <div className="indicator-section-title">指标布局</div>
                         <div className="indicator-item" style={{ marginBottom: 12 }}>
                             <Radio.Group
@@ -6058,6 +6254,7 @@
             const [jsonModalVisible, setJsonModalVisible] = useState(false);
             const [jsonEditorValue, setJsonEditorValue] = useState('');
             const [jsonParseError, setJsonParseError] = useState(null);
+            const [structureView, setStructureView] = useState('bi');
 
             const mergeConfig = useCallback((patch) => {
                 setChanConfig(prev => ({ ...prev, ...patch }));
@@ -6136,6 +6333,13 @@
                     demark: { ...DEFAULT_CHAN_CONFIG.demark },
                 }));
                 message.success('已恢复全部缠论配置默认值');
+            }, [setChanConfig]);
+            const resetCoreConfig = useCallback(() => {
+                setChanConfig(prev => ({
+                    ...prev,
+                    ...CORE_CHAN_DEFAULTS,
+                }));
+                message.success('已恢复核心算法默认值');
             }, [setChanConfig]);
 
             const defaultBsTypeArray = useMemo(() => {
@@ -6245,6 +6449,7 @@
             const effectiveBsp2sFollow2 = (chanConfig.bsp2s_follow_2 ?? DEFAULT_CHAN_CONFIG.bsp2s_follow_2) ?? false;
             const effectiveStrictBsp3 = (chanConfig.strict_bsp3 ?? DEFAULT_CHAN_CONFIG.strict_bsp3) ?? false;
             const effectiveMaxBs2Rate = chanConfig.max_bs2_rate ?? DEFAULT_CHAN_CONFIG.max_bs2_rate;
+            const effectiveMaxBsp2sLv = chanConfig.max_bsp2s_lv ?? DEFAULT_CHAN_CONFIG.max_bsp2s_lv;
             const effectiveMacdAlgo = chanConfig.macd_algo || DEFAULT_CHAN_CONFIG.macd_algo || 'peak';
             const effectiveBiAlgo = chanConfig.bi_algo || DEFAULT_CHAN_CONFIG.bi_algo || 'normal';
             const effectiveBiStrict = (chanConfig.bi_strict ?? DEFAULT_CHAN_CONFIG.bi_strict) ?? false ? true : false;
@@ -6294,6 +6499,7 @@
                             <span>核心参数</span>
                             <Space size={8}>
                                 <Button size="small" onClick={openJsonModal}>查看JSON</Button>
+                                <Button size="small" onClick={resetCoreConfig}>核心重置</Button>
                                 <Button size="small" onClick={resetAllToDefault}>恢复默认</Button>
                             </Space>
                         </div>
@@ -6343,9 +6549,9 @@
                         <div className="config-checkbox-group config-checkbox-group--compact">
                             <Checkbox checked={!!effectiveTriggerStep} onChange={handleBoolean('trigger_step')}>增量触发</Checkbox>
                             <Checkbox checked={!!effectiveKlDataCheck} onChange={handleBoolean('kl_data_check')}>检查K线一致性（默认）</Checkbox>
-                            <Checkbox checked={!!effectivePrintWarning} onChange={handleBoolean('print_warning')}>打印警告（默认）</Checkbox>
-                            <Checkbox checked={!!effectivePrintErrTime} onChange={handleBoolean('print_err_time')}>打印异常时间（默认）</Checkbox>
-                            <Checkbox checked={!!effectiveAutoSkipIllegal} onChange={handleBoolean('auto_skip_illegal_sub_lv')}>自动跳过非法子级别</Checkbox>
+                        </div>
+                        <div className="config-hint" style={{ marginTop: 8 }}>
+                            日志输出和容错策略请在高级设置中调整
                         </div>
                         <div className="config-grid config-grid--two" style={{ marginTop: 12 }}>
                             <div className="config-field">
@@ -6400,91 +6606,143 @@
                     children: (
                         <div className="config-collapse-body">
                             <div className="config-section">
-                                <div className="config-section-title">笔设置</div>
-                                <div className="config-grid config-grid--two">
-                                    <div className="config-field">
-                                        <label>
-                                            <LabelWithTip label="分型判定" tip="决定分型确认方式，影响笔识别的严格程度" />
-                                        </label>
-                                        <Select
-                                            size="small"
-                                            value={effectiveBiFxCheck}
-                                            onChange={handleSelect('bi_fx_check')}
-                                            options={[
-                                                { value: 'strict', label: '严格' },
-                                                { value: 'half', label: '半严格' },
-                                                { value: 'loss', label: '松弛' },
-                                                { value: 'totally', label: '全量' },
-                                            ]}
-                                        />
-                                        <div className="config-hint">默认：严格</div>
-                                    </div>
-                                    <div className="config-field config-field--full">
-                                        <label>笔选项</label>
-                                        <div className="config-checkbox-group config-checkbox-group--compact">
-                                            <Checkbox checked={!!effectiveBiStrict} onChange={handleBoolean('bi_strict')}>
-                                                严格笔（默认）
-                                            </Checkbox>
-                                            <Checkbox checked={!!effectiveGapAsKl} onChange={handleBoolean('gap_as_kl')}>
-                                                <LabelWithTip label="缺口视作K线" tip="将价格跳空视作独立K线处理" />
-                                            </Checkbox>
-                                            <Checkbox checked={!!effectiveBiEndIsPeak} onChange={handleBoolean('bi_end_is_peak')}>
-                                                <LabelWithTip label="笔尾必须顶/底" tip="笔结束时必须满足顶/底条件" />
-                                            </Checkbox>
-                                            <Checkbox checked={!!effectiveBiAllowSubPeak} onChange={handleBoolean('bi_allow_sub_peak')}>
-                                                <LabelWithTip label="允许次级别顶底" tip="允许使用次级别的顶底完成笔" />
-                                            </Checkbox>
+                                <div className="config-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span>结构视图</span>
+                                    <Segmented
+                                        size="small"
+                                        value={structureView}
+                                        onChange={setStructureView}
+                                        options={[
+                                            { label: '笔', value: 'bi' },
+                                            { label: '线段', value: 'seg' },
+                                            { label: '中枢', value: 'zs' },
+                                        ]}
+                                    />
+                                </div>
+                                <div className="config-hint">按需切换不同结构维度，减少一次性信息量</div>
+                            </div>
+                            {structureView === 'bi' && (
+                                <div className="config-section">
+                                    <div className="config-grid config-grid--two">
+                                        <div className="config-field">
+                                            <label>
+                                                <LabelWithTip label="分型判定" tip="决定分型确认方式，影响笔识别的严格程度" />
+                                            </label>
+                                            <Select
+                                                size="small"
+                                                value={effectiveBiFxCheck}
+                                                onChange={handleSelect('bi_fx_check')}
+                                                options={[
+                                                    { value: 'strict', label: '严格' },
+                                                    { value: 'half', label: '半严格' },
+                                                    { value: 'loss', label: '松弛' },
+                                                    { value: 'totally', label: '全量' },
+                                                ]}
+                                            />
+                                            <div className="config-hint">默认：严格</div>
+                                        </div>
+                                        <div className="config-field config-field--full">
+                                            <label>笔选项</label>
+                                            <div className="config-checkbox-group config-checkbox-group--compact">
+                                                <Checkbox checked={!!effectiveBiStrict} onChange={handleBoolean('bi_strict')}>
+                                                    严格笔（默认）
+                                                </Checkbox>
+                                                <Checkbox checked={!!effectiveGapAsKl} onChange={handleBoolean('gap_as_kl')}>
+                                                    <LabelWithTip label="缺口视作K线" tip="将价格跳空视作独立K线处理" />
+                                                </Checkbox>
+                                                <Checkbox checked={!!effectiveBiEndIsPeak} onChange={handleBoolean('bi_end_is_peak')}>
+                                                    <LabelWithTip label="笔尾必须顶/底" tip="笔结束时必须满足顶/底条件" />
+                                                </Checkbox>
+                                                <Checkbox checked={!!effectiveBiAllowSubPeak} onChange={handleBoolean('bi_allow_sub_peak')}>
+                                                    <LabelWithTip label="允许次级别顶底" tip="允许使用次级别的顶底完成笔" />
+                                                </Checkbox>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div className="config-section">
-                                <div className="config-section-title">线段 & 中枢</div>
-                                <div className="config-grid config-grid--two">
-                                    <div className="config-field">
-                                        <label>
-                                            <LabelWithTip label="线段左端" tip="决定线段起点的计算方式（默认峰值）" />
-                                        </label>
-                                        <Select
-                                            size="small"
-                                            value={effectiveLeftSegMethod}
-                                            onChange={handleSelect('left_seg_method')}
-                                            options={[
-                                                { value: 'peak', label: '峰值' },
-                                                { value: 'all', label: '全量' },
-                                            ]}
-                                        />
-                                        <div className="config-hint">默认：峰值</div>
-                                    </div>
-                                    <div className="config-field">
-                                        <label>
-                                            <LabelWithTip label="合并模式" tip="中枢合并后的结果以中枢自身或线段替代" />
-                                        </label>
-                                        <Select
-                                            size="small"
-                                            value={effectiveZsCombineMode}
-                                            onChange={handleSelect('zs_combine_mode')}
-                                            options={[
-                                                { value: 'zs', label: '中枢' },
-                                                { value: 'seg', label: '线段' },
-                                            ]}
-                                            disabled={!effectiveZsCombine}
-                                        />
-                                        <div className="config-hint">默认：中枢</div>
-                                    </div>
-                                    <div className="config-field config-field--full">
-                                        <label>中枢选项</label>
-                                        <div className="config-checkbox-group config-checkbox-group--compact">
-                                            <Checkbox checked={!!effectiveZsCombine} onChange={handleBoolean('zs_combine')}>
-                                                合并中枢（默认）
-                                            </Checkbox>
-                                            <Checkbox checked={!!effectiveOneBiZs} onChange={handleBoolean('one_bi_zs')}>
-                                                单笔中枢
-                                            </Checkbox>
+                            )}
+                            {structureView === 'seg' && (
+                                <div className="config-section">
+                                    <div className="config-grid config-grid--two">
+                                        <div className="config-field">
+                                            <label>
+                                                <LabelWithTip label="线段算法" tip="调整线段划分逻辑（默认 Chan）" />
+                                            </label>
+                                            <Select
+                                                size="small"
+                                                value={effectiveSegAlgo}
+                                                onChange={handleSelect('seg_algo')}
+                                                options={SEG_ALGO_OPTIONS}
+                                            />
+                                            <div className="config-hint">默认：chan</div>
+                                        </div>
+                                        <div className="config-field">
+                                            <label>
+                                                <LabelWithTip label="线段左端" tip="决定线段起点的计算方式（默认峰值）" />
+                                            </label>
+                                            <Select
+                                                size="small"
+                                                value={effectiveLeftSegMethod}
+                                                onChange={handleSelect('left_seg_method')}
+                                                options={[
+                                                    { value: 'peak', label: '峰值' },
+                                                    { value: 'all', label: '全量' },
+                                                ]}
+                                            />
+                                            <div className="config-hint">默认：峰值</div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            )}
+                            {structureView === 'zs' && (
+                                <div className="config-section">
+                                    <div className="config-grid config-grid--two">
+                                        <div className="config-field">
+                                            <label>
+                                                <LabelWithTip label="中枢算法" tip="调整中枢识别算法（标准/跨段/自动）" />
+                                            </label>
+                                            <Select
+                                                size="small"
+                                                value={effectiveZsAlgo}
+                                                onChange={handleSelect('zs_algo')}
+                                                options={[
+                                                    { value: 'normal', label: '标准' },
+                                                    { value: 'over_seg', label: '跨段' },
+                                                    { value: 'auto', label: '自动' },
+                                                ]}
+                                            />
+                                            <div className="config-hint">默认：标准</div>
+                                        </div>
+                                        <div className="config-field">
+                                            <label>
+                                                <LabelWithTip label="合并模式" tip="中枢合并后的结果以中枢自身或线段替代" />
+                                            </label>
+                                            <Select
+                                                size="small"
+                                                value={effectiveZsCombineMode}
+                                                onChange={handleSelect('zs_combine_mode')}
+                                                options={[
+                                                    { value: 'zs', label: '中枢' },
+                                                    { value: 'seg', label: '线段' },
+                                                ]}
+                                                disabled={!effectiveZsCombine}
+                                            />
+                                            <div className="config-hint">默认：中枢</div>
+                                        </div>
+                                        <div className="config-field config-field--full">
+                                            <label>中枢选项</label>
+                                            <div className="config-checkbox-group config-checkbox-group--compact">
+                                                <Checkbox checked={!!effectiveZsCombine} onChange={handleBoolean('zs_combine')}>
+                                                    合并中枢（默认）
+                                                </Checkbox>
+                                                <Checkbox checked={!!effectiveOneBiZs} onChange={handleBoolean('one_bi_zs')}>
+                                                    单笔中枢
+                                                </Checkbox>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ),
                 },
@@ -6555,6 +6813,28 @@
                                     <InputNumber size="small" min={0} max={1} step={0.01} value={effectiveMaxBs2Rate} onChange={handleNumber('max_bs2_rate')} />
                                     <div className="config-hint">默认：0.9999</div>
                                 </div>
+                                <div className="config-field">
+                                    <label>
+                                        <LabelWithTip label="T2最大层级" tip="限制 T2/T2S 信号距当前位置的最大层级，留空则不限制" />
+                                    </label>
+                                    <InputNumber
+                                        size="small"
+                                        min={0}
+                                        value={effectiveMaxBsp2sLv ?? null}
+                                        placeholder="不限"
+                                        onChange={(value) => {
+                                            if (value === null || value === undefined || value === '') {
+                                                mergeConfig({ max_bsp2s_lv: null });
+                                                return;
+                                            }
+                                            const numeric = Number(value);
+                                            if (Number.isFinite(numeric) && numeric >= 0) {
+                                                mergeConfig({ max_bsp2s_lv: numeric });
+                                            }
+                                        }}
+                                    />
+                                    <div className="config-hint">默认：不限</div>
+                                </div>
                                 <div className="config-field config-field--full">
                                     <label>买卖点开关</label>
                                     <div className="config-checkbox-group config-checkbox-group--compact">
@@ -6590,6 +6870,35 @@
                                     />
                                     <div className="config-hint">默认：{defaultBsTypeArray.join(', ')}</div>
                                 </div>
+                            </div>
+                        </div>
+                    ),
+                },
+                {
+                    key: 'runtime',
+                    label: '运行与校验',
+                    children: (
+                        <div className="config-collapse-body">
+                            <div className="config-section">
+                                <div className="config-section-title">日志输出</div>
+                                <div className="config-checkbox-group config-checkbox-group--compact">
+                                    <Checkbox checked={!!effectivePrintWarning} onChange={handleBoolean('print_warning')}>
+                                        打印警告（默认）
+                                    </Checkbox>
+                                    <Checkbox checked={!!effectivePrintErrTime} onChange={handleBoolean('print_err_time')}>
+                                        打印异常时间（默认）
+                                    </Checkbox>
+                                </div>
+                                <div className="config-hint">开启后可快速定位数据缺失或回放异常</div>
+                            </div>
+                            <div className="config-section">
+                                <div className="config-section-title">容错策略</div>
+                                <div className="config-checkbox-group config-checkbox-group--compact">
+                                    <Checkbox checked={!!effectiveAutoSkipIllegal} onChange={handleBoolean('auto_skip_illegal_sub_lv')}>
+                                        自动跳过非法子级别
+                                    </Checkbox>
+                                </div>
+                                <div className="config-hint">子级别数据缺失时自动剔除对应级别，防止整套计算中断</div>
                             </div>
                         </div>
                     ),
@@ -6816,6 +7125,11 @@
                 return [DEFAULT_LEVEL];
             });
             const [levelLayout, setLevelLayout] = useState(savedConfig?.chart?.layout || 'stack');
+            const initialChartDensity = useMemo(() => {
+                const saved = savedConfig?.chart?.density;
+                return ['wide', 'ultra', 'mega'].includes(saved) ? saved : 'mega';
+            }, []);
+            const [chartDensity, setChartDensity] = useState(initialChartDensity);
             const [indicators, setIndicators] = useState(() => ({
                 ...DEFAULT_INDICATORS,
                 ...savedIndicators,
@@ -6917,13 +7231,13 @@
                         chanConfig,
                         theme,
                         ui: { leftCollapsed, rightCollapsed, leftWidth, rightWidth, activeStockCode },
-                        chart: { activeLevels, layout: levelLayout },
+                        chart: { activeLevels, layout: levelLayout, density: chartDensity },
                     };
                     localStorage.setItem('chanlun_config', JSON.stringify(config));
                 } catch (e) {
                     debugError('Failed to save config:', e);
                 }
-            }, [stocks, indicators, chanConfig, theme, leftCollapsed, rightCollapsed, leftWidth, rightWidth, activeStockCode, activeLevels, levelLayout]);
+            }, [stocks, indicators, chanConfig, theme, leftCollapsed, rightCollapsed, leftWidth, rightWidth, activeStockCode, activeLevels, levelLayout, chartDensity]);
 
             useEffect(() => {
                 if (stocks.length === 0) {
@@ -7314,6 +7628,8 @@
                 setActiveLevels,
                 levelLayout,
                 setLevelLayout,
+                chartDensity,
+                setChartDensity,
                 indicators,
                 setIndicators,
                 chanConfig,
