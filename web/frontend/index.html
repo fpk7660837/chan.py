@@ -6319,21 +6319,6 @@
                                 <div className="config-hint">默认：chan</div>
                             </div>
                             <div className="config-field">
-                                <label>分型判定</label>
-                                <Select
-                                    size="small"
-                                    value={effectiveBiFxCheck}
-                                    onChange={handleSelect('bi_fx_check')}
-                                    options={[
-                                    { value: 'strict', label: '严格（默认）' },
-                                        { value: 'half', label: '半严格' },
-                                        { value: 'loss', label: '松弛' },
-                                        { value: 'totally', label: '全量' },
-                                    ]}
-                                />
-                                <div className="config-hint">默认：严格</div>
-                            </div>
-                            <div className="config-field">
                                 <label>中枢算法</label>
                                 <Select
                                     size="small"
@@ -6348,16 +6333,8 @@
                                 <div className="config-hint">默认：标准</div>
                             </div>
                         </div>
-                        <div className="config-field config-field--full">
-                            <label>笔 / 中枢选项</label>
-                            <div className="config-checkbox-group">
-                                <Checkbox checked={!!effectiveBiStrict} onChange={handleBoolean('bi_strict')}>严格笔（默认）</Checkbox>
-                                <Checkbox checked={!!effectiveZsCombine} onChange={handleBoolean('zs_combine')}>合并中枢（默认）</Checkbox>
-                                <Checkbox checked={!!effectiveOneBiZs} onChange={handleBoolean('one_bi_zs')}>单笔中枢</Checkbox>
-                                <Checkbox checked={!!effectiveGapAsKl} onChange={handleBoolean('gap_as_kl')}>缺口视作K线</Checkbox>
-                                <Checkbox checked={!!effectiveBiEndIsPeak} onChange={handleBoolean('bi_end_is_peak')}>笔尾必须顶/底（默认）</Checkbox>
-                                <Checkbox checked={!!effectiveBiAllowSubPeak} onChange={handleBoolean('bi_allow_sub_peak')}>允许次级别顶底（默认）</Checkbox>
-                            </div>
+                        <div className="config-hint" style={{ marginTop: 8 }}>
+                            详细的笔与中枢判定请前往“高级设置”调整
                         </div>
                     </div>
 
@@ -6418,111 +6395,93 @@
             );
                         const advancedItems = [
                 {
-                    key: 'bi',
-                    label: '笔参数',
+                    key: 'structure',
+                    label: '结构参数',
                     children: (
                         <div className="config-collapse-body">
-                            <div className="config-grid config-grid--two">
-                                <div className="config-field">
-                                    <label>
-                                        <LabelWithTip label="分型判定" tip="决定分型确认方式，影响笔识别的严格程度" />
-                                    </label>
-                                    <Select
-                                        size="small"
-                                        value={effectiveBiFxCheck}
-                                        onChange={handleSelect('bi_fx_check')}
-                                        options={[
-                                            { value: 'strict', label: '严格' },
-                                            { value: 'half', label: '半严格' },
-                                            { value: 'loss', label: '松弛' },
-                                            { value: 'totally', label: '全量' },
-                                        ]}
-                                    />
-                                    <div className="config-hint">默认：严格</div>
-                                </div>
-                                <div className="config-field config-field--full">
-                                    <label>笔选项</label>
-                                    <div className="config-checkbox-group config-checkbox-group--compact">
-                                        <Checkbox checked={!!effectiveBiStrict} onChange={handleBoolean('bi_strict')}>
-                                            严格笔（默认）
-                                        </Checkbox>
-                                        <Checkbox checked={!!effectiveGapAsKl} onChange={handleBoolean('gap_as_kl')}>
-                                            <LabelWithTip label="缺口视作K线" tip="将价格跳空视作独立K线处理" />
-                                        </Checkbox>
-                                        <Checkbox checked={!!effectiveBiEndIsPeak} onChange={handleBoolean('bi_end_is_peak')}>
-                                            <LabelWithTip label="笔尾必须顶/底" tip="笔结束时必须满足顶/底条件" />
-                                        </Checkbox>
-                                        <Checkbox checked={!!effectiveBiAllowSubPeak} onChange={handleBoolean('bi_allow_sub_peak')}>
-                                            <LabelWithTip label="允许次级别顶底" tip="允许使用次级别的顶底完成笔" />
-                                        </Checkbox>
+                            <div className="config-section">
+                                <div className="config-section-title">笔设置</div>
+                                <div className="config-grid config-grid--two">
+                                    <div className="config-field">
+                                        <label>
+                                            <LabelWithTip label="分型判定" tip="决定分型确认方式，影响笔识别的严格程度" />
+                                        </label>
+                                        <Select
+                                            size="small"
+                                            value={effectiveBiFxCheck}
+                                            onChange={handleSelect('bi_fx_check')}
+                                            options={[
+                                                { value: 'strict', label: '严格' },
+                                                { value: 'half', label: '半严格' },
+                                                { value: 'loss', label: '松弛' },
+                                                { value: 'totally', label: '全量' },
+                                            ]}
+                                        />
+                                        <div className="config-hint">默认：严格</div>
+                                    </div>
+                                    <div className="config-field config-field--full">
+                                        <label>笔选项</label>
+                                        <div className="config-checkbox-group config-checkbox-group--compact">
+                                            <Checkbox checked={!!effectiveBiStrict} onChange={handleBoolean('bi_strict')}>
+                                                严格笔（默认）
+                                            </Checkbox>
+                                            <Checkbox checked={!!effectiveGapAsKl} onChange={handleBoolean('gap_as_kl')}>
+                                                <LabelWithTip label="缺口视作K线" tip="将价格跳空视作独立K线处理" />
+                                            </Checkbox>
+                                            <Checkbox checked={!!effectiveBiEndIsPeak} onChange={handleBoolean('bi_end_is_peak')}>
+                                                <LabelWithTip label="笔尾必须顶/底" tip="笔结束时必须满足顶/底条件" />
+                                            </Checkbox>
+                                            <Checkbox checked={!!effectiveBiAllowSubPeak} onChange={handleBoolean('bi_allow_sub_peak')}>
+                                                <LabelWithTip label="允许次级别顶底" tip="允许使用次级别的顶底完成笔" />
+                                            </Checkbox>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    ),
-                },
-                {
-                    key: 'seg',
-                    label: '线段 & 中枢',
-                    children: (
-                        <div className="config-collapse-body">
-                            <div className="config-grid config-grid--two">
-                                <div className="config-field">
-                                    <label>
-                                        <LabelWithTip label="线段左端" tip="决定线段起点的计算方式（默认峰值）" />
-                                    </label>
-                                    <Select
-                                        size="small"
-                                        value={effectiveLeftSegMethod}
-                                        onChange={handleSelect('left_seg_method')}
-                                        options={[
-                                            { value: 'peak', label: '峰值' },
-                                            { value: 'all', label: '全量' },
-                                        ]}
-                                    />
-                                    <div className="config-hint">默认：峰值</div>
-                                </div>
-                                <div className="config-field">
-                                    <label>
-                                        <LabelWithTip label="合并模式" tip="中枢合并后的结果以中枢自身或线段替代" />
-                                    </label>
-                                    <Select
-                                        size="small"
-                                        value={effectiveZsCombineMode}
-                                        onChange={handleSelect('zs_combine_mode')}
-                                        options={[
-                                            { value: 'zs', label: '中枢' },
-                                            { value: 'seg', label: '线段' },
-                                        ]}
-                                        disabled={!effectiveZsCombine}
-                                    />
-                                    <div className="config-hint">默认：中枢</div>
-                                </div>
-                                <div className="config-field">
-                                    <label>
-                                        <LabelWithTip label="中枢算法" tip="调整中枢识别算法（标准/跨段/自动）" />
-                                    </label>
-                                    <Select
-                                        size="small"
-                                        value={effectiveZsAlgo}
-                                        onChange={handleSelect('zs_algo')}
-                                        options={[
-                                            { value: 'normal', label: '标准' },
-                                            { value: 'over_seg', label: '跨段' },
-                                            { value: 'auto', label: '自动' },
-                                        ]}
-                                    />
-                                    <div className="config-hint">默认：标准</div>
-                                </div>
-                                <div className="config-field config-field--full">
-                                    <label>中枢选项</label>
-                                    <div className="config-checkbox-group config-checkbox-group--compact">
-                                        <Checkbox checked={!!effectiveZsCombine} onChange={handleBoolean('zs_combine')}>
-                                            合并中枢（默认）
-                                        </Checkbox>
-                                        <Checkbox checked={!!effectiveOneBiZs} onChange={handleBoolean('one_bi_zs')}>
-                                            单笔中枢
-                                        </Checkbox>
+                            <div className="config-section">
+                                <div className="config-section-title">线段 & 中枢</div>
+                                <div className="config-grid config-grid--two">
+                                    <div className="config-field">
+                                        <label>
+                                            <LabelWithTip label="线段左端" tip="决定线段起点的计算方式（默认峰值）" />
+                                        </label>
+                                        <Select
+                                            size="small"
+                                            value={effectiveLeftSegMethod}
+                                            onChange={handleSelect('left_seg_method')}
+                                            options={[
+                                                { value: 'peak', label: '峰值' },
+                                                { value: 'all', label: '全量' },
+                                            ]}
+                                        />
+                                        <div className="config-hint">默认：峰值</div>
+                                    </div>
+                                    <div className="config-field">
+                                        <label>
+                                            <LabelWithTip label="合并模式" tip="中枢合并后的结果以中枢自身或线段替代" />
+                                        </label>
+                                        <Select
+                                            size="small"
+                                            value={effectiveZsCombineMode}
+                                            onChange={handleSelect('zs_combine_mode')}
+                                            options={[
+                                                { value: 'zs', label: '中枢' },
+                                                { value: 'seg', label: '线段' },
+                                            ]}
+                                            disabled={!effectiveZsCombine}
+                                        />
+                                        <div className="config-hint">默认：中枢</div>
+                                    </div>
+                                    <div className="config-field config-field--full">
+                                        <label>中枢选项</label>
+                                        <div className="config-checkbox-group config-checkbox-group--compact">
+                                            <Checkbox checked={!!effectiveZsCombine} onChange={handleBoolean('zs_combine')}>
+                                                合并中枢（默认）
+                                            </Checkbox>
+                                            <Checkbox checked={!!effectiveOneBiZs} onChange={handleBoolean('one_bi_zs')}>
+                                                单笔中枢
+                                            </Checkbox>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -6630,50 +6589,6 @@
                                         onChange={handleBsTypeChange}
                                     />
                                     <div className="config-hint">默认：{defaultBsTypeArray.join(', ')}</div>
-                                </div>
-                            </div>
-                        </div>
-                    ),
-                },
-                {
-                    key: 'runtime',
-                    label: '运行与校验',
-                    children: (
-                        <div className="config-collapse-body">
-                            <div className="config-grid config-grid--two">
-                                <div className="config-field">
-                                    <label>
-                                        <LabelWithTip label="错位容忍" tip="允许子级别错位的最大次数" />
-                                    </label>
-                                    <InputNumber size="small" min={0} value={effectiveMaxKlMisalign} onChange={handleNumber('max_kl_misalgin_cnt')} />
-                                    <div className="config-hint">默认：2</div>
-                                </div>
-                                <div className="config-field">
-                                    <label>
-                                        <LabelWithTip label="不一致容忍" tip="允许子级别不一致的最大次数" />
-                                    </label>
-                                    <InputNumber size="small" min={0} value={effectiveMaxKlInconsistent} onChange={handleNumber('max_kl_inconsistent_cnt')} />
-                                    <div className="config-hint">默认：5</div>
-                                </div>
-                                <div className="config-field config-field--full">
-                                    <label>运行开关</label>
-                                    <div className="config-checkbox-group config-checkbox-group--compact">
-                                        <Checkbox checked={!!effectiveTriggerStep} onChange={handleBoolean('trigger_step')}>
-                                            增量触发
-                                        </Checkbox>
-                                        <Checkbox checked={!!effectiveKlDataCheck} onChange={handleBoolean('kl_data_check')}>
-                                            检查K线一致性（默认）
-                                        </Checkbox>
-                                        <Checkbox checked={!!effectivePrintWarning} onChange={handleBoolean('print_warning')}>
-                                            打印警告（默认）
-                                        </Checkbox>
-                                        <Checkbox checked={!!effectivePrintErrTime} onChange={handleBoolean('print_err_time')}>
-                                            打印异常时间（默认）
-                                        </Checkbox>
-                                        <Checkbox checked={!!effectiveAutoSkipIllegal} onChange={handleBoolean('auto_skip_illegal_sub_lv')}>
-                                            自动跳过非法子级别
-                                        </Checkbox>
-                                    </div>
                                 </div>
                             </div>
                         </div>
