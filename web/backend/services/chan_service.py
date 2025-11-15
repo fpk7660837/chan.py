@@ -561,18 +561,422 @@ class ChanService:
     
     def _extract_bsp_list(self, chan: CChan) -> List[Dict]:
         """Extract BuySellPoint (买卖点) list from CChan object"""
-        bsp_list = []
-        if hasattr(chan[0], 'bs_point_lst') and hasattr(chan[0].bs_point_lst, 'lst'):
-            for bsp in chan[0].bs_point_lst.lst:
-                # bsp.klu could be CKLine or CKLine_Unit
-                time_str = str(bsp.klu.time_begin) if hasattr(bsp.klu, 'time_begin') else str(bsp.klu.time)
-                
-                bsp_list.append({
-                    "is_buy": bsp.is_buy,
-                    "type": bsp.type2str(),
-                    "time": time_str,
-                    "price": float(bsp.klu.close),
-                })
+        bsp_list: List[Dict[str, Any]] = []
+        bs_point_list = getattr(chan[0], 'bs_point_lst', None)
+        if not bs_point_list:
+            print("⚠️  CChan result has no bs_point_lst attribute")
+            return bsp_list
+
+        iter_fn = getattr(bs_point_list, 'bsp_iter', None)
+        if not callable(iter_fn):
+            print("⚠️  bs_point_lst has no bsp_iter method")
+            return bsp_list
+
+        buy_cnt = 0
+        sell_cnt = 0
+
+        def safe_float(value):
+            try:
+                return float(value)
+            except (TypeError, ValueError):
+                return None
+
+        def extract_features(bsp):
+            feature_info = {}
+            features = getattr(bsp, 'features', None)
+            if features and hasattr(features, 'items'):
+                for key, val in features.items():
+                    feature_info[key] = safe_float(val) if isinstance(val, (int, float)) else val
+            return feature_info
+
+        def describe_context(bsp):
+            context: Dict[str, Any] = {}
+
+            def safe_time(target, attrs):
+                for attr in attrs:
+                    value = getattr(target, attr, None)
+                    if value is not None:
+                        return str(value)
+                return None
+
+            bi = getattr(bsp, 'bi', None)
+            if bi:
+                context['bi_index'] = getattr(bi, 'idx', None)
+                try:
+                    if bi.is_down():
+                        context['bi_direction'] = 'down'
+                    elif bi.is_up():
+                        context['bi_direction'] = 'up'
+                except Exception:
+                    pass
+                try:
+                    context['bi_amplitude'] = safe_float(bi.amp())
+                except Exception:
+                    pass
+                try:
+                    context['bi_high'] = safe_float(bi._high())
+                    context['bi_low'] = safe_float(bi._low())
+                    context['bi_mid'] = safe_float(bi._mid())
+                except Exception:
+                    pass
+                try:
+                    context['bi_begin_val'] = safe_float(bi.get_begin_val())
+                    context['bi_end_val'] = safe_float(bi.get_end_val())
+                except Exception:
+                    pass
+                try:
+                    context['bi_klc_count'] = getattr(bi, 'get_klc_cnt', lambda: None)()
+                except Exception:
+                    pass
+                try:
+                    context['bi_klu_count'] = getattr(bi, 'get_klu_cnt', lambda: None)()
+                except Exception:
+                    pass
+                begin_klc = getattr(bi, 'begin_klc', None)
+                end_klc = getattr(bi, 'end_klc', None)
+                if begin_klc:
+                    context['bi_begin_time'] = safe_time(begin_klc, ['time_begin', 'time'])
+                if end_klc:
+                    context['bi_end_time'] = safe_time(end_klc, ['time_end', 'time'])
+                prev_bi = getattr(bi, 'pre', None)
+                next_bi = getattr(bi, 'next', None)
+                if prev_bi:
+                    context['bi_prev_idx'] = getattr(prev_bi, 'idx', None)
+                    try:
+                        if prev_bi.is_down():
+                            context['bi_prev_dir'] = 'down'
+                        elif prev_bi.is_up():
+                            context['bi_prev_dir'] = 'up'
+                    except Exception:
+                        pass
+                    try:
+                        context['bi_prev_amplitude'] = safe_float(prev_bi.amp())
+                    except Exception:
+                        pass
+                    try:
+                        prev_end = safe_float(prev_bi.get_end_val())
+                        curr_end = safe_float(bi.get_end_val())
+                        prev_amp = safe_float(prev_bi.amp())
+                        if prev_end is not None and curr_end is not None and prev_amp not in (None, 0):
+                            context['retrace_rate_vs_prev'] = abs(curr_end - prev_end)/prev_amp
+                    except Exception:
+                        pass
+                if next_bi:
+                    context['bi_next_idx'] = getattr(next_bi, 'idx', None)
+                    try:
+                        if next_bi.is_down():
+                            context['bi_next_dir'] = 'down'
+                        elif next_bi.is_up():
+                            context['bi_next_dir'] = 'up'
+                    except Exception:
+                        pass
+                    try:
+                        context['bi_next_amplitude'] = safe_float(next_bi.amp())
+                    except Exception:
+                        pass
+                seg = getattr(bi, 'parent_seg', None)
+                if seg:
+                    context['segment_index'] = getattr(seg, 'idx', None)
+                    try:
+                        if seg.is_down():
+                            context['segment_direction'] = 'down'
+                        elif seg.is_up():
+                            context['segment_direction'] = 'up'
+                    except Exception:
+                        pass
+                    context['segment_bounds'] = {
+                        "start_bi_idx": getattr(getattr(seg, 'start_bi', None), 'idx', None),
+                        "end_bi_idx": getattr(getattr(seg, 'end_bi', None), 'idx', None),
+                    }
+                    try:
+                        context['segment_bi_count'] = seg.cal_bi_cnt()
+                    except Exception:
+                        pass
+                    try:
+                        context['segment_amplitude'] = safe_float(seg.amp())
+                    except Exception:
+                        pass
+                    zs_range = None
+                    zs_details = []
+                    bi_idx = context.get('bi_index')
+                    for zs in getattr(seg, 'zs_lst', []) or []:
+                        try:
+                            if zs.is_one_bi_zs():
+                                continue
+                        except Exception:
+                            continue
+                        begin_idx = getattr(getattr(zs, 'begin_bi', None), 'idx', None)
+                        end_idx = getattr(getattr(zs, 'end_bi', None), 'idx', None)
+                        entry = {
+                            "begin_bi_idx": begin_idx,
+                            "end_bi_idx": end_idx,
+                            "low": safe_float(getattr(zs, 'low', None)),
+                            "high": safe_float(getattr(zs, 'high', None)),
+                            "mid": safe_float(getattr(zs, 'mid', None)),
+                            "peak_low": safe_float(getattr(zs, 'peak_low', None)),
+                            "peak_high": safe_float(getattr(zs, 'peak_high', None)),
+                            "bi_in_idx": getattr(getattr(zs, 'bi_in', None), 'idx', None),
+                            "bi_out_idx": getattr(getattr(zs, 'bi_out', None), 'idx', None),
+                        }
+                        try:
+                            if bi_idx is not None:
+                                peak_flag, peak_rate = zs.out_bi_is_peak(bi_idx)
+                                entry['is_peak_out'] = peak_flag
+                                entry['peak_rate'] = safe_float(peak_rate)
+                        except Exception:
+                            pass
+                        zs_details.append(entry)
+                        if zs_range is None:
+                            zs_range = {
+                                "begin_bi_idx": begin_idx,
+                                "end_bi_idx": end_idx,
+                            }
+                    if zs_range:
+                        context['segment_zs_range'] = zs_range
+                    if zs_details:
+                        context['segment_zs_list'] = zs_details
+                        context['segment_multi_zs'] = len(zs_details)
+                        active_zs = None
+                        if bi_idx is not None:
+                            for candidate in reversed(zs_details):
+                                begin_idx = candidate.get('begin_bi_idx')
+                                if begin_idx is None:
+                                    continue
+                                if begin_idx <= bi_idx:
+                                    active_zs = candidate
+                                    break
+                        context['active_zs'] = active_zs or zs_details[-1]
+            relate = getattr(bsp, 'relate_bsp1', None)
+            if relate and getattr(relate, 'bi', None):
+                context['relate_bsp1_bi_idx'] = getattr(relate.bi, 'idx', None)
+            return context
+
+        def direction_label(direction):
+            if direction == 'down':
+                return '向下'
+            if direction == 'up':
+                return '向上'
+            return '未知方向'
+
+        def normalize_bsp_type_label(raw_value: Optional[str]) -> str:
+            if not raw_value:
+                return ''
+            value = raw_value.strip().lower()
+            mapping = {
+                '1': 't1',
+                't1': 't1',
+                '1p': 't1p',
+                't1p': 't1p',
+                '2': 't2',
+                't2': 't2',
+                '2s': 't2s',
+                't2s': 't2s',
+                '3a': 't3a',
+                't3a': 't3a',
+                '3b': 't3b',
+                't3b': 't3b',
+            }
+            return mapping.get(value, value)
+
+        def build_reason_segments(bsp, feature_info, context):
+            type_label = bsp.type2str() if hasattr(bsp, 'type2str') else ''
+            types = [normalize_bsp_type_label(item) for item in type_label.split(',') if item.strip()]
+            details: List[str] = []
+            seg_idx = context.get('segment_index')
+            seg_bounds = context.get('segment_bounds') or {}
+            seg_desc = f"线段{seg_idx}" if seg_idx is not None else "该线段"
+            seg_dir = context.get('segment_direction')
+            if seg_dir:
+                seg_desc += f"（{direction_label(seg_dir)}）"
+            if seg_bounds.get('start_bi_idx') is not None or seg_bounds.get('end_bi_idx') is not None:
+                seg_desc += f"[{seg_bounds.get('start_bi_idx', '-') }~{seg_bounds.get('end_bi_idx', '-')}]"
+            bi_idx = context.get('bi_index')
+            bi_desc = f"笔{bi_idx}" if bi_idx is not None else "末笔"
+            active_zs = context.get('active_zs')
+            if active_zs:
+                zs_desc = f"中枢({active_zs.get('begin_bi_idx', '-') }~{active_zs.get('end_bi_idx', '-')})"
+            elif context.get('segment_zs_range'):
+                zr = context['segment_zs_range']
+                zs_desc = f"中枢({zr.get('begin_bi_idx', '-') }~{zr.get('end_bi_idx', '-')})"
+            else:
+                zs_desc = "中枢"
+            seg_zs_cnt = context.get('segment_multi_zs')
+
+            def fmt_price(value, digits=2):
+                val = safe_float(value)
+                if val is None:
+                    return "--"
+                return f"{val:.{digits}f}"
+
+            def fmt_ratio(value):
+                val = safe_float(value)
+                if val is None:
+                    return "--"
+                return f"{val:.4f}"
+
+            def append_zs_detail():
+                if not active_zs:
+                    return
+                details.append(
+                    f"{zs_desc}区间[{fmt_price(active_zs.get('low')), fmt_price(active_zs.get('high'))}]，峰值[{fmt_price(active_zs.get('peak_low')), fmt_price(active_zs.get('peak_high'))}]"
+                )
+                bi_in_idx = active_zs.get('bi_in_idx')
+                bi_out_idx = active_zs.get('bi_out_idx')
+                if bi_in_idx is not None or bi_out_idx is not None:
+                    details.append(f"{zs_desc}进出笔：{bi_in_idx if bi_in_idx is not None else '--'} → {bi_out_idx if bi_out_idx is not None else '--'}")
+
+            def append_bi_detail():
+                bi_amp = context.get('bi_amplitude')
+                bi_low = context.get('bi_low')
+                bi_high = context.get('bi_high')
+                if bi_amp is not None or bi_low is not None or bi_high is not None:
+                    details.append(f"{bi_desc}振幅≈{fmt_price(bi_amp, 4)}，价格区间[{fmt_price(bi_low)}, {fmt_price(bi_high)}]")
+                seg_amp = context.get('segment_amplitude')
+                if seg_amp is not None:
+                    details.append(f"{seg_desc}整体振幅≈{fmt_price(seg_amp, 4)}")
+
+            for tp in types:
+                if tp == 't1':
+                    detail = f"T1：{seg_desc}{bi_desc}背驰离开{zs_desc}"
+                    if seg_zs_cnt:
+                        detail += f"，该段包含{seg_zs_cnt}个多笔中枢"
+                    div_rate = feature_info.get('divergence_rate')
+                    if div_rate is not None:
+                        detail += f"，背驰率≈{div_rate:.4f}"
+                    details.append(detail)
+                    append_zs_detail()
+                    append_bi_detail()
+                elif tp == 't1p':
+                    prev_idx = context.get('bi_prev_idx')
+                    detail = f"T1P：{seg_desc}内同向笔背驰，笔{prev_idx if prev_idx is not None else '--'} → {bi_desc}"
+                    div_rate = feature_info.get('divergence_rate')
+                    if div_rate is not None:
+                        detail += f"，背驰率≈{div_rate:.4f}"
+                    details.append(detail)
+                    prev_amp = context.get('bi_prev_amplitude')
+                    curr_amp = context.get('bi_amplitude')
+                    if prev_amp not in (None, 0) and curr_amp is not None:
+                        ratio = curr_amp / prev_amp
+                        details.append(f"振幅比值≈{fmt_ratio(ratio)}（当前/前一同向笔）")
+                    append_bi_detail()
+                elif tp == 't2':
+                    relate_idx = context.get('relate_bsp1_bi_idx')
+                    break_idx = context.get('bi_prev_idx')
+                    detail = f"T2：{seg_desc}{bi_desc}对T1笔{relate_idx if relate_idx is not None else '--'}后的突破笔{break_idx if break_idx is not None else '--'}进行回抽确认"
+                    details.append(detail)
+                    retrace_rate = feature_info.get('retrace_rate')
+                    if retrace_rate is None:
+                        retrace_rate = context.get('retrace_rate_vs_prev')
+                    if retrace_rate is not None:
+                        details.append(f"回撤比例≈{fmt_ratio(retrace_rate)}")
+                    append_bi_detail()
+                elif tp == 't2s':
+                    relate_idx = context.get('relate_bsp1_bi_idx')
+                    detail = f"T2S：沿T2结构扩展共振，参考T1笔{relate_idx if relate_idx is not None else '--'}"
+                    details.append(detail)
+                    level_offset = feature_info.get('level_offset')
+                    if level_offset is not None:
+                        details.append(f"扩展层级={level_offset}")
+                    append_bi_detail()
+                elif tp == 't3a':
+                    detail = f"T3A：{seg_desc}后续线段形成新{zs_desc}，{bi_desc}完成向上/向下突破"
+                    details.append(detail)
+                    append_zs_detail()
+                    append_bi_detail()
+                elif tp == 't3b':
+                    detail = f"T3B：{seg_desc}{bi_desc}回抽{zs_desc}确认离开中枢"
+                    details.append(detail)
+                    append_zs_detail()
+                    append_bi_detail()
+
+            if not details:
+                dir_label = '买' if getattr(bsp, 'is_buy', False) else '卖'
+                detail = f"{dir_label}{type_label}".strip()
+                div_rate = feature_info.get('divergence_rate')
+                if div_rate is not None:
+                    detail += f" 背驰率≈{div_rate:.4f}"
+                retrace_rate = feature_info.get('retrace_rate')
+                if retrace_rate is not None:
+                    detail += f" 回撤比例≈{retrace_rate:.4f}"
+                if detail:
+                    details.append(detail)
+            return details
+
+        def build_reason_bundle(bsp, feature_info, relate_info):
+            context = describe_context(bsp)
+            if relate_info and relate_info.get('relate_bsp1_bi_idx') is not None:
+                context.setdefault('relate_bsp1_bi_idx', relate_info['relate_bsp1_bi_idx'])
+            detail_list = build_reason_segments(bsp, feature_info, context)
+            text = '；'.join(detail_list) if detail_list else None
+            return text, detail_list, context
+
+        for bsp in iter_fn():
+            klu = getattr(bsp, 'klu', None)
+            if not klu:
+                continue
+            if hasattr(klu, 'time_begin'):
+                time_str = str(klu.time_begin)
+            elif hasattr(klu, 'time'):
+                time_str = str(klu.time)
+            else:
+                time_str = ''
+
+            price = getattr(klu, 'close', None)
+            if price is None and hasattr(klu, 'price'):
+                price = getattr(klu, 'price')
+
+            try:
+                price_val = float(price) if price is not None else None
+            except (TypeError, ValueError):
+                price_val = None
+
+            bi = getattr(bsp, 'bi', None)
+            bi_info = {}
+            if bi:
+                bi_info = {
+                    "index": getattr(bi, 'idx', None),
+                    "direction": "up" if (hasattr(bi, 'is_up') and bi.is_up()) else ("down" if hasattr(bi, 'is_down') and bi.is_down() else None),
+                    "seg_index": getattr(bi, 'seg_idx', None),
+                    "begin_time": str(getattr(getattr(bi, 'begin_klc', None), 'time_begin', '')) if getattr(bi, 'begin_klc', None) else None,
+                    "end_time": str(getattr(getattr(bi, 'end_klc', None), 'time_end', '')) if getattr(bi, 'end_klc', None) else None,
+                }
+
+            relate_info = None
+            if getattr(bsp, 'relate_bsp1', None):
+                relate = bsp.relate_bsp1
+                relate_info = {
+                    "type": relate.type2str() if hasattr(relate, 'type2str') else None,
+                    "time": str(getattr(getattr(relate, 'klu', None), 'time_begin', '')),
+                    "price": safe_float(getattr(getattr(relate, 'klu', None), 'close', None)),
+                    "relate_bsp1_bi_idx": getattr(getattr(relate, 'bi', None), 'idx', None),
+                }
+
+            feature_info = extract_features(bsp)
+            reason_text, reason_details, context_info = build_reason_bundle(bsp, feature_info, relate_info)
+
+            bsp_list.append({
+                "is_buy": bool(getattr(bsp, 'is_buy', False)),
+                "type": bsp.type2str() if hasattr(bsp, 'type2str') else None,
+                "time": time_str,
+                "price": price_val,
+                "bi": bi_info,
+                "relate_bsp1": relate_info,
+                "features": feature_info or None,
+                "reason": reason_text or None,
+                "reason_details": reason_details or None,
+                "context": context_info or None,
+            })
+
+            if getattr(bsp, 'is_buy', False):
+                buy_cnt += 1
+            else:
+                sell_cnt += 1
+
+        print(f"📌 Extracted BSP list: total={len(bsp_list)} buy={buy_cnt} sell={sell_cnt}")
+        if len(bsp_list) > 0:
+            sample = bsp_list[:3]
+            print(f"   Sample BSP entries: {sample}")
+
         return bsp_list
     
     def _calculate_macd(self, chan: CChan, fastperiod=12, slowperiod=26, signalperiod=9) -> List[Dict]:

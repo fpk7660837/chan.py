@@ -935,6 +935,29 @@
             margin-top: 4px;
         }
 
+        .latest-signal-item,
+        .hover-signal-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 140px;
+        }
+
+        .signal-reason-text {
+            font-size: 12px;
+            color: #8c8c8c;
+            line-height: 1.4;
+            max-width: 320px;
+        }
+
+        .signal-reason-text--inline {
+            max-width: 420px;
+        }
+
+        .dark-theme .signal-reason-text {
+            color: #bfbfbf;
+        }
+
         .chart-info-placeholder {
             color: #a6a6a6;
             font-size: 12px;
@@ -978,6 +1001,11 @@
             border-radius: 999px;
         }
 
+        .chart-type-chip--dir {
+            background: rgba(0, 0, 0, 0.05);
+            color: #595959;
+        }
+
         .dark-theme .chart-summary-card,
         .dark-theme .chart-hover-card {
             background: #1f1f1f;
@@ -1001,6 +1029,11 @@
         .dark-theme .chart-type-chip {
             background: rgba(24, 144, 255, 0.2);
             color: #69c0ff;
+        }
+
+        .dark-theme .chart-type-chip--dir {
+            background: rgba(255, 255, 255, 0.12);
+            color: #d9d9d9;
         }
 
         /* Indicator Config */
@@ -1183,7 +1216,7 @@
     <script type="text/babel">
         const { Layout, Button, Input, Select, Checkbox, message, Spin, Tag, Space, Tooltip, Radio, InputNumber, Slider, Switch, Tabs, Collapse, Divider, Popover, DatePicker, Segmented, List, Empty, AutoComplete, Drawer, Table, Modal } = antd;
         const { Header, Sider, Content } = Layout;
-        const { useState, useEffect, useCallback, useContext, createContext, useRef, memo, useMemo } = React;
+        const { useState, useEffect, useCallback, useContext, createContext, useRef, memo, useMemo, Fragment } = React;
         const dayjs = window.dayjs;
 
         // ============= Debug Logging =============
@@ -2320,10 +2353,22 @@
                     low: candle.low,
                     close: candle.close,
                     volume: candle.volume,
-                    signals: signals.map(item => ({
-                        type: item.type,
-                        isBuy: !!item.is_buy,
-                    })),
+                    signals: signals.map(item => {
+                        const numericPrice = Number.parseFloat(item.price);
+                        return {
+                            type: item.type,
+                            typeKey: SignalUtils.normalizeBspType(item.type),
+                            isBuy: !!item.is_buy,
+                            price: Number.isFinite(numericPrice) ? numericPrice : null,
+                            reason: item.reason || item.reason_text || null,
+                            reasonDetails: Array.isArray(item.reason_details)
+                                ? item.reason_details
+                                : (Array.isArray(item.reasonDetails) ? item.reasonDetails : null),
+                            context: item.context || null,
+                            relate: item.relate_bsp1 || null,
+                            features: item.features || null,
+                        };
+                    }),
                     structures,
                 });
             }, [calcStructureSnapshot]);
@@ -3816,6 +3861,8 @@
                  ((structureData.seg || []).length > 0) ||
                  ((structureData.zs || []).length > 0)));
             const statPairs = [];
+            const rawTypeDirMap = stats?.rawBspTypesByDir || {};
+            const filteredTypeDirMap = stats?.bspTypesByDir || {};
             const currentFilters = useMemo(() => {
                 const raw = indicators?.bsp_filters || DEFAULT_BSP_FILTERS;
                 const directions = Array.isArray(raw.directions) && raw.directions.length > 0
@@ -3839,6 +3886,19 @@
                     .map(type => ({ label: type, value: type }))
                     .sort((a, b) => a.label.localeCompare(b.label, 'zh-CN'));
             }, [stats?.rawBspTypes]);
+
+            const formatSignalReason = useCallback((signal) => {
+                if (!signal) {
+                    return '暂无依据';
+                }
+                const rawDetails = Array.isArray(signal.reason_details)
+                    ? signal.reason_details
+                    : (Array.isArray(signal.reasonDetails) ? signal.reasonDetails : null);
+                if (rawDetails && rawDetails.length > 0) {
+                    return rawDetails.join('；');
+                }
+                return signal.reason || '暂无依据';
+            }, []);
 
             const applyBspFilters = useCallback((nextFilters) => {
                 setIndicators(prev => ({
@@ -4069,12 +4129,35 @@
                                     {totalTypeEntries.length > 0 && (
                                         <div className="chart-bsp-types">
                                             {totalTypeEntries.map(([type, total]) => {
-                                                const filtered = stats?.bspTypes?.[type] ?? 0;
-                                                const display = filtered !== total ? `${filtered}/${total}` : `${total}`;
+                                                const filteredTotal = stats?.bspTypes?.[type] ?? 0;
+                                                const overallDisplay = total > 0 && filteredTotal !== total
+                                                    ? `${filteredTotal}/${total}`
+                                                    : `${filteredTotal}`;
+                                                const dirChips = ['buy', 'sell']
+                                                    .map(dir => {
+                                                        const rawCount = rawTypeDirMap?.[type]?.[dir] || 0;
+                                                        const filteredCount = filteredTypeDirMap?.[type]?.[dir] || 0;
+                                                        if (rawCount === 0 && filteredCount === 0) {
+                                                            return null;
+                                                        }
+                                                        const dirDisplay = rawCount > 0 && filteredCount !== rawCount
+                                                            ? `${filteredCount}/${rawCount}`
+                                                            : `${filteredCount}`;
+                                                        const dirLabel = dir === 'buy' ? '买' : '卖';
+                                                        return (
+                                                            <span className="chart-type-chip chart-type-chip--dir" key={`${type}-${dir}`}>
+                                                                {dirLabel}{type} × {dirDisplay}
+                                                            </span>
+                                                        );
+                                                    })
+                                                    .filter(Boolean);
                                                 return (
-                                                <span className="chart-type-chip" key={type}>
-                                                    {type} × {display}
-                                                </span>
+                                                    <Fragment key={type}>
+                                                        <span className="chart-type-chip">
+                                                            类型 {type} × {overallDisplay}
+                                                        </span>
+                                                        {dirChips}
+                                                    </Fragment>
                                                 );
                                             })}
                                         </div>
@@ -4181,14 +4264,22 @@
                                 <div style={{ fontSize: 12, fontWeight: 600, color: '#595959' }}>最近信号</div>
                                 <Space size={[6, 6]} wrap>
                                     {latestSignals.map(signal => (
-                                        <Tag
-                                            key={`${signal.type}-${signal.timestamp}`}
-                                            color={signal.is_buy ? 'green' : 'volcano'}
-                                            style={{ cursor: 'pointer' }}
-                                            onClick={() => onFocusSignal(signal.timestamp)}
-                                        >
-                                            {signal.type} · {signal.price != null ? signal.price.toFixed(2) : '--'} · {dayjs(signal.timestamp).format('MM-DD HH:mm')}
-                                        </Tag>
+                                        <div className="latest-signal-item" key={`${signal.type}-${signal.timestamp}`}>
+                                            <Tooltip
+                                                title={formatSignalReason(signal)}
+                                            >
+                                                <Tag
+                                                    color={signal.is_buy ? 'green' : 'volcano'}
+                                                    style={{ cursor: 'pointer' }}
+                                                    onClick={() => onFocusSignal(signal.timestamp)}
+                                                >
+                                                    {signal.type} · {signal.price != null ? signal.price.toFixed(2) : '--'} · {dayjs(signal.timestamp).format('MM-DD HH:mm')}
+                                                </Tag>
+                                            </Tooltip>
+                                            <div className="signal-reason-text">
+                                                {formatSignalReason(signal)}
+                                            </div>
+                                        </div>
                                     ))}
                                 </Space>
                             </div>
@@ -4267,14 +4358,22 @@
                                 <div className="chart-signal-tags">
                                     {signalList.length > 0 ? (
                                         signalList.map((signal, idx) => (
-                                            <Tag
-                                                key={`${signal.isBuy ? 'buy' : 'sell'}-${idx}`}
-                                                color={signal.isBuy ? 'green' : 'volcano'}
-                                                style={{ cursor: 'pointer' }}
-                                                onClick={() => onFocusSignal(hoverInfo.timestamp)}
-                                            >
-                                                {signal.isBuy ? '买' : '卖'}{signal.type || ''}
-                                            </Tag>
+                                            <div className="hover-signal-item" key={`${signal.isBuy ? 'buy' : 'sell'}-${idx}`}>
+                                                <Tooltip
+                                                    title={formatSignalReason(signal)}
+                                                >
+                                                    <Tag
+                                                        color={signal.isBuy ? 'green' : 'volcano'}
+                                                        style={{ cursor: 'pointer' }}
+                                                        onClick={() => onFocusSignal(hoverInfo.timestamp)}
+                                                    >
+                                                        {signal.isBuy ? '买' : '卖'}{signal.type || ''}
+                                                    </Tag>
+                                                </Tooltip>
+                                                <div className="signal-reason-text signal-reason-text--inline">
+                                                    {formatSignalReason(signal)}
+                                                </div>
+                                            </div>
                                         ))
                                     ) : (
                                         <span className="chart-info-placeholder">当前K线无买卖点</span>
@@ -4565,6 +4664,21 @@
                 }, {});
             }, []);
 
+            const aggregateBspTypesByDir = useCallback((list) => {
+                if (!Array.isArray(list) || list.length === 0) {
+                    return {};
+                }
+                return list.reduce((map, item) => {
+                    const typeKey = SignalUtils.normalizeBspType(item.type);
+                    if (!map[typeKey]) {
+                        map[typeKey] = { buy: 0, sell: 0 };
+                    }
+                    const dirKey = item && item.is_buy ? 'buy' : 'sell';
+                    map[typeKey][dirKey] = (map[typeKey][dirKey] || 0) + 1;
+                    return map;
+                }, {});
+            }, []);
+
             const statsByLevel = activeLevels.reduce((acc, level) => {
                 const key = `${activeStock.code}-${level}`;
                 const data = chartData[key];
@@ -4651,6 +4765,8 @@
                 const filteredSellCount = filteredBspList.length - filteredBuyCount;
                 const filteredTypeMap = aggregateBspTypes(filteredBspList);
                 const rawTypeMap = aggregateBspTypes(bspList);
+                const filteredTypeDirMap = aggregateBspTypesByDir(filteredBspList);
+                const rawTypeDirMap = aggregateBspTypesByDir(bspList);
 
                 acc[level] = {
                     kline: meta.total_klines ?? data.kline_data?.length ?? 0,
@@ -4670,6 +4786,8 @@
                     zsSureRatio,
                     bspTypes: filteredTypeMap,
                     rawBspTypes: rawTypeMap,
+                    bspTypesByDir: filteredTypeDirMap,
+                    rawBspTypesByDir: rawTypeDirMap,
                     biStrength,
                     segStrength,
                     latestSignals,
