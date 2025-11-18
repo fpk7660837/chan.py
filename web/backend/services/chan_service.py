@@ -733,9 +733,12 @@ class ChanService:
                             }
                     if zs_range:
                         context['segment_zs_range'] = zs_range
+                        context['pen_zs_range'] = zs_range
                     if zs_details:
                         context['segment_zs_list'] = zs_details
+                        context['pen_zs_list'] = zs_details
                         context['segment_multi_zs'] = len(zs_details)
+                        context['pen_multi_zs'] = len(zs_details)
                         active_zs = None
                         if bi_idx is not None:
                             for candidate in reversed(zs_details):
@@ -745,7 +748,9 @@ class ChanService:
                                 if begin_idx <= bi_idx:
                                     active_zs = candidate
                                     break
-                        context['active_zs'] = active_zs or zs_details[-1]
+                        active_zs = active_zs or zs_details[-1]
+                        context['active_zs'] = active_zs
+                        context['active_pen_zs'] = active_zs
             relate = getattr(bsp, 'relate_bsp1', None)
             if relate and getattr(relate, 'bi', None):
                 context['relate_bsp1_bi_idx'] = getattr(relate.bi, 'idx', None)
@@ -782,25 +787,15 @@ class ChanService:
             type_label = bsp.type2str() if hasattr(bsp, 'type2str') else ''
             types = [normalize_bsp_type_label(item) for item in type_label.split(',') if item.strip()]
             details: List[str] = []
-            seg_idx = context.get('segment_index')
-            seg_bounds = context.get('segment_bounds') or {}
-            seg_desc = f"线段{seg_idx}" if seg_idx is not None else "该线段"
-            seg_dir = context.get('segment_direction')
-            if seg_dir:
-                seg_desc += f"（{direction_label(seg_dir)}）"
-            if seg_bounds.get('start_bi_idx') is not None or seg_bounds.get('end_bi_idx') is not None:
-                seg_desc += f"[{seg_bounds.get('start_bi_idx', '-') }~{seg_bounds.get('end_bi_idx', '-')}]"
             bi_idx = context.get('bi_index')
-            bi_desc = f"笔{bi_idx}" if bi_idx is not None else "末笔"
-            active_zs = context.get('active_zs')
-            if active_zs:
-                zs_desc = f"中枢({active_zs.get('begin_bi_idx', '-') }~{active_zs.get('end_bi_idx', '-')})"
-            elif context.get('segment_zs_range'):
-                zr = context['segment_zs_range']
-                zs_desc = f"中枢({zr.get('begin_bi_idx', '-') }~{zr.get('end_bi_idx', '-')})"
-            else:
-                zs_desc = "中枢"
-            seg_zs_cnt = context.get('segment_multi_zs')
+            bi_label = f"笔{bi_idx}" if bi_idx is not None else "当前笔"
+            prev_idx = context.get('bi_prev_idx')
+            prev_label = f"笔{prev_idx}" if prev_idx is not None else "上一笔"
+            relate_idx = context.get('relate_bsp1_bi_idx')
+            relate_label = f"笔{relate_idx}" if relate_idx is not None else "--"
+            active_zs = context.get('active_pen_zs') or context.get('active_zs')
+            zs_range = context.get('pen_zs_range') or context.get('segment_zs_range')
+            zs_count = context.get('pen_multi_zs') or context.get('segment_multi_zs')
 
             def fmt_price(value, digits=2):
                 val = safe_float(value)
@@ -814,77 +809,105 @@ class ChanService:
                     return "--"
                 return f"{val:.4f}"
 
+            def describe_zs_label():
+                if active_zs:
+                    begin_idx = active_zs.get('begin_bi_idx')
+                    end_idx = active_zs.get('end_bi_idx')
+                elif zs_range:
+                    begin_idx = zs_range.get('begin_bi_idx')
+                    end_idx = zs_range.get('end_bi_idx')
+                else:
+                    begin_idx = end_idx = None
+                if begin_idx is None and end_idx is None:
+                    return "笔中枢"
+                return f"笔中枢(笔{begin_idx if begin_idx is not None else '-'}~笔{end_idx if end_idx is not None else '-'})"
+
             def append_zs_detail():
                 if not active_zs:
                     return
+                label = describe_zs_label()
                 details.append(
-                    f"{zs_desc}区间[{fmt_price(active_zs.get('low')), fmt_price(active_zs.get('high'))}]，峰值[{fmt_price(active_zs.get('peak_low')), fmt_price(active_zs.get('peak_high'))}]"
+                    f"{label}区间[{fmt_price(active_zs.get('low')), fmt_price(active_zs.get('high'))}]，峰值[{fmt_price(active_zs.get('peak_low')), fmt_price(active_zs.get('peak_high'))}]"
                 )
                 bi_in_idx = active_zs.get('bi_in_idx')
                 bi_out_idx = active_zs.get('bi_out_idx')
                 if bi_in_idx is not None or bi_out_idx is not None:
-                    details.append(f"{zs_desc}进出笔：{bi_in_idx if bi_in_idx is not None else '--'} → {bi_out_idx if bi_out_idx is not None else '--'}")
+                    details.append(f"{label}进出笔：{bi_in_idx if bi_in_idx is not None else '--'} → {bi_out_idx if bi_out_idx is not None else '--'}")
 
             def append_bi_detail():
                 bi_amp = context.get('bi_amplitude')
                 bi_low = context.get('bi_low')
                 bi_high = context.get('bi_high')
                 if bi_amp is not None or bi_low is not None or bi_high is not None:
-                    details.append(f"{bi_desc}振幅≈{fmt_price(bi_amp, 4)}，价格区间[{fmt_price(bi_low)}, {fmt_price(bi_high)}]")
+                    details.append(f"{bi_label}振幅≈{fmt_price(bi_amp, 4)}，价格区间[{fmt_price(bi_low)}, {fmt_price(bi_high)}]")
                 seg_amp = context.get('segment_amplitude')
                 if seg_amp is not None:
-                    details.append(f"{seg_desc}整体振幅≈{fmt_price(seg_amp, 4)}")
+                    details.append(f"相关笔序整体振幅≈{fmt_price(seg_amp, 4)}")
+
+            zs_label = describe_zs_label()
 
             for tp in types:
                 if tp == 't1':
-                    detail = f"T1：{seg_desc}{bi_desc}背驰离开{zs_desc}"
-                    if seg_zs_cnt:
-                        detail += f"，该段包含{seg_zs_cnt}个多笔中枢"
+                    detail = f"T1：{bi_label}脱离{zs_label}"
+                    if zs_count:
+                        detail += f"，该区域包含{zs_count}个多笔中枢"
                     div_rate = feature_info.get('divergence_rate')
                     if div_rate is not None:
-                        detail += f"，背驰率≈{div_rate:.4f}"
+                        in_idx = active_zs.get('bi_in_idx') if active_zs else None
+                        detail += f"，与进中枢笔{in_idx if in_idx is not None else '--'}相比背驰≈{fmt_ratio(div_rate)}"
                     details.append(detail)
                     append_zs_detail()
                     append_bi_detail()
                 elif tp == 't1p':
-                    prev_idx = context.get('bi_prev_idx')
-                    detail = f"T1P：{seg_desc}内同向笔背驰，笔{prev_idx if prev_idx is not None else '--'} → {bi_desc}"
+                    detail = f"T1P：同向笔{prev_label} → {bi_label}盘整背驰"
                     div_rate = feature_info.get('divergence_rate')
                     if div_rate is not None:
-                        detail += f"，背驰率≈{div_rate:.4f}"
+                        detail += f"，背驰率≈{fmt_ratio(div_rate)}"
                     details.append(detail)
                     prev_amp = context.get('bi_prev_amplitude')
                     curr_amp = context.get('bi_amplitude')
                     if prev_amp not in (None, 0) and curr_amp is not None:
                         ratio = curr_amp / prev_amp
-                        details.append(f"振幅比值≈{fmt_ratio(ratio)}（当前/前一同向笔）")
+                        details.append(f"振幅比值≈{fmt_ratio(ratio)}（当前/上一同向笔）")
                     append_bi_detail()
                 elif tp == 't2':
-                    relate_idx = context.get('relate_bsp1_bi_idx')
-                    break_idx = context.get('bi_prev_idx')
-                    detail = f"T2：{seg_desc}{bi_desc}对T1笔{relate_idx if relate_idx is not None else '--'}后的突破笔{break_idx if break_idx is not None else '--'}进行回抽确认"
+                    break_label = f"笔{prev_idx}" if prev_idx is not None else "突破笔"
+                    if relate_idx is None:
+                        detail = f"T2：未找到关联的T1 笔，当前{break_label}后{bi_label}回抽确认"
+                    else:
+                        detail = f"T2：以T1 {relate_label}为基准，{break_label}突破后{bi_label}回抽确认"
+                    if zs_label:
+                        detail += f"，回抽保持在{zs_label}"
                     details.append(detail)
                     retrace_rate = feature_info.get('retrace_rate')
                     if retrace_rate is None:
                         retrace_rate = context.get('retrace_rate_vs_prev')
                     if retrace_rate is not None:
-                        details.append(f"回撤比例≈{fmt_ratio(retrace_rate)}")
+                        details.append(f"回撤比例≈{fmt_ratio(retrace_rate)}，需小于配置阈值")
+                    if relate_idx is None:
+                        details.append("提示：未找到对应 T1 笔，可能被当前过滤或截断隐藏。")
                     append_bi_detail()
                 elif tp == 't2s':
-                    relate_idx = context.get('relate_bsp1_bi_idx')
-                    detail = f"T2S：沿T2结构扩展共振，参考T1笔{relate_idx if relate_idx is not None else '--'}"
-                    details.append(detail)
                     level_offset = feature_info.get('level_offset')
+                    if relate_idx is None:
+                        detail = "T2S：未找到关联的T1 笔，继续沿当前类二结构扩展共振"
+                    else:
+                        detail = f"T2S：沿T2结构继续共振，参考T1 {relate_label}"
                     if level_offset is not None:
-                        details.append(f"扩展层级={level_offset}")
+                        detail += f"，扩展层级={level_offset}"
+                    if zs_label:
+                        detail += f"，仍围绕{zs_label}"
+                    details.append(detail)
+                    if relate_idx is None:
+                        details.append("提示：未找到对应 T1 笔，可能被当前过滤或截断隐藏。")
                     append_bi_detail()
                 elif tp == 't3a':
-                    detail = f"T3A：{seg_desc}后续线段形成新{zs_desc}，{bi_desc}完成向上/向下突破"
+                    detail = f"T3A：后续笔中枢{zs_label}被{bi_label}突破，延续趋势"
                     details.append(detail)
                     append_zs_detail()
                     append_bi_detail()
                 elif tp == 't3b':
-                    detail = f"T3B：{seg_desc}{bi_desc}回抽{zs_desc}确认离开中枢"
+                    detail = f"T3B：{bi_label}回抽到{zs_label}并离开，完成第三类确认"
                     details.append(detail)
                     append_zs_detail()
                     append_bi_detail()
@@ -894,10 +917,10 @@ class ChanService:
                 detail = f"{dir_label}{type_label}".strip()
                 div_rate = feature_info.get('divergence_rate')
                 if div_rate is not None:
-                    detail += f" 背驰率≈{div_rate:.4f}"
+                    detail += f" 背驰率≈{fmt_ratio(div_rate)}"
                 retrace_rate = feature_info.get('retrace_rate')
                 if retrace_rate is not None:
-                    detail += f" 回撤比例≈{retrace_rate:.4f}"
+                    detail += f" 回撤比例≈{fmt_ratio(retrace_rate)}"
                 if detail:
                     details.append(detail)
             return details

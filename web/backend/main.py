@@ -59,14 +59,6 @@ async def root():
         return FileResponse(index_file)
     return {"message": "Chan.py Web API is running. Visit /docs for API documentation."}
 
-@app.get("/index.klinechart.html")
-async def klinechart_version():
-    """Serve KLineChart version"""
-    kline_file = frontend_path / "index.klinechart.html"
-    if kline_file.exists():
-        return FileResponse(kline_file)
-    return {"error": "KLineChart version not found"}
-
 @app.get("/simple")
 async def simple_chart():
     """Serve simplified chart page"""
