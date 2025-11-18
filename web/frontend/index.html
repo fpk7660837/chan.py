@@ -779,6 +779,7 @@
         .chart-wrapper {
             flex: 1;
             min-height: 320px;
+            position: relative;
         }
 
         .chart-container {
@@ -938,6 +939,54 @@
         .chart-info-placeholder {
             color: #a6a6a6;
             font-size: 12px;
+        }
+
+        .cursor-signal-tooltip {
+            position: absolute;
+            pointer-events: none;
+            min-width: 200px;
+            max-width: 260px;
+            background: rgba(8, 12, 20, 0.92);
+            color: #fff;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 11px;
+            line-height: 1.4;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.25);
+            z-index: 5;
+        }
+
+        .cursor-signal-item + .cursor-signal-item {
+            margin-top: 6px;
+            border-top: 1px solid rgba(255,255,255,0.18);
+            padding-top: 4px;
+        }
+
+        .cursor-signal-item__header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 12px;
+            margin-bottom: 2px;
+        }
+
+        .cursor-signal-item__price {
+            font-weight: 500;
+        }
+
+        .cursor-signal-reasons {
+            margin: 2px 0 0;
+            padding-left: 16px;
+            color: rgba(255,255,255,0.85);
+        }
+
+        .cursor-signal-reasons li {
+            margin-bottom: 1px;
+        }
+
+        .dark-theme .cursor-signal-tooltip {
+            background: rgba(0,0,0,0.88);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.35);
         }
 
         .chart-stats-grid {
@@ -2182,13 +2231,15 @@
             if (!raw || typeof raw !== 'object') {
                 return {};
             }
-            const { bi_strict, seg_algo, zs_algo, bsp_filters, ...rest } = raw;
+            const { bi_strict, seg_algo, zs_algo, bsp_filters, zs_source, ...rest } = raw;
             let normalizedFilters = null;
             if (bsp_filters && typeof bsp_filters === 'object') {
                 normalizedFilters = SignalUtils.normalizeFilters(bsp_filters);
             }
+            const normalizedZsSource = zs_source === 'bi' ? 'bi' : 'bi';
             return {
                 ...rest,
+                zs_source: normalizedZsSource,
                 ...(normalizedFilters ? { bsp_filters: normalizedFilters } : {}),
             };
         };
@@ -2313,6 +2364,41 @@
             const [detailTab, setDetailTab] = useState('bi');
             const [summaryCollapsed, setSummaryCollapsed] = useState(false);
             const [preparedSignals, setPreparedSignals] = useState([]);
+            const hoverSignals = hoverInfo?.signals || [];
+
+            const cursorTooltipStyle = useMemo(() => {
+                if (!hoverInfo?.cursor || !chartRef.current) {
+                    return null;
+                }
+                const container = chartRef.current;
+                const containerWidth = container.clientWidth || container.offsetWidth || 0;
+                const containerHeight = container.clientHeight || container.offsetHeight || 0;
+                if (!containerWidth || !containerHeight) {
+                    return null;
+                }
+                let relativeX = hoverInfo.cursor.x;
+                let relativeY = hoverInfo.cursor.y;
+                if (relativeX < 0 || relativeY < 0 || relativeX > containerWidth || relativeY > containerHeight) {
+                    const rect = chartRef.current.getBoundingClientRect();
+                    if (rect) {
+                        relativeX -= rect.left;
+                        relativeY -= rect.top;
+                    }
+                }
+                const tooltipWidth = 240;
+                const tooltipHeight = Math.min(240, 90 + hoverSignals.length * 32);
+                let left = relativeX + 12;
+                let top = relativeY + 12;
+                if (left + tooltipWidth > containerWidth) {
+                    left = relativeX - tooltipWidth - 12;
+                }
+                if (top + tooltipHeight > containerHeight) {
+                    top = relativeY - tooltipHeight - 12;
+                }
+                left = clamp(left, 4, Math.max(4, containerWidth - tooltipWidth - 4));
+                top = clamp(top, 4, Math.max(4, containerHeight - tooltipHeight - 4));
+                return { left, top };
+            }, [hoverInfo?.cursor, hoverSignals.length]);
 
             const levelMeta = LEVEL_OPTIONS.find(option => option.value === level);
             const levelLabel = levelMeta?.label || level;
@@ -2492,7 +2578,18 @@
                 };
             }, [findNearestIndex]);
 
-            const updateHoverInfo = useCallback((timestamp) => {
+            const updateHoverInfo = useCallback((input) => {
+                const inputObj = (input && typeof input === 'object' && !Array.isArray(input))
+                    ? input
+                    : { timestamp: input };
+                const timestamp = inputObj?.timestamp;
+                const rawCursor = inputObj?.cursor;
+                const cursorData = rawCursor
+                    && Number.isFinite(rawCursor.x)
+                    && Number.isFinite(rawCursor.y)
+                    ? { x: rawCursor.x, y: rawCursor.y }
+                    : null;
+
                 if (!timestamp) {
                     lastHoverRef.current = null;
                     setHoverInfo(null);
@@ -2506,10 +2603,20 @@
                 const signals = bspMapRef.current.get(timestamp) || [];
                 const prev = lastHoverRef.current;
                 const structuresKey = `${structures.bi.length}:${structures.seg.length}:${structures.zs.length}`;
-                if (prev && prev.timestamp === timestamp && prev.signalsLength === signals.length && prev.structuresKey === structuresKey) {
+                const cursorKey = cursorData ? `${Math.round(cursorData.x)}:${Math.round(cursorData.y)}` : 'none';
+                if (prev
+                    && prev.timestamp === timestamp
+                    && prev.signalsLength === signals.length
+                    && prev.structuresKey === structuresKey
+                    && prev.cursorKey === cursorKey) {
                     return;
                 }
-                lastHoverRef.current = { timestamp, signalsLength: signals.length, structuresKey };
+                lastHoverRef.current = {
+                    timestamp,
+                    signalsLength: signals.length,
+                    structuresKey,
+                    cursorKey,
+                };
                 setHoverInfo({
                     timestamp,
                     open: candle.open,
@@ -2534,6 +2641,7 @@
                         };
                     }),
                     structures,
+                    cursor: cursorData,
                 });
             }, [calcStructureSnapshot]);
 
@@ -3467,18 +3575,10 @@
                     debugLog('✅ [Seg] Added successfully');
                 }
 
-                // 3. 绘制中枢 (ZhongShu) - 黄色矩形区域
+                // 3. 绘制中枢 (ZhongShu) - 仅笔中枢
                 const baseZsList = Array.isArray(data?.zs_list) ? data.zs_list : [];
-                const segZsList = Array.isArray(data?.seg_zs_list) ? data.seg_zs_list : [];
-                const zsSource = indicators.zs_source || 'bi';
-                let zsData = [];
-                if (zsSource === 'seg') {
-                    zsData = segZsList.length > 0 ? segZsList : baseZsList;
-                } else if (zsSource === 'both') {
-                    zsData = [...baseZsList, ...segZsList];
-                } else {
-                    zsData = baseZsList;
-                }
+                const zsSource = 'bi';
+                const zsData = baseZsList;
 
                 const zsEmptyMessageKey = 'zs-empty-hint';
                 if (chart.removeOverlay) {
@@ -3492,16 +3592,13 @@
                     }
                 }
 
-                if (indicators.plot_zs && zsSource === 'bi') {
+                if (indicators.plot_zs) {
                     if (zsData.length === 0) {
-                        const segCount = segZsList.length;
                         message.open({
                             key: zsEmptyMessageKey,
                             type: 'info',
                             duration: 3,
-                            content: segCount > 0
-                                ? '当前笔中枢为空，可开启右侧「单笔中枢」或将来源切换为线段中枢查看。'
-                                : '当前笔中枢数量为 0，请尝试放宽时间范围或调整中枢参数。',
+                            content: '当前笔中枢数量为 0，请尝试放宽时间范围或调整中枢参数。',
                         });
                     } else {
                         message.destroy(zsEmptyMessageKey);
@@ -3913,12 +4010,33 @@
                             }
                         }
 
+                        const cursorCandidate = (() => {
+                            const cx = Number.isFinite(payload.realX)
+                                ? payload.realX
+                                : Number.isFinite(payload.x)
+                                    ? payload.x
+                                    : Number.isFinite(payload.coordinate?.x)
+                                        ? payload.coordinate.x
+                                        : null;
+                            const cy = Number.isFinite(payload.realY)
+                                ? payload.realY
+                                : Number.isFinite(payload.y)
+                                    ? payload.y
+                                    : Number.isFinite(payload.coordinate?.y)
+                                        ? payload.coordinate.y
+                                        : null;
+                            if (Number.isFinite(cx) && Number.isFinite(cy)) {
+                                return { x: cx, y: cy };
+                            }
+                            return null;
+                        })();
+
                         if (!timestamp) {
                             updateHoverInfo(null);
                             return;
                         }
 
-                        updateHoverInfo(timestamp);
+                        updateHoverInfo({ timestamp, cursor: cursorCandidate });
                     } catch (err) {
                         debugWarn('⚠️ Crosshair update failed', err);
                     }
@@ -4028,6 +4146,27 @@
                     )}
                     <div className="chart-wrapper">
                         <div ref={chartRef} className="chart-container" />
+                        {cursorTooltipStyle && hoverSignals.length > 0 && (
+                            <div className="cursor-signal-tooltip" style={cursorTooltipStyle}>
+                                {hoverSignals.map((signal, idx) => (
+                                    <div className="cursor-signal-item" key={`cursor-signal-${idx}`}>
+                                        <div className="cursor-signal-item__header">
+                                            <span>{signal.isBuy ? '买' : '卖'}{signal.type || ''}</span>
+                                            {Number.isFinite(signal.price) && (
+                                                <span className="cursor-signal-item__price">
+                                                    {Number(signal.price).toFixed(2)}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <ul className="cursor-signal-reasons">
+                                            {buildChanTheoryLines(signal).slice(0, 3).map((line, lineIdx) => (
+                                                <li key={`cursor-reason-${idx}-${lineIdx}`}>{line}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <Drawer
                         open={detailVisible}
@@ -4061,6 +4200,47 @@
                 </span>
             </Tooltip>
         );
+
+        const extractSignalReasonDetails = (signal) => {
+            if (!signal) {
+                return null;
+            }
+            const rawDetails = Array.isArray(signal.reason_details)
+                ? signal.reason_details
+                : (Array.isArray(signal.reasonDetails) ? signal.reasonDetails : null);
+            return rawDetails && rawDetails.length > 0 ? rawDetails : null;
+        };
+
+        const buildChanTheoryLines = (signal) => {
+            if (!signal) {
+                return ['暂无依据'];
+            }
+            const details = extractSignalReasonDetails(signal);
+            const lines = details ? [...details] : (signal.reason ? [signal.reason] : []);
+            const ctx = signal.context || {};
+            const dirLabel = ctx.bi_direction === 'down'
+                ? '向下'
+                : ctx.bi_direction === 'up'
+                    ? '向上'
+                    : null;
+            if (ctx.bi_index != null) {
+                lines.push(`当前笔：笔${ctx.bi_index}${dirLabel ? `（${dirLabel}）` : ''}`);
+            }
+            if (ctx.bi_prev_idx != null && ctx.bi_next_idx != null) {
+                lines.push(`相邻笔：前一笔${ctx.bi_prev_idx} ｜ 下一笔${ctx.bi_next_idx}`);
+            }
+            const penZsRange = ctx.pen_zs_range;
+            if (penZsRange && (penZsRange.begin_bi_idx != null || penZsRange.end_bi_idx != null)) {
+                lines.push(`笔中枢：笔${penZsRange.begin_bi_idx ?? '--'} ~ 笔${penZsRange.end_bi_idx ?? '--'}`);
+            }
+            if (ctx.relate_bsp1_bi_idx != null) {
+                lines.push(`关联T1：笔${ctx.relate_bsp1_bi_idx}`);
+            }
+            if (lines.length === 0) {
+                lines.push('暂无依据');
+            }
+            return lines;
+        };
 
         function ChartSummaryComponent({ hoverInfo, stats, level, stockCode, onOpenDetail, multiLevelStats, allSignals = [], onFocusSignal = () => {}, onDrillDownLevel }) {
             const { indicators, setIndicators } = useApp();
@@ -4116,14 +4296,13 @@
                 if (!signal) {
                     return '暂无依据';
                 }
-                const rawDetails = Array.isArray(signal.reason_details)
-                    ? signal.reason_details
-                    : (Array.isArray(signal.reasonDetails) ? signal.reasonDetails : null);
-                if (rawDetails && rawDetails.length > 0) {
-                    return rawDetails.join('；');
+                const detailList = extractSignalReasonDetails(signal);
+                if (detailList) {
+                    return detailList.join('；');
                 }
                 return signal.reason || '暂无依据';
             }, []);
+
 
             const applyBspFilters = useCallback((nextFilters) => {
                 setIndicators(prev => ({
@@ -4577,24 +4756,7 @@
                                     </div>
                                 </div>
                                 <div className="chart-signal-tags">
-                                    {signalList.length > 0 ? (
-                                        signalList.map((signal, idx) => (
-                                            <Tooltip
-                                                key={`${signal.isBuy ? 'buy' : 'sell'}-${idx}`}
-                                                title={formatSignalReason(signal)}
-                                            >
-                                                <Tag
-                                                    color={signal.isBuy ? 'green' : 'volcano'}
-                                                    style={{ cursor: 'pointer' }}
-                                                    onClick={() => onFocusSignal(hoverInfo.timestamp)}
-                                                >
-                                                    {signal.isBuy ? '买' : '卖'}{signal.type || ''}
-                                                </Tag>
-                                            </Tooltip>
-                                        ))
-                                    ) : (
-                                        <span className="chart-info-placeholder">当前K线无买卖点</span>
-                                    )}
+                                    <span className="chart-info-placeholder">将鼠标悬停在K线上查看买卖点提示</span>
                                 </div>
                                 {structureData && (
                                    <div className="hover-structures">
@@ -6438,14 +6600,12 @@
                                 <span>来源</span>
                                 <Select
                                     size="small"
-                                    value={indicators.zs_source || 'bi'}
+                                    value="bi"
                                     style={{ width: 120 }}
-                                    onChange={value => handleChange('zs_source', value)}
                                     options={[
                                         { value: 'bi', label: '笔中枢' },
-                                        { value: 'seg', label: '线段中枢' },
-                                        { value: 'both', label: '全部' },
                                     ]}
+                                    disabled
                                 />
                             </Space>
                             <Space size="small" wrap>
