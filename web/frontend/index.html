@@ -1324,6 +1324,7 @@
             plot_seg: true,
             plot_zs: false,
             plot_bsp: true,
+            bsp_show_bi_label: true,
             plot_ma: true,
             plot_macd: true,
             plot_boll: false,
@@ -1927,7 +1928,7 @@
             });
 
             registerOverlayOnce({
-                name: 'biMarker',
+                name: 'chanBiLabel',
                 totalStep: 0,
                 needDefaultPointFigure: false,
                 createPointFigures: ({ coordinates, overlay }) => {
@@ -1935,49 +1936,68 @@
                     if (!center) {
                         return [];
                     }
-                    const radius = typeof overlay.extendData?.radius === 'number' ? overlay.extendData.radius : 11;
-                    const borderColor = overlay.extendData?.borderColor || '#4a90e2';
-                    const fillColor = overlay.extendData?.color || 'rgba(255,255,255,0.9)';
                     const text = overlay.extendData?.text ?? '';
-                    const textColor = overlay.extendData?.textColor || borderColor;
+                    const textColor = overlay.extendData?.textColor || '#1f2933';
                     const fontSize = overlay.extendData?.fontSize || 11;
+                    const haloColor = overlay.extendData?.haloColor || 'rgba(255,255,255,0.92)';
+                    const haloBlur = typeof overlay.extendData?.haloBlur === 'number' ? overlay.extendData.haloBlur : 6;
+                    const frameColor = overlay.extendData?.frameColor || textColor;
+                    const frameWidth = typeof overlay.extendData?.frameWidth === 'number' ? overlay.extendData.frameWidth : 1;
+                    const paddingX = typeof overlay.extendData?.framePaddingX === 'number' ? overlay.extendData.framePaddingX : 6;
+                    const paddingY = typeof overlay.extendData?.framePaddingY === 'number' ? overlay.extendData.framePaddingY : 3;
 
-                    const figures = [{
-                        type: 'circle',
+                    if (!text) {
+                        return [];
+                    }
+                    const textWidth = Math.max(fontSize, text.length * fontSize * 0.62);
+                    const textHeight = fontSize * 1.25;
+                    const left = center.x - textWidth / 2 - paddingX;
+                    const right = center.x + textWidth / 2 + paddingX;
+                    const top = center.y - textHeight / 2 - paddingY;
+                    const bottom = center.y + textHeight / 2 + paddingY;
+                    const rect = {
+                        type: 'polygon',
+                        attrs: {
+                            coordinates: [
+                                { x: left, y: top },
+                                { x: right, y: top },
+                                { x: right, y: bottom },
+                                { x: left, y: bottom },
+                            ],
+                        },
+                        styles: {
+                            style: 'stroke',
+                            color: 'rgba(0,0,0,0)',
+                            borderColor: frameColor,
+                            borderSize: frameWidth,
+                        },
+                    };
+                    const textFigure = {
+                        type: 'text',
                         attrs: {
                             x: center.x,
                             y: center.y,
-                            r: radius,
+                            text,
+                            align: 'center',
+                            baseline: 'middle',
                         },
                         styles: {
-                            color: fillColor,
-                            borderColor,
-                            borderSize: 1.5,
+                            color: textColor,
+                            size: fontSize,
+                            weight: '600',
+                            shadowColor: haloColor,
+                            shadowBlur: haloBlur,
+                            backgroundColor: 'rgba(0,0,0,0)',
+                            borderColor: 'rgba(0,0,0,0)',
+                            borderSize: 0,
                         },
-                    }];
-                    if (text) {
-                        figures.push({
-                            type: 'text',
-                            attrs: {
-                                x: center.x,
-                                y: center.y,
-                                text,
-                                align: 'center',
-                                baseline: 'middle',
-                            },
-                            styles: {
-                                color: textColor,
-                                size: fontSize,
-                                weight: '600',
-                            },
-                        });
-                    }
-                    return figures;
+                    };
+                    return [rect, textFigure];
                 },
             });
 
             registerOverlayOnce({
-                name: 'signalMarker',
+                name: 'chanSignalMarker',
                 totalStep: 0,
                 needDefaultPointFigure: false,
                 createPointFigures: ({ coordinates, overlay }) => {
@@ -1988,17 +2008,28 @@
                     const extend = overlay.extendData || {};
                     const isBuy = extend.isBuy !== false;
                     const text = extend.text || (isBuy ? '买' : '卖');
-                    const accentColor = extend.accentColor || (isBuy ? '#ff7043' : '#5e35b1');
-                    const labelBgColor = extend.labelBgColor || '#ffffff';
+                    const accentColor = extend.accentColor || extend.circleColor || (isBuy ? '#ff7043' : '#5e35b1');
                     const labelTextColor = extend.labelTextColor || accentColor;
                     const guideLength = typeof extend.guideLength === 'number' ? extend.guideLength : 16;
-                    const rectWidth = Math.max(40, text.length * 11 + 16);
-                    const rectHeight = 18;
+                    const textOffset = typeof extend.textOffset === 'number' ? extend.textOffset : 14;
+                    const haloColor = extend.haloColor || 'rgba(255,255,255,0.92)';
+                    const haloBlur = typeof extend.haloBlur === 'number' ? extend.haloBlur : 8;
+                    const textSize = typeof extend.textSize === 'number' ? extend.textSize : 11;
+                    const rectBorderColor = extend.labelBorderColor || accentColor;
+                    const rectBorderSize = typeof extend.labelBorderSize === 'number' ? extend.labelBorderSize : 1;
+                    const rectPaddingX = typeof extend.labelPaddingX === 'number' ? extend.labelPaddingX : 8;
+                    const rectPaddingY = typeof extend.labelPaddingY === 'number' ? extend.labelPaddingY : 4;
                     const direction = isBuy ? 1 : -1;
                     const guideEndY = origin.y + direction * guideLength;
-                    const labelCenterY = origin.y + direction * (guideLength + rectHeight);
-                    const rectX = origin.x - rectWidth / 2;
-                    const rectY = labelCenterY - rectHeight / 2;
+                    const labelCenterY = origin.y + direction * (guideLength + textOffset);
+                    const textWidth = Math.max(textSize, text.length * textSize * 0.62);
+                    const textHeight = textSize * 1.25;
+                    const rectWidth = textWidth + rectPaddingX * 2;
+                    const rectHeight = textHeight + rectPaddingY * 2;
+                    const rectLeft = origin.x - rectWidth / 2;
+                    const rectRight = origin.x + rectWidth / 2;
+                    const rectTop = labelCenterY - rectHeight / 2;
+                    const rectBottom = labelCenterY + rectHeight / 2;
 
                     return [
                         {
@@ -2036,21 +2067,20 @@
                             },
                         },
                         {
-                            type: 'rect',
+                            type: 'polygon',
                             attrs: {
-                                x: rectX,
-                                y: rectY,
-                                width: rectWidth,
-                                height: rectHeight,
+                                coordinates: [
+                                    { x: rectLeft, y: rectTop },
+                                    { x: rectRight, y: rectTop },
+                                    { x: rectRight, y: rectBottom },
+                                    { x: rectLeft, y: rectBottom },
+                                ],
                             },
                             styles: {
-                                color: labelBgColor,
-                                borderColor: 'rgba(0,0,0,0.08)',
-                                borderSize: 1,
-                                borderStyle: 'solid',
-                                borderRadius: 6,
-                                shadowColor: 'rgba(0,0,0,0.12)',
-                                shadowBlur: 4,
+                                style: 'stroke',
+                                color: 'rgba(0,0,0,0)',
+                                borderColor: rectBorderColor,
+                                borderSize: rectBorderSize,
                             },
                         },
                         {
@@ -2064,8 +2094,13 @@
                             },
                             styles: {
                                 color: labelTextColor,
-                                size: 11,
+                                size: textSize,
                                 weight: '600',
+                                shadowColor: haloColor,
+                                shadowBlur: haloBlur,
+                                backgroundColor: 'rgba(0,0,0,0)',
+                                borderColor: 'rgba(0,0,0,0)',
+                                borderSize: 0,
                             },
                         },
                     ];
@@ -3381,17 +3416,16 @@
                             const outlineColor = isDown ? '#90caf9' : '#f48fb1';
 
                             chart.createOverlay({
-                                name: 'biMarker',
+                                name: 'chanBiLabel',
                                 id: `bi_marker_${idx}`,
                                 groupId: 'bi_marker_group',
                                 paneId: 'candle_pane',
                                 points: [{ timestamp: midpointTime, value: midpointPrice }],
                                 extendData: {
-                                    radius: 11,
-                                    color: 'rgba(255,255,255,0.92)',
-                                    borderColor: outlineColor,
                                     text: `${biIdx}`,
                                     textColor: circleColor,
+                                    frameColor: outlineColor,
+                                    haloColor: 'rgba(255,255,255,0.85)',
                                 },
                             });
                         });
@@ -3582,24 +3616,35 @@
                         const timestamp = convertTime(bsp.time);
                         const price = parseFloat(bsp.price);
                         const isBuy = bsp.is_buy;
+                        const rawBiIndex = bsp?.bi?.index ?? bsp?.context?.bi_index;
+                        const parsedBiIndex = Number(rawBiIndex);
+                        const showBiLabel = indicators.bsp_show_bi_label !== false && Number.isFinite(parsedBiIndex);
                         
                         if (timestamp && price) {
                             const typeLabel = `${isBuy ? '买' : '卖'}${bsp.type || ''}`.trim();
                             const markerColor = isBuy ? '#ff9800' : '#6a1b9a';
-                            const labelBgColor = isBuy ? 'rgba(255, 224, 178, 0.95)' : 'rgba(237, 231, 246, 0.95)';
                             const labelTextColor = isBuy ? '#d84315' : '#4a148c';
+                            const labelParts = [];
+                            if (typeLabel) {
+                                labelParts.push(typeLabel);
+                            }
+                            if (showBiLabel) {
+                                labelParts.push(`笔${parsedBiIndex}`);
+                            }
+                            const overlayText = labelParts.length > 0
+                                ? labelParts.join(' · ')
+                                : (isBuy ? '买' : '卖');
 
                             chart.createOverlay({
-                                name: 'signalMarker',
+                                name: 'chanSignalMarker',
                                 id: `bsp_${idx}`,
                                 groupId: 'bsp_group',
                                 paneId: 'candle_pane',
                                 points: [{ timestamp, value: price }],
                                 extendData: {
                                     isBuy,
-                                    text: typeLabel || `${isBuy ? '买' : '卖'}`,
-                                    circleColor: markerColor,
-                                    labelBgColor,
+                                    text: overlayText,
+                                    accentColor: markerColor,
                                     labelTextColor,
                                     labelBorderColor: markerColor,
                                 },
