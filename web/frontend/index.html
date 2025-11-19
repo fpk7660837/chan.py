@@ -941,6 +941,37 @@
             font-size: 12px;
         }
 
+        .config-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .config-key-tag {
+            font-size: 11px;
+            color: #888;
+            background: rgba(0, 0, 0, 0.05);
+            border-radius: 4px;
+            padding: 0 4px;
+            line-height: 1.4;
+        }
+
+        .dark-theme .config-key-tag {
+            color: #bbb;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .label-with-tip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .label-tip-icon {
+            font-size: 10px;
+            color: #bbb;
+        }
+
         .cursor-signal-tooltip {
             position: absolute;
             pointer-events: none;
@@ -4192,11 +4223,24 @@
 
         const LOWER_INDICATOR_KEYS = ['macd', 'kdj', 'rsi'];
 
-        const LabelWithTip = ({ label, tip }) => (
+        const ConfigKeyTag = ({ name }) => {
+            if (!name) return null;
+            return <span className="config-key-tag">{name}</span>;
+        };
+
+        const ConfigLabel = ({ label, configKey }) => (
+            <span className="config-label">
+                {label}
+                <ConfigKeyTag name={configKey} />
+            </span>
+        );
+
+        const LabelWithTip = ({ label, tip, configKey }) => (
             <Tooltip title={tip}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                <span className="label-with-tip">
                     {label}
-                    <span style={{ fontSize: 10, color: '#bbb' }}>i</span>
+                    <ConfigKeyTag name={configKey} />
+                    <span className="label-tip-icon">i</span>
                 </span>
             </Tooltip>
         );
@@ -6469,7 +6513,7 @@
                         <div className="indicator-section-title">缠论指标</div>
                         <div className="indicator-item">
                             <Checkbox checked={indicators.plot_bi} onChange={e => handleChange('plot_bi', e.target.checked)}>
-                                笔 (Bi)
+                                <ConfigLabel label="笔 (Bi)" configKey="plot_bi" />
                             </Checkbox>
                         </div>
                         <div className="indicator-item" style={{ paddingLeft: 20 }}>
@@ -6478,22 +6522,22 @@
                                 onChange={e => handleChange('bi_show_index_markers', e.target.checked)}
                                 disabled={!indicators.plot_bi}
                             >
-                                笔序号标记
+                                <ConfigLabel label="笔序号标记" configKey="bi_show_index_markers" />
                             </Checkbox>
                         </div>
                         <div className="indicator-item">
                             <Checkbox checked={indicators.plot_seg} onChange={e => handleChange('plot_seg', e.target.checked)}>
-                                线段 (Seg)
+                                <ConfigLabel label="线段 (Seg)" configKey="plot_seg" />
                             </Checkbox>
                         </div>
                         <div className="indicator-item">
                             <Checkbox checked={indicators.plot_zs} onChange={e => handleChange('plot_zs', e.target.checked)}>
-                                中枢 (ZS)
+                                <ConfigLabel label="中枢 (ZS)" configKey="plot_zs" />
                             </Checkbox>
                         </div>
                         <div className="indicator-item">
                             <Checkbox checked={indicators.plot_bsp} onChange={e => handleChange('plot_bsp', e.target.checked)}>
-                                买卖点 (BSP)
+                                <ConfigLabel label="买卖点 (BSP)" configKey="plot_bsp" />
                             </Checkbox>
                         </div>
                         <div className="indicator-item" style={{ paddingLeft: 20 }}>
@@ -6502,12 +6546,12 @@
                                 onChange={e => handleChange('bsp_show_bi_label', e.target.checked)}
                                 disabled={!indicators.plot_bsp}
                             >
-                                买卖点显示笔序号
+                                <ConfigLabel label="买卖点显示笔序号" configKey="bsp_show_bi_label" />
                             </Checkbox>
                         </div>
                         <div className="indicator-item">
                             <Checkbox checked={indicators.highlight_chan_kline} onChange={e => handleChange('highlight_chan_kline', e.target.checked)}>
-                                缠论K线虚线圈
+                                <ConfigLabel label="缠论K线虚线圈" configKey="highlight_chan_kline" />
                             </Checkbox>
                         </div>
                         {indicators.highlight_chan_kline && (
@@ -6646,7 +6690,7 @@
                                     checked={indicators.zs_show_label}
                                     onChange={e => handleChange('zs_show_label', e.target.checked)}
                                 >
-                                    显示中枢级别
+                                    <ConfigLabel label="显示中枢级别" configKey="zs_show_label" />
                                 </Checkbox>
                                 {indicators.zs_show_label && (
                                     <>
@@ -6662,12 +6706,12 @@
                         <div className="indicator-section-title">技术指标</div>
                         <div className="indicator-item">
                             <Checkbox checked={indicators.plot_volume} onChange={e => handleChange('plot_volume', e.target.checked)}>
-                                成交量 (Volume)
+                                <ConfigLabel label="成交量 (Volume)" configKey="plot_volume" />
                             </Checkbox>
                         </div>
                         <div className="indicator-item">
                             <Checkbox checked={indicators.plot_ma} onChange={e => handleChange('plot_ma', e.target.checked)}>
-                                移动平均线 (MA)
+                                <ConfigLabel label="移动平均线 (MA)" configKey="plot_ma" />
                             </Checkbox>
                             {indicators.plot_ma && (
                                 <div style={{ marginTop: 8, paddingLeft: 16 }}>
@@ -6686,22 +6730,22 @@
                         </div>
                         <div className="indicator-item">
                             <Checkbox checked={indicators.plot_macd} onChange={e => handleChange('plot_macd', e.target.checked)}>
-                                MACD
+                                <ConfigLabel label="MACD" configKey="plot_macd" />
                             </Checkbox>
                         </div>
                         <div className="indicator-item">
                             <Checkbox checked={indicators.plot_boll} onChange={e => handleChange('plot_boll', e.target.checked)}>
-                                布林带 (BOLL)
+                                <ConfigLabel label="布林带 (BOLL)" configKey="plot_boll" />
                             </Checkbox>
                         </div>
                         <div className="indicator-item">
                             <Checkbox checked={indicators.plot_kdj} onChange={e => handleChange('plot_kdj', e.target.checked)}>
-                                KDJ
+                                <ConfigLabel label="KDJ" configKey="plot_kdj" />
                             </Checkbox>
                         </div>
                         <div className="indicator-item">
                             <Checkbox checked={indicators.plot_rsi} onChange={e => handleChange('plot_rsi', e.target.checked)}>
-                                RSI
+                                <ConfigLabel label="RSI" configKey="plot_rsi" />
                             </Checkbox>
                         </div>
                     </div>
@@ -7084,30 +7128,34 @@
                     <div className="config-section">
                         <div className="config-section-title">运行控制</div>
                         <div className="config-checkbox-group config-checkbox-group--compact">
-                            <Checkbox checked={!!effectiveTriggerStep} onChange={handleBoolean('trigger_step')}>增量触发</Checkbox>
-                            <Checkbox checked={!!effectiveKlDataCheck} onChange={handleBoolean('kl_data_check')}>检查K线一致性（默认）</Checkbox>
+                            <Checkbox checked={!!effectiveTriggerStep} onChange={handleBoolean('trigger_step')}>
+                                <ConfigLabel label="增量触发" configKey="trigger_step" />
+                            </Checkbox>
+                            <Checkbox checked={!!effectiveKlDataCheck} onChange={handleBoolean('kl_data_check')}>
+                                <ConfigLabel label="检查K线一致性（默认）" configKey="kl_data_check" />
+                            </Checkbox>
                         </div>
                         <div className="config-hint" style={{ marginTop: 8 }}>
                             日志输出和容错策略请在高级设置中调整
                         </div>
                         <div className="config-grid config-grid--two" style={{ marginTop: 12 }}>
                             <div className="config-field">
-                                <label>跳过步长</label>
+                                <label className="config-label">跳过步长<ConfigKeyTag name="skip_step" /></label>
                                 <InputNumber size="small" min={0} value={effectiveSkipStep} onChange={handleNumber('skip_step')} />
                                 <div className="config-hint">默认：0</div>
                             </div>
                             <div className="config-field">
-                                <label>布林 N</label>
+                                <label className="config-label">布林 N<ConfigKeyTag name="boll_n" /></label>
                                 <InputNumber size="small" min={1} value={chanConfig.boll_n ?? DEFAULT_CHAN_CONFIG.boll_n} onChange={handleNumber('boll_n')} />
                                 <div className="config-hint">默认：20</div>
                             </div>
                             <div className="config-field">
-                                <label>错位容忍</label>
+                                <label className="config-label">错位容忍<ConfigKeyTag name="max_kl_misalgin_cnt" /></label>
                                 <InputNumber size="small" min={0} value={effectiveMaxKlMisalign} onChange={handleNumber('max_kl_misalgin_cnt')} />
                                 <div className="config-hint">默认：2</div>
                             </div>
                             <div className="config-field">
-                                <label>不一致容忍</label>
+                                <label className="config-label">不一致容忍<ConfigKeyTag name="max_kl_inconsistent_cnt" /></label>
                                 <InputNumber size="small" min={0} value={effectiveMaxKlInconsistent} onChange={handleNumber('max_kl_inconsistent_cnt')} />
                                 <div className="config-hint">默认：5</div>
                             </div>
@@ -7117,20 +7165,20 @@
                     <div className="config-section">
                         <div className="config-section-title">指标</div>
                         <Space size="small" wrap>
-                            <LabelWithTip label="MACD" tip="调整快慢线与信号线周期（默认 12/26/9）" />
+                            <LabelWithTip label="MACD" tip="调整快慢线与信号线周期（默认 12/26/9）" configKey="macd.fast/slow/signal" />
                             <InputNumber size="small" min={1} value={chanConfig.macd.fast ?? DEFAULT_CHAN_CONFIG.macd.fast} onChange={handleMacdChange('fast')} />
                             <InputNumber size="small" min={1} value={chanConfig.macd.slow ?? DEFAULT_CHAN_CONFIG.macd.slow} onChange={handleMacdChange('slow')} />
                             <InputNumber size="small" min={1} value={chanConfig.macd.signal ?? DEFAULT_CHAN_CONFIG.macd.signal} onChange={handleMacdChange('signal')} />
                         </Space>
                         <Space size="small" wrap style={{ marginTop: 8 }}>
                             <Checkbox checked={chanConfig.cal_rsi ?? DEFAULT_CHAN_CONFIG.cal_rsi} onChange={handleBoolean('cal_rsi')}>
-                                <LabelWithTip label="RSI" tip="开启后计算 RSI 指标（默认关闭）" />
+                                <LabelWithTip label="RSI" tip="开启后计算 RSI 指标（默认关闭）" configKey="cal_rsi" />
                             </Checkbox>
                             <Checkbox checked={chanConfig.cal_kdj ?? DEFAULT_CHAN_CONFIG.cal_kdj} onChange={handleBoolean('cal_kdj')}>
-                                <LabelWithTip label="KDJ" tip="开启后计算 KDJ 指标（默认关闭）" />
+                                <LabelWithTip label="KDJ" tip="开启后计算 KDJ 指标（默认关闭）" configKey="cal_kdj" />
                             </Checkbox>
                             <Checkbox checked={chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark} onChange={handleBoolean('cal_demark')}>
-                                <LabelWithTip label="DeMark" tip="开启后计算 DeMark 指标（默认关闭）" />
+                                <LabelWithTip label="DeMark" tip="开启后计算 DeMark 指标（默认关闭）" configKey="cal_demark" />
                             </Checkbox>
                         </Space>
                     </div>
@@ -7163,7 +7211,7 @@
                                     <div className="config-grid config-grid--two">
                                         <div className="config-field">
                                             <label>
-                                                <LabelWithTip label="分型判定" tip="决定分型确认方式，影响笔识别的严格程度" />
+                                                <LabelWithTip label="分型判定" tip="决定分型确认方式，影响笔识别的严格程度" configKey="bi_fx_check" />
                                             </label>
                                             <Select
                                                 size="small"
@@ -7185,13 +7233,13 @@
                                                     严格笔（默认）
                                                 </Checkbox>
                                                 <Checkbox checked={!!effectiveGapAsKl} onChange={handleBoolean('gap_as_kl')}>
-                                                    <LabelWithTip label="缺口视作K线" tip="将价格跳空视作独立K线处理" />
+                                                <LabelWithTip label="缺口视作K线" tip="将价格跳空视作独立K线处理" configKey="gap_as_kl" />
                                                 </Checkbox>
                                                 <Checkbox checked={!!effectiveBiEndIsPeak} onChange={handleBoolean('bi_end_is_peak')}>
-                                                    <LabelWithTip label="笔尾必须顶/底" tip="笔结束时必须满足顶/底条件" />
+                                                <LabelWithTip label="笔尾必须顶/底" tip="笔结束时必须满足顶/底条件" configKey="bi_end_is_peak" />
                                                 </Checkbox>
                                                 <Checkbox checked={!!effectiveBiAllowSubPeak} onChange={handleBoolean('bi_allow_sub_peak')}>
-                                                    <LabelWithTip label="允许次级别顶底" tip="允许使用次级别的顶底完成笔" />
+                                                <LabelWithTip label="允许次级别顶底" tip="允许使用次级别的顶底完成笔" configKey="bi_allow_sub_peak" />
                                                 </Checkbox>
                                             </div>
                                         </div>
@@ -7203,7 +7251,7 @@
                                     <div className="config-grid config-grid--two">
                                         <div className="config-field">
                                             <label>
-                                                <LabelWithTip label="线段算法" tip="调整线段划分逻辑（默认 Chan）" />
+                                                <LabelWithTip label="线段算法" tip="调整线段划分逻辑（默认 Chan）" configKey="seg_algo" />
                                             </label>
                                             <Select
                                                 size="small"
@@ -7215,7 +7263,7 @@
                                         </div>
                                         <div className="config-field">
                                             <label>
-                                                <LabelWithTip label="线段左端" tip="决定线段起点的计算方式（默认峰值）" />
+                                                <LabelWithTip label="线段左端" tip="决定线段起点的计算方式（默认峰值）" configKey="left_seg_method" />
                                             </label>
                                             <Select
                                                 size="small"
@@ -7236,7 +7284,7 @@
                                     <div className="config-grid config-grid--two">
                                         <div className="config-field">
                                             <label>
-                                                <LabelWithTip label="中枢算法" tip="调整中枢识别算法（标准/跨段/自动）" />
+                                                <LabelWithTip label="中枢算法" tip="调整中枢识别算法（标准/跨段/自动）" configKey="zs_algo" />
                                             </label>
                                             <Select
                                                 size="small"
@@ -7252,7 +7300,7 @@
                                         </div>
                                         <div className="config-field">
                                             <label>
-                                                <LabelWithTip label="合并模式" tip="中枢合并后的结果以中枢自身或线段替代" />
+                                                <LabelWithTip label="合并模式" tip="中枢合并后的结果以中枢自身或线段替代" configKey="zs_combine_mode" />
                                             </label>
                                             <Select
                                                 size="small"
@@ -7297,7 +7345,7 @@
                             <div className="config-grid config-grid--two">
                                 <div className="config-field">
                                     <label>
-                                        <LabelWithTip label="背驰阈值" tip="设置背驰判定的最大比率，默认 Infinity 表示关闭阈值限制" />
+                                        <LabelWithTip label="背驰阈值" tip="设置背驰判定的最大比率，默认 Infinity 表示关闭阈值限制" configKey="divergence_rate" />
                                     </label>
                                     <InputNumber
                                         size="small"
@@ -7319,14 +7367,14 @@
                                 </div>
                                 <div className="config-field">
                                     <label>
-                                        <LabelWithTip label="最小中枢数" tip="设置触发买卖点所需的最低中枢数量" />
+                                        <LabelWithTip label="最小中枢数" tip="设置触发买卖点所需的最低中枢数量" configKey="min_zs_cnt" />
                                     </label>
                                     <InputNumber size="small" min={0} value={effectiveMinZsCnt} onChange={handleNumber('min_zs_cnt')} />
                                     <div className="config-hint">默认：1</div>
                                 </div>
                                 <div className="config-field">
                                     <label>
-                                        <LabelWithTip label="MACD 判定" tip="背驰计算所使用的 MACD 指标" />
+                                        <LabelWithTip label="MACD 判定" tip="背驰计算所使用的 MACD 指标" configKey="macd_algo" />
                                     </label>
                                     <Select
                                         size="small"
@@ -7345,14 +7393,14 @@
                                 </div>
                                 <div className="config-field">
                                     <label>
-                                        <LabelWithTip label="T2最大比例" tip="T2/T2S 触发时允许的最大回撤比例" />
+                                        <LabelWithTip label="T2最大比例" tip="T2/T2S 触发时允许的最大回撤比例" configKey="max_bs2_rate" />
                                     </label>
                                     <InputNumber size="small" min={0} max={1} step={0.01} value={effectiveMaxBs2Rate} onChange={handleNumber('max_bs2_rate')} />
                                     <div className="config-hint">默认：0.9999</div>
                                 </div>
                                 <div className="config-field">
                                     <label>
-                                        <LabelWithTip label="T2最大层级" tip="限制 T2/T2S 信号距当前位置的最大层级，留空则不限制" />
+                                        <LabelWithTip label="T2最大层级" tip="限制 T2/T2S 信号距当前位置的最大层级，留空则不限制" configKey="max_bsp2s_lv" />
                                     </label>
                                     <InputNumber
                                         size="small"
@@ -7376,25 +7424,25 @@
                                     <label>买卖点开关</label>
                                     <div className="config-checkbox-group config-checkbox-group--compact">
                                         <Checkbox checked={!!effectiveBsp1OnlyMultiBiZs} onChange={handleBoolean('bsp1_only_multibi_zs')}>
-                                            <LabelWithTip label="仅多笔中枢" tip="仅在存在多笔中枢时计算 BSP1/T1（默认启用）" />
+                                            <LabelWithTip label="仅多笔中枢" tip="仅在存在多笔中枢时计算 BSP1/T1（默认启用）" configKey="bsp1_only_multibi_zs" />
                                         </Checkbox>
                                         <Checkbox checked={!!effectiveBs1Peak} onChange={handleBoolean('bs1_peak')}>
-                                            <LabelWithTip label="仅峰值突破" tip="T1 必须突破中枢峰值才算背驰（默认启用）" />
+                                            <LabelWithTip label="仅峰值突破" tip="T1 必须突破中枢峰值才算背驰（默认启用）" configKey="bs1_peak" />
                                         </Checkbox>
                                         <Checkbox checked={!!effectiveBsp2Follow1} onChange={handleBoolean('bsp2_follow_1')}>
-                                            <LabelWithTip label="T2跟随T1" tip="T2 需要在 T1 出现后才生效（默认启用）" />
+                                            <LabelWithTip label="T2跟随T1" tip="T2 需要在 T1 出现后才生效（默认启用）" configKey="bsp2_follow_1" />
                                         </Checkbox>
                                         <Checkbox checked={!!effectiveBsp3Follow1} onChange={handleBoolean('bsp3_follow_1')}>
-                                            <LabelWithTip label="T3跟随T1" tip="T3 需要在 T1 出现后才生效（默认启用）" />
+                                            <LabelWithTip label="T3跟随T1" tip="T3 需要在 T1 出现后才生效（默认启用）" configKey="bsp3_follow_1" />
                                         </Checkbox>
                                         <Checkbox checked={!!effectiveBsp3Peak} onChange={handleBoolean('bsp3_peak')}>
-                                            <LabelWithTip label="T3需突破峰值" tip="T3 必须突破中枢峰值（默认关闭）" />
+                                            <LabelWithTip label="T3需突破峰值" tip="T3 必须突破中枢峰值（默认关闭）" configKey="bsp3_peak" />
                                         </Checkbox>
                                         <Checkbox checked={!!effectiveBsp2sFollow2} onChange={handleBoolean('bsp2s_follow_2')}>
-                                            <LabelWithTip label="T2S跟随T2" tip="T2S 信号需在 T2 后出现（默认关闭）" />
+                                            <LabelWithTip label="T2S跟随T2" tip="T2S 信号需在 T2 后出现（默认关闭）" configKey="bsp2s_follow_2" />
                                         </Checkbox>
                                         <Checkbox checked={!!effectiveStrictBsp3} onChange={handleBoolean('strict_bsp3')}>
-                                            <LabelWithTip label="严格 T3" tip="严格要求 T3 的进出位置连续（默认关闭）" />
+                                            <LabelWithTip label="严格 T3" tip="严格要求 T3 的进出位置连续（默认关闭）" configKey="strict_bsp3" />
                                         </Checkbox>
                                     </div>
                                 </div>
@@ -7448,7 +7496,7 @@
                             <div className="config-grid config-grid--two">
                                 <div className="config-field">
                                     <label>
-                                        <LabelWithTip label="均值窗口" tip="用于均值序列的窗口长度，可输入多个数值" />
+                                        <LabelWithTip label="均值窗口" tip="用于均值序列的窗口长度，可输入多个数值" configKey="mean_metrics" />
                                     </label>
                                     <Select
                                         mode="tags"
@@ -7461,7 +7509,7 @@
                                 </div>
                                 <div className="config-field">
                                     <label>
-                                        <LabelWithTip label="趋势窗口" tip="趋势指标使用的最大/最小窗口长度" />
+                                        <LabelWithTip label="趋势窗口" tip="趋势指标使用的最大/最小窗口长度" configKey="trend_metrics" />
                                     </label>
                                     <Select
                                         mode="tags"
@@ -7474,19 +7522,19 @@
                                 </div>
                                 <div className="config-field">
                                     <label>
-                                        <LabelWithTip label="RSI周期" tip="RSI 指标的周期长度" />
+                                        <LabelWithTip label="RSI周期" tip="RSI 指标的周期长度" configKey="rsi_cycle" />
                                     </label>
                                     <InputNumber size="small" min={1} value={chanConfig.rsi_cycle ?? DEFAULT_CHAN_CONFIG.rsi_cycle} onChange={handleNumber('rsi_cycle')} disabled={!(chanConfig.cal_rsi ?? DEFAULT_CHAN_CONFIG.cal_rsi)} />
                                 </div>
                                 <div className="config-field">
                                     <label>
-                                        <LabelWithTip label="KDJ周期" tip="KDJ 指标的周期长度" />
+                                        <LabelWithTip label="KDJ周期" tip="KDJ 指标的周期长度" configKey="kdj_cycle" />
                                     </label>
                                     <InputNumber size="small" min={1} value={chanConfig.kdj_cycle ?? DEFAULT_CHAN_CONFIG.kdj_cycle} onChange={handleNumber('kdj_cycle')} disabled={!(chanConfig.cal_kdj ?? DEFAULT_CHAN_CONFIG.cal_kdj)} />
                                 </div>
                                 <div className="config-field config-field--full">
                                     <label>
-                                        <LabelWithTip label="DeMark" tip="DeMark 指标参数调整" />
+                                        <LabelWithTip label="DeMark" tip="DeMark 指标参数调整" configKey="demark" />
                                     </label>
                                     <div className="config-grid config-grid--two" style={{ gap: 8 }}>
                                         <InputNumber size="small" min={1} value={chanConfig.demark?.demark_len ?? DEFAULT_CHAN_CONFIG.demark.demark_len} onChange={handleDemarkChange('demark_len')} disabled={!(chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark)} />
@@ -7496,13 +7544,13 @@
                                     </div>
                                     <div className="config-checkbox-group config-checkbox-group--compact" style={{ marginTop: 8 }}>
                                         <Checkbox checked={chanConfig.demark?.tiaokong_st ?? DEFAULT_CHAN_CONFIG.demark.tiaokong_st} onChange={handleDemarkToggle('tiaokong_st')} disabled={!(chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark)}>
-                                            <LabelWithTip label="跳空算 Setup" tip="在 Setup 计数时将跳空视作满足条件（默认开启）" />
+                                            <LabelWithTip label="跳空算 Setup" tip="在 Setup 计数时将跳空视作满足条件（默认开启）" configKey="demark.tiaokong_st" />
                                         </Checkbox>
                                         <Checkbox checked={chanConfig.demark?.setup_cmp2close ?? DEFAULT_CHAN_CONFIG.demark.setup_cmp2close} onChange={handleDemarkToggle('setup_cmp2close')} disabled={!(chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark)}>
-                                            <LabelWithTip label="Setup 比较收盘价" tip="Setup 比较使用收盘价而非最高/最低（默认开启）" />
+                                            <LabelWithTip label="Setup 比较收盘价" tip="Setup 比较使用收盘价而非最高/最低（默认开启）" configKey="demark.setup_cmp2close" />
                                         </Checkbox>
                                         <Checkbox checked={chanConfig.demark?.countdown_cmp2close ?? DEFAULT_CHAN_CONFIG.demark.countdown_cmp2close} onChange={handleDemarkToggle('countdown_cmp2close')} disabled={!(chanConfig.cal_demark ?? DEFAULT_CHAN_CONFIG.cal_demark)}>
-                                            <LabelWithTip label="Countdown 比较收盘价" tip="Countdown 计数使用收盘价比较（默认开启）" />
+                                            <LabelWithTip label="Countdown 比较收盘价" tip="Countdown 计数使用收盘价比较（默认开启）" configKey="demark.countdown_cmp2close" />
                                         </Checkbox>
                                     </div>
                                 </div>
