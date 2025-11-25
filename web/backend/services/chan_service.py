@@ -425,7 +425,7 @@ class ChanService:
             for bi in chan[0].bi_list:
                 bi_list.append({
                     "idx": bi.idx,
-                    "dir": bi.dir.value,
+                    "dir": self._normalize_dir(bi.dir),
                     "begin_time": str(bi.begin_klc.time_begin),
                     "end_time": str(bi.end_klc.time_end),
                     "begin_price": float(bi.get_begin_val()),
@@ -440,13 +440,37 @@ class ChanService:
             for seg in chan[0].seg_list:
                 seg_list.append({
                     "idx": seg.idx,
-                    "dir": seg.dir.value,
+                    "dir": self._normalize_dir(seg.dir),
                     "begin_time": str(seg.start_bi.begin_klc.time_begin),
                     "end_time": str(seg.end_bi.end_klc.time_end),
                     "begin_price": float(seg.start_bi.get_begin_val()),
                     "end_price": float(seg.end_bi.get_end_val()),
                 })
         return seg_list
+
+    @staticmethod
+    def _normalize_dir(dir_val) -> str:
+        """将后端方向枚举/数字统一成前端可识别的 'up'/'down' 文本"""
+        if isinstance(dir_val, str):
+            lower = dir_val.lower()
+            if lower in ("up", "down"):
+                return lower
+        name = getattr(dir_val, "name", None)
+        if isinstance(name, str):
+            lower = name.lower()
+            if lower in ("up", "down"):
+                return lower
+        value = getattr(dir_val, "value", None)
+        if isinstance(value, str):
+            lower = value.lower()
+            if lower in ("up", "down"):
+                return lower
+        if isinstance(value, (int, float)):
+            if value == 1:
+                return "up"
+            if value == 2:
+                return "down"
+        return "unknown"
     
     @staticmethod
     def _format_time(value) -> Optional[str]:
