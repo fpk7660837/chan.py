@@ -13,47 +13,41 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from Backtest.BacktestEngine import CBacktestEngine
 from Backtest.BacktestConfig import CBacktestConfig
 from Backtest.Strategy import CBSPStrategy
-from Common.CEnum import DATA_SRC, KL_TYPE
+from Common.CEnum import DATA_SRC, KL_TYPE, BSP_TYPE
+from strategy_configs import get_config, BACKTEST_CONFIG
 
 
 def main():
     """主函数"""
 
+    # 使用预配置的最优平衡配置
+    strategy_config = get_config("balanced")
+
     # 配置回测参数
     config = CBacktestConfig(
-        initial_capital=100000.0,      # 初始资金10万
-        commission_rate=0.0003,        # 万三手续费
-        slippage_rate=0.001,           # 0.1%滑点
-        stamp_tax_rate=0.001,          # 千一印花税
-        max_position_per_stock=0.3,    # 单只最大30%仓位
-        max_total_position=0.95,       # 总仓位95%
-        begin_time="2023-01-01",       # 回测开始时间
-        end_time="2024-12-31",         # 回测结束时间
+        initial_capital=BACKTEST_CONFIG["initial_capital"],
+        commission_rate=BACKTEST_CONFIG["commission_rate"],
+        slippage_rate=BACKTEST_CONFIG["slippage_rate"],
+        stamp_tax_rate=BACKTEST_CONFIG["stamp_tax_rate"],
+        max_position_per_stock=BACKTEST_CONFIG["max_position_per_stock"],
+        max_total_position=BACKTEST_CONFIG["max_total_position"],
+        begin_time=BACKTEST_CONFIG["begin_time"],
+        end_time=BACKTEST_CONFIG["end_time"],
         data_src=DATA_SRC.AKSHARE,
         lv_list=[KL_TYPE.K_DAY],
-        chan_config={
-            "trigger_step": True,      # 开启逐步回测
-            "bi_strict": True,         # 笔严格模式
-            "divergence_rate": 0.9,    # 背驰比例
-            "bs_type": "1,1p,2",       # 关注的买卖点类型
-            "print_warning": False,    # 不打印警告
-        },
-        print_progress=True,
-        progress_interval=50,
+        chan_config=BACKTEST_CONFIG["chan_config"],
+        print_progress=BACKTEST_CONFIG["print_progress"],
+        progress_interval=BACKTEST_CONFIG["progress_interval"],
     )
 
     # 创建策略
-    strategy = CBSPStrategy(
-        name="一类买卖点策略",
-        buy_percent=0.2,  # 每次买入20%仓位
-    )
+    strategy = CBSPStrategy(**strategy_config["strategy_params"])
 
     # 创建回测引擎
     engine = CBacktestEngine(config)
 
-    # 运行回测（测试单只股票）
-    stock_list = ["000001"]  # 平安银行
-    # stock_list = ["000001", "600519", "000858"]  # 多只股票测试
+    # 股票池
+    stock_list = strategy_config["stock_list"]
 
     try:
         result = engine.run(strategy, stock_list)
