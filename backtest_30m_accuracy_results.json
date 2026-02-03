@@ -1,0 +1,892 @@
+[
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "配置3-严格",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.35,
+      "stop_loss": -0.04,
+      "take_profit": 0.1,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 95454.03431758801,
+      "total_return": -0.045459656824119885,
+      "annual_return": -0.045459656824119885,
+      "max_drawdown": 0.059409739165323834,
+      "win_rate": 0.0,
+      "profit_loss_ratio": 0.0,
+      "trade_count": 3,
+      "win_count": 0,
+      "loss_count": 3
+    },
+    "accuracy": {
+      "buy_accuracy": 1.0,
+      "sell_accuracy": 0.0,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 3,
+      "sell_signal_count": 3,
+      "buy_correct_count": 3,
+      "sell_correct_count": 0,
+      "total_bsp_count": 6,
+      "correct_bsp_count": 3,
+      "buy_signals": [
+        {
+          "is_correct": true,
+          "profit_rate": -0.04239187107712984,
+          "reason": "止损"
+        },
+        {
+          "is_correct": true,
+          "profit_rate": -0.04070635777952836,
+          "reason": "止损"
+        },
+        {
+          "is_correct": true,
+          "profit_rate": -0.0492599188251361,
+          "reason": "止损"
+        }
+      ],
+      "sell_signals": [
+        {
+          "is_correct": false,
+          "profit_rate": -0.04239187107712984,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.04070635777952836,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.0492599188251361,
+          "reason": "止损"
+        }
+      ]
+    },
+    "sample_trades": [
+      {
+        "time": "2023/03/27 13:30",
+        "type": "buy",
+        "price": 10.62491785,
+        "volume": 3200,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/04/26 10:30",
+        "type": "sell",
+        "price": 10.18468221,
+        "volume": 3200,
+        "reason": "止损",
+        "profit": -1475.3447681919934,
+        "profit_rate": -0.04239187107712984
+      },
+      {
+        "time": "2023/09/21 11:30",
+        "type": "buy",
+        "price": 9.60032466,
+        "volume": 3500,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/10/19 11:30",
+        "type": "sell",
+        "price": 9.21873994,
+        "volume": 3500,
+        "reason": "止损",
+        "profit": -1401.4132460999972,
+        "profit_rate": -0.04070635777952836
+      },
+      {
+        "time": "2023/10/26 11:30",
+        "type": "buy",
+        "price": 8.9759133,
+        "volume": 3700,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/11/29 10:00",
+        "type": "sell",
+        "price": 8.5422943,
+        "volume": 3700,
+        "reason": "止损",
+        "profit": -1669.2076681199978,
+        "profit_rate": -0.0492599188251361
+      }
+    ]
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "配置1-标准",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.3,
+      "stop_loss": -0.05,
+      "take_profit": 0.12,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 95997.264029348,
+      "total_return": -0.04002735970651993,
+      "annual_return": -0.04002735970651993,
+      "max_drawdown": 0.07225006197884491,
+      "win_rate": 0.25,
+      "profit_loss_ratio": 0.4418762861045403,
+      "trade_count": 4,
+      "win_count": 1,
+      "loss_count": 3
+    },
+    "accuracy": {
+      "buy_accuracy": 0.25,
+      "sell_accuracy": 0.25,
+      "overall_accuracy": 0.25,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct_count": 1,
+      "sell_correct_count": 1,
+      "total_bsp_count": 8,
+      "correct_bsp_count": 2,
+      "buy_signals": [
+        {
+          "is_correct": false,
+          "profit_rate": -0.052740088596662044,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.051535636901490406,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.0540860106077497,
+          "reason": "止损"
+        },
+        {
+          "is_correct": true,
+          "profit_rate": 0.025204303892828593,
+          "reason": "强制平仓"
+        }
+      ],
+      "sell_signals": [
+        {
+          "is_correct": false,
+          "profit_rate": -0.052740088596662044,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.051535636901490406,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.0540860106077497,
+          "reason": "止损"
+        },
+        {
+          "is_correct": true,
+          "profit_rate": 0.025204303892828593,
+          "reason": "强制平仓"
+        }
+      ]
+    },
+    "sample_trades": [
+      {
+        "time": "2023/03/27 13:30",
+        "type": "buy",
+        "price": 10.62491785,
+        "volume": 2800,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/05/25 10:00",
+        "type": "sell",
+        "price": 10.0746233,
+        "volume": 2800,
+        "reason": "止损",
+        "profit": -1598.783455219993,
+        "profit_rate": -0.052740088596662044
+      },
+      {
+        "time": "2023/09/21 11:30",
+        "type": "buy",
+        "price": 9.60032466,
+        "volume": 3000,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/10/23 10:30",
+        "type": "sell",
+        "price": 9.11467138,
+        "volume": 3000,
+        "reason": "止损",
+        "profit": -1513.1048281199946,
+        "profit_rate": -0.051535636901490406
+      },
+      {
+        "time": "2023/10/26 11:30",
+        "type": "buy",
+        "price": 8.9759133,
+        "volume": 3200,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/11/29 11:00",
+        "type": "sell",
+        "price": 8.4989324,
+        "volume": 3200,
+        "reason": "止损",
+        "profit": -1582.2583862400024,
+        "profit_rate": -0.0540860106077497
+      },
+      {
+        "time": "2023/12/18 13:30",
+        "type": "buy",
+        "price": 7.9352277,
+        "volume": 3600,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/12/29 15:00",
+        "type": "sell",
+        "price": 8.14336482,
+        "volume": 3600,
+        "reason": "强制平仓",
+        "profit": 691.4106989280008,
+        "profit_rate": 0.025204303892828593
+      }
+    ]
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "配置4-平衡",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.28,
+      "stop_loss": -0.055,
+      "take_profit": 0.13,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 95334.24555249402,
+      "total_return": -0.04665754447505984,
+      "annual_return": -0.04665754447505984,
+      "max_drawdown": 0.07606305166696282,
+      "win_rate": 0.0,
+      "profit_loss_ratio": 0.0,
+      "trade_count": 4,
+      "win_count": 0,
+      "loss_count": 4
+    },
+    "accuracy": {
+      "buy_accuracy": 0.25,
+      "sell_accuracy": 0.25,
+      "overall_accuracy": 0.25,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct_count": 1,
+      "sell_correct_count": 1,
+      "total_bsp_count": 8,
+      "correct_bsp_count": 2,
+      "buy_signals": [
+        {
+          "is_correct": false,
+          "profit_rate": -0.05592415552574902,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.056047836535641334,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.05601644732079495,
+          "reason": "止损"
+        },
+        {
+          "is_correct": true,
+          "profit_rate": 6.603204897465008e-05,
+          "reason": "强制平仓"
+        }
+      ],
+      "sell_signals": [
+        {
+          "is_correct": false,
+          "profit_rate": -0.05592415552574902,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.056047836535641334,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.05601644732079495,
+          "reason": "止损"
+        },
+        {
+          "is_correct": true,
+          "profit_rate": 6.603204897465008e-05,
+          "reason": "强制平仓"
+        }
+      ]
+    },
+    "sample_trades": [
+      {
+        "time": "2023/03/27 13:30",
+        "type": "buy",
+        "price": 10.62491785,
+        "volume": 2600,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/05/25 11:30",
+        "type": "sell",
+        "price": 10.04075902,
+        "volume": 2600,
+        "reason": "止损",
+        "profit": -1572.543717861994,
+        "profit_rate": -0.05592415552574902
+      },
+      {
+        "time": "2023/09/21 11:30",
+        "type": "buy",
+        "price": 9.60032466,
+        "volume": 2800,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/10/23 14:00",
+        "type": "sell",
+        "price": 9.07130948,
+        "volume": 2800,
+        "reason": "止损",
+        "profit": -1533.523079591996,
+        "profit_rate": -0.056047836535641334
+      },
+      {
+        "time": "2023/10/26 11:30",
+        "type": "buy",
+        "price": 8.9759133,
+        "volume": 3000,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/11/29 11:30",
+        "type": "sell",
+        "price": 8.48158764,
+        "volume": 3000,
+        "reason": "止损",
+        "profit": -1535.3494828199946,
+        "profit_rate": -0.05601644732079495
+      },
+      {
+        "time": "2023/12/08 13:30",
+        "type": "buy",
+        "price": 8.13469244,
+        "volume": 3200,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/12/29 15:00",
+        "type": "sell",
+        "price": 8.14336482,
+        "volume": 3200,
+        "reason": "强制平仓",
+        "profit": -24.338167231995612,
+        "profit_rate": 6.603204897465008e-05
+      }
+    ]
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "配置2-宽松",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.25,
+      "stop_loss": -0.06,
+      "take_profit": 0.15,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>, <BSP_TYPE.T2: '2'>]"
+    },
+    "metrics": {
+      "final_value": 94606.87765648103,
+      "total_return": -0.05393122343518975,
+      "annual_return": -0.05393122343518975,
+      "max_drawdown": 0.08007864580984562,
+      "win_rate": 0.2,
+      "profit_loss_ratio": 0.40485005309933625,
+      "trade_count": 5,
+      "win_count": 1,
+      "loss_count": 4
+    },
+    "accuracy": {
+      "buy_accuracy": 0.2,
+      "sell_accuracy": 0.2,
+      "overall_accuracy": 0.2,
+      "buy_signal_count": 5,
+      "sell_signal_count": 5,
+      "buy_correct_count": 1,
+      "sell_correct_count": 1,
+      "total_bsp_count": 10,
+      "correct_bsp_count": 2,
+      "buy_signals": [
+        {
+          "is_correct": false,
+          "profit_rate": -0.062292289383922624,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.06056003616979226,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.06180775745993127,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.060794726429401244,
+          "reason": "止损"
+        },
+        {
+          "is_correct": true,
+          "profit_rate": 0.027450096453382446,
+          "reason": "强制平仓"
+        }
+      ],
+      "sell_signals": [
+        {
+          "is_correct": false,
+          "profit_rate": -0.062292289383922624,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.06056003616979226,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.06180775745993127,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.060794726429401244,
+          "reason": "止损"
+        },
+        {
+          "is_correct": true,
+          "profit_rate": 0.027450096453382446,
+          "reason": "强制平仓"
+        }
+      ]
+    },
+    "sample_trades": [
+      {
+        "time": "2023/03/27 13:30",
+        "type": "buy",
+        "price": 10.62491785,
+        "volume": 2300,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/05/31 10:00",
+        "type": "sell",
+        "price": 9.97303046,
+        "volume": 2300,
+        "reason": "止损",
+        "profit": -1546.7162781129919,
+        "profit_rate": -0.062292289383922624
+      },
+      {
+        "time": "2023/09/21 11:30",
+        "type": "buy",
+        "price": 9.60032466,
+        "volume": 2500,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/10/25 10:30",
+        "type": "sell",
+        "price": 9.02794758,
+        "volume": 2500,
+        "reason": "止损",
+        "profit": -1477.5133805999976,
+        "profit_rate": -0.06056003616979226
+      },
+      {
+        "time": "2023/10/26 11:30",
+        "type": "buy",
+        "price": 8.9759133,
+        "volume": 2700,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/11/29 14:30",
+        "type": "sell",
+        "price": 8.42955336,
+        "volume": 2700,
+        "reason": "止损",
+        "profit": -1522.1665979819954,
+        "profit_rate": -0.06180775745993127
+      },
+      {
+        "time": "2023/11/30 11:00",
+        "type": "buy",
+        "price": 8.40353622,
+        "volume": 2800,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/12/19 13:30",
+        "type": "sell",
+        "price": 7.90053818,
+        "volume": 2800,
+        "reason": "止损",
+        "profit": -1454.0459203200007,
+        "profit_rate": -0.060794726429401244
+      },
+      {
+        "time": "2023/12/20 10:00",
+        "type": "buy",
+        "price": 7.91788294,
+        "volume": 2900,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/12/29 15:00",
+        "type": "sell",
+        "price": 8.14336482,
+        "volume": 2900,
+        "reason": "强制平仓",
+        "profit": 607.3198334960034,
+        "profit_rate": 0.027450096453382446
+      }
+    ]
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "配置5-MACD面积",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.3,
+      "stop_loss": -0.05,
+      "take_profit": 0.12,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 93647.122764578,
+      "total_return": -0.06352877235421998,
+      "annual_return": -0.06352877235421998,
+      "max_drawdown": 0.09463009967591422,
+      "win_rate": 0.0,
+      "profit_loss_ratio": 0.0,
+      "trade_count": 5,
+      "win_count": 0,
+      "loss_count": 5
+    },
+    "accuracy": {
+      "buy_accuracy": 0.2,
+      "sell_accuracy": 0.0,
+      "overall_accuracy": 0.1,
+      "buy_signal_count": 5,
+      "sell_signal_count": 5,
+      "buy_correct_count": 1,
+      "sell_correct_count": 0,
+      "total_bsp_count": 10,
+      "correct_bsp_count": 1,
+      "buy_signals": [
+        {
+          "is_correct": false,
+          "profit_rate": -0.052740088596662044,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.051535636901490406,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.051376786866796344,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.05184635723557863,
+          "reason": "止损"
+        },
+        {
+          "is_correct": true,
+          "profit_rate": -0.009438291381269098,
+          "reason": "强制平仓"
+        }
+      ],
+      "sell_signals": [
+        {
+          "is_correct": false,
+          "profit_rate": -0.052740088596662044,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.051535636901490406,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.051376786866796344,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.05184635723557863,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.009438291381269098,
+          "reason": "强制平仓"
+        }
+      ]
+    },
+    "sample_trades": [
+      {
+        "time": "2023/03/27 13:30",
+        "type": "buy",
+        "price": 10.62491785,
+        "volume": 2800,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/05/25 10:00",
+        "type": "sell",
+        "price": 10.0746233,
+        "volume": 2800,
+        "reason": "止损",
+        "profit": -1598.783455219993,
+        "profit_rate": -0.052740088596662044
+      },
+      {
+        "time": "2023/09/21 11:30",
+        "type": "buy",
+        "price": 9.60032466,
+        "volume": 3000,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/10/23 10:30",
+        "type": "sell",
+        "price": 9.11467138,
+        "volume": 3000,
+        "reason": "止损",
+        "profit": -1513.1048281199946,
+        "profit_rate": -0.051535636901490406
+      },
+      {
+        "time": "2023/10/23 13:30",
+        "type": "buy",
+        "price": 9.11467138,
+        "volume": 3100,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/11/27 11:00",
+        "type": "sell",
+        "price": 8.65503524,
+        "volume": 3100,
+        "reason": "止损",
+        "profit": -1479.9581245219997,
+        "profit_rate": -0.051376786866796344
+      },
+      {
+        "time": "2023/11/27 13:30",
+        "type": "buy",
+        "price": 8.68972476,
+        "volume": 3200,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/12/05 14:30",
+        "type": "sell",
+        "price": 8.24743338,
+        "volume": 3200,
+        "reason": "止损",
+        "profit": -1469.5313220479948,
+        "profit_rate": -0.05184635723557863
+      },
+      {
+        "time": "2023/12/06 10:30",
+        "type": "buy",
+        "price": 8.21274386,
+        "volume": 3400,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/12/29 15:00",
+        "type": "sell",
+        "price": 8.14336482,
+        "volume": 3400,
+        "reason": "强制平仓",
+        "profit": -291.49950551199436,
+        "profit_rate": -0.009438291381269098
+      }
+    ]
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "配置6-低背驰率",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.3,
+      "stop_loss": -0.05,
+      "take_profit": 0.12,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 96854.19995803601,
+      "total_return": -0.031458000419639864,
+      "annual_return": -0.031458000419639864,
+      "max_drawdown": 0.036094791007257036,
+      "win_rate": 0.0,
+      "profit_loss_ratio": 0.0,
+      "trade_count": 2,
+      "win_count": 0,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.0,
+      "sell_accuracy": 0.0,
+      "overall_accuracy": 0.0,
+      "buy_signal_count": 2,
+      "sell_signal_count": 2,
+      "buy_correct_count": 0,
+      "sell_correct_count": 0,
+      "total_bsp_count": 4,
+      "correct_bsp_count": 0,
+      "buy_signals": [
+        {
+          "is_correct": false,
+          "profit_rate": -0.051535636901490406,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.0540860106077497,
+          "reason": "止损"
+        }
+      ],
+      "sell_signals": [
+        {
+          "is_correct": false,
+          "profit_rate": -0.051535636901490406,
+          "reason": "止损"
+        },
+        {
+          "is_correct": false,
+          "profit_rate": -0.0540860106077497,
+          "reason": "止损"
+        }
+      ]
+    },
+    "sample_trades": [
+      {
+        "time": "2023/09/21 11:30",
+        "type": "buy",
+        "price": 9.60032466,
+        "volume": 3100,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/10/23 10:30",
+        "type": "sell",
+        "price": 9.11467138,
+        "volume": 3100,
+        "reason": "止损",
+        "profit": -1563.541655723995,
+        "profit_rate": -0.051535636901490406
+      },
+      {
+        "time": "2023/10/26 11:30",
+        "type": "buy",
+        "price": 8.9759133,
+        "volume": 3200,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/11/29 11:00",
+        "type": "sell",
+        "price": 8.4989324,
+        "volume": 3200,
+        "reason": "止损",
+        "profit": -1582.2583862400024,
+        "profit_rate": -0.0540860106077497
+      }
+    ]
+  }
+]

@@ -1,0 +1,171 @@
+[
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "改进-标准配置",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.3,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 95632.25863992801,
+      "total_return": -0.04367741360071988,
+      "annual_return": -0.04367741360071988,
+      "max_drawdown": 0.07433205707419768,
+      "win_rate": 0.5,
+      "profit_loss_ratio": 0.0445884222393564,
+      "trade_count": 2,
+      "win_count": 1,
+      "loss_count": 1,
+      "buy_signal_count": 17,
+      "sell_signal_count": 1,
+      "buy_executed_count": 2,
+      "sell_executed_count": 1
+    },
+    "trades": [
+      {
+        "time": "2023/03/27 13:30",
+        "type": "buy",
+        "price": 10.62491785,
+        "volume": 2800,
+        "bsp_type": "1"
+      },
+      {
+        "time": "2023/08/04 10:30",
+        "type": "sell",
+        "price": 10.71906168,
+        "volume": 2800,
+        "bsp_type": "1p",
+        "profit": 203.8395813160023,
+        "profit_rate": 0.007852811461815509,
+        "entry_bsp": "1"
+      },
+      {
+        "time": "2023/09/21 11:30",
+        "type": "buy",
+        "price": 9.60032466,
+        "volume": 3100,
+        "bsp_type": "1"
+      },
+      {
+        "time": "2023/12/29 15:00",
+        "type": "sell",
+        "price": 8.14336482,
+        "volume": 3100,
+        "bsp_type": "强制平仓",
+        "profit": -4571.580941387994,
+        "profit_rate": -0.15260890870646956,
+        "entry_bsp": "1"
+      }
+    ]
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "改进-宽松配置",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.3,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>, <BSP_TYPE.T2: '2'>]"
+    },
+    "metrics": {
+      "final_value": 95632.25863992801,
+      "total_return": -0.04367741360071988,
+      "annual_return": -0.04367741360071988,
+      "max_drawdown": 0.07433205707419768,
+      "win_rate": 0.5,
+      "profit_loss_ratio": 0.0445884222393564,
+      "trade_count": 2,
+      "win_count": 1,
+      "loss_count": 1,
+      "buy_signal_count": 25,
+      "sell_signal_count": 5,
+      "buy_executed_count": 2,
+      "sell_executed_count": 1
+    },
+    "trades": [
+      {
+        "time": "2023/03/27 13:30",
+        "type": "buy",
+        "price": 10.62491785,
+        "volume": 2800,
+        "bsp_type": "1"
+      },
+      {
+        "time": "2023/08/04 10:30",
+        "type": "sell",
+        "price": 10.71906168,
+        "volume": 2800,
+        "bsp_type": "1p",
+        "profit": 203.8395813160023,
+        "profit_rate": 0.007852811461815509,
+        "entry_bsp": "1"
+      },
+      {
+        "time": "2023/09/21 11:30",
+        "type": "buy",
+        "price": 9.60032466,
+        "volume": 3100,
+        "bsp_type": "1"
+      },
+      {
+        "time": "2023/12/29 15:00",
+        "type": "sell",
+        "price": 8.14336482,
+        "volume": 3100,
+        "bsp_type": "强制平仓",
+        "profit": -4571.580941387994,
+        "profit_rate": -0.15260890870646956,
+        "entry_bsp": "1"
+      }
+    ]
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "改进-严格配置",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.3,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 92999.10032452401,
+      "total_return": -0.07000899675475987,
+      "annual_return": -0.07000899675475987,
+      "max_drawdown": 0.09918156951435382,
+      "win_rate": 0.0,
+      "profit_loss_ratio": 0.0,
+      "trade_count": 1,
+      "win_count": 0,
+      "loss_count": 1,
+      "buy_signal_count": 13,
+      "sell_signal_count": 0,
+      "buy_executed_count": 1,
+      "sell_executed_count": 0
+    },
+    "trades": [
+      {
+        "time": "2023/03/27 13:30",
+        "type": "buy",
+        "price": 10.62491785,
+        "volume": 2800,
+        "bsp_type": "1"
+      },
+      {
+        "time": "2023/12/29 15:00",
+        "type": "sell",
+        "price": 8.14336482,
+        "volume": 2800,
+        "bsp_type": "强制平仓",
+        "profit": -7000.89967547599,
+        "profit_rate": -0.23432541265158183,
+        "entry_bsp": "1"
+      }
+    ]
+  }
+]

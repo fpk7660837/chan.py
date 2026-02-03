@@ -1,0 +1,146 @@
+[
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "30分钟-标准配置",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.3,
+      "stop_loss": -0.05,
+      "take_profit": 0.12,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 95997.264029348,
+      "total_return": -0.04002735970651993,
+      "annual_return": -0.04002735970651993,
+      "max_drawdown": 0.07225006197884491,
+      "win_rate": 0.25,
+      "profit_loss_ratio": 0.4418762861045403,
+      "trade_count": 4,
+      "win_count": 1,
+      "loss_count": 3
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "30分钟-严格配置",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.35,
+      "stop_loss": -0.04,
+      "take_profit": 0.1,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 95454.03431758801,
+      "total_return": -0.045459656824119885,
+      "annual_return": -0.045459656824119885,
+      "max_drawdown": 0.059409739165323834,
+      "win_rate": 0.0,
+      "profit_loss_ratio": 0.0,
+      "trade_count": 3,
+      "win_count": 0,
+      "loss_count": 3
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "30分钟-平衡配置",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.28,
+      "stop_loss": -0.055,
+      "take_profit": 0.13,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 95334.24555249402,
+      "total_return": -0.04665754447505984,
+      "annual_return": -0.04665754447505984,
+      "max_drawdown": 0.07606305166696282,
+      "win_rate": 0.0,
+      "profit_loss_ratio": 0.0,
+      "trade_count": 4,
+      "win_count": 0,
+      "loss_count": 4
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "30分钟-非严格笔",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.3,
+      "stop_loss": -0.05,
+      "take_profit": 0.12,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>, <BSP_TYPE.T2: '2'>]"
+    },
+    "metrics": {
+      "final_value": 94960.765836143,
+      "total_return": -0.05039234163857007,
+      "annual_return": -0.05039234163857007,
+      "max_drawdown": 0.06834246807102229,
+      "win_rate": 0.0,
+      "profit_loss_ratio": 0.0,
+      "trade_count": 4,
+      "win_count": 0,
+      "loss_count": 4
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "30分钟-宽松配置",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.25,
+      "stop_loss": -0.06,
+      "take_profit": 0.15,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>, <BSP_TYPE.T2: '2'>, <BSP_TYPE.T2S: '2s'>]"
+    },
+    "metrics": {
+      "final_value": 94606.87765648103,
+      "total_return": -0.05393122343518975,
+      "annual_return": -0.05393122343518975,
+      "max_drawdown": 0.08007864580984562,
+      "win_rate": 0.2,
+      "profit_loss_ratio": 0.40485005309933625,
+      "trade_count": 5,
+      "win_count": 1,
+      "loss_count": 4
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "30分钟-MACD面积",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.3,
+      "stop_loss": -0.05,
+      "take_profit": 0.12,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 93647.122764578,
+      "total_return": -0.06352877235421998,
+      "annual_return": -0.06352877235421998,
+      "max_drawdown": 0.09463009967591422,
+      "win_rate": 0.0,
+      "profit_loss_ratio": 0.0,
+      "trade_count": 5,
+      "win_count": 0,
+      "loss_count": 5
+    }
+  }
+]

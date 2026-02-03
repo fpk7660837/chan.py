@@ -1,0 +1,202 @@
+[
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "一类买卖点",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.3,
+      "stop_loss": -0.05,
+      "take_profit": 0.2,
+      "trailing_stop": 0.06,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 92060.540285099,
+      "total_return": -0.07939459714900993,
+      "annual_return": -0.013692686993423409,
+      "max_drawdown": 0.1253374925168976,
+      "win_rate": 0.23076923076923078,
+      "profit_loss_ratio": 1.772160670840675,
+      "trade_count": 13,
+      "win_count": 3,
+      "loss_count": 10
+    },
+    "accuracy": {
+      "buy_accuracy": 0.15384615384615385,
+      "sell_accuracy": 0.13333333333333333,
+      "overall_accuracy": 0.14400000000000002,
+      "buy_signal_count": 13,
+      "sell_signal_count": 12,
+      "buy_excellent": 1,
+      "buy_good": 0,
+      "buy_fair": 1,
+      "sell_excellent": 1,
+      "sell_good": 0,
+      "sell_fair": 1,
+      "buy_positive": 2,
+      "sell_positive": 2
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "保守配置",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.2,
+      "stop_loss": -0.04,
+      "take_profit": 0.18,
+      "trailing_stop": 0.05,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 93370.70019497005,
+      "total_return": -0.0662929980502995,
+      "annual_return": -0.011367000594487364,
+      "max_drawdown": 0.09201733536861388,
+      "win_rate": 0.2,
+      "profit_loss_ratio": 1.8634193594586967,
+      "trade_count": 15,
+      "win_count": 3,
+      "loss_count": 12
+    },
+    "accuracy": {
+      "buy_accuracy": 0.13333333333333333,
+      "sell_accuracy": 0.1142857142857143,
+      "overall_accuracy": 0.12413793103448276,
+      "buy_signal_count": 15,
+      "sell_signal_count": 14,
+      "buy_excellent": 1,
+      "buy_good": 0,
+      "buy_fair": 1,
+      "sell_excellent": 1,
+      "sell_good": 0,
+      "sell_fair": 1,
+      "buy_positive": 2,
+      "sell_positive": 2
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "全类型买卖点",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.25,
+      "stop_loss": -0.05,
+      "take_profit": 0.2,
+      "trailing_stop": 0.06,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>, <BSP_TYPE.T2: '2'>, <BSP_TYPE.T2S: '2s'>]"
+    },
+    "metrics": {
+      "final_value": 85715.12053333902,
+      "total_return": -0.14284879466660977,
+      "annual_return": -0.025362972436807962,
+      "max_drawdown": 0.15840801339246163,
+      "win_rate": 0.15789473684210525,
+      "profit_loss_ratio": 1.754864675032355,
+      "trade_count": 19,
+      "win_count": 3,
+      "loss_count": 16
+    },
+    "accuracy": {
+      "buy_accuracy": 0.10526315789473684,
+      "sell_accuracy": 0.08888888888888889,
+      "overall_accuracy": 0.0972972972972973,
+      "buy_signal_count": 19,
+      "sell_signal_count": 18,
+      "buy_excellent": 1,
+      "buy_good": 0,
+      "buy_fair": 1,
+      "sell_excellent": 1,
+      "sell_good": 0,
+      "sell_fair": 1,
+      "buy_positive": 2,
+      "sell_positive": 2
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "宽松背驰",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.25,
+      "stop_loss": -0.05,
+      "take_profit": 0.2,
+      "trailing_stop": 0.06,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>, <BSP_TYPE.T2: '2'>, <BSP_TYPE.T2S: '2s'>]"
+    },
+    "metrics": {
+      "final_value": 85715.12053333902,
+      "total_return": -0.14284879466660977,
+      "annual_return": -0.025362972436807962,
+      "max_drawdown": 0.15840801339246163,
+      "win_rate": 0.15789473684210525,
+      "profit_loss_ratio": 1.754864675032355,
+      "trade_count": 19,
+      "win_count": 3,
+      "loss_count": 16
+    },
+    "accuracy": {
+      "buy_accuracy": 0.10526315789473684,
+      "sell_accuracy": 0.08888888888888889,
+      "overall_accuracy": 0.0972972972972973,
+      "buy_signal_count": 19,
+      "sell_signal_count": 18,
+      "buy_excellent": 1,
+      "buy_good": 0,
+      "buy_fair": 1,
+      "sell_excellent": 1,
+      "sell_good": 0,
+      "sell_fair": 1,
+      "buy_positive": 2,
+      "sell_positive": 2
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "严格止损",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.25,
+      "stop_loss": -0.04,
+      "take_profit": 0.25,
+      "trailing_stop": 0.08,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>, <BSP_TYPE.T2: '2'>, <BSP_TYPE.T2S: '2s'>]"
+    },
+    "metrics": {
+      "final_value": 86677.23270930703,
+      "total_return": -0.13322767290692966,
+      "annual_return": -0.023548134274878785,
+      "max_drawdown": 0.1488735994174986,
+      "win_rate": 0.15,
+      "profit_loss_ratio": 2.088495229986711,
+      "trade_count": 20,
+      "win_count": 3,
+      "loss_count": 17
+    },
+    "accuracy": {
+      "buy_accuracy": 0.1,
+      "sell_accuracy": 0.08421052631578947,
+      "overall_accuracy": 0.09230769230769231,
+      "buy_signal_count": 20,
+      "sell_signal_count": 19,
+      "buy_excellent": 1,
+      "buy_good": 0,
+      "buy_fair": 1,
+      "sell_excellent": 1,
+      "sell_good": 0,
+      "sell_fair": 1,
+      "buy_positive": 2,
+      "sell_positive": 2
+    }
+  }
+]

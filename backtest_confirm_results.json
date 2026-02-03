@@ -1,0 +1,162 @@
+[
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "确认5根K线",
+    "confirm_klines": 5,
+    "chan_config": {
+      "trigger_step": true,
+      "divergence_rate": 0.9,
+      "min_zs_cnt": 1
+    },
+    "strategy_params": {
+      "buy_percent": 0.25,
+      "stop_loss": -0.05,
+      "take_profit": 0.2,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>, <BSP_TYPE.T2: '2'>, <BSP_TYPE.T2S: '2s'>]"
+    },
+    "metrics": {
+      "final_value": 94573.305202209,
+      "total_return": -0.05426694797791002,
+      "annual_return": -0.009256052523762714,
+      "max_drawdown": 0.07409501413904065,
+      "win_rate": 0.1111111111111111,
+      "profit_loss_ratio": 3.717810564554615,
+      "trade_count": 9,
+      "win_count": 1,
+      "loss_count": 8
+    },
+    "accuracy": {
+      "buy_accuracy": 0.16666666666666666,
+      "sell_accuracy": 0.125,
+      "overall_accuracy": 0.14705882352941177,
+      "buy_signal_count": 9,
+      "sell_signal_count": 8,
+      "buy_correct": 1,
+      "buy_partial": 1,
+      "sell_correct": 1,
+      "sell_partial": 0
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "确认3根K线",
+    "confirm_klines": 3,
+    "chan_config": {
+      "trigger_step": true,
+      "divergence_rate": 0.9,
+      "min_zs_cnt": 1
+    },
+    "strategy_params": {
+      "buy_percent": 0.25,
+      "stop_loss": -0.05,
+      "take_profit": 0.2,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>, <BSP_TYPE.T2: '2'>, <BSP_TYPE.T2S: '2s'>]"
+    },
+    "metrics": {
+      "final_value": 93782.89358422204,
+      "total_return": -0.06217106415777962,
+      "annual_return": -0.010640933376275252,
+      "max_drawdown": 0.09212289778505628,
+      "win_rate": 0.2,
+      "profit_loss_ratio": 1.75250844666083,
+      "trade_count": 10,
+      "win_count": 2,
+      "loss_count": 8
+    },
+    "accuracy": {
+      "buy_accuracy": 0.15,
+      "sell_accuracy": 0.1111111111111111,
+      "overall_accuracy": 0.13157894736842105,
+      "buy_signal_count": 10,
+      "sell_signal_count": 9,
+      "buy_correct": 1,
+      "buy_partial": 1,
+      "sell_correct": 1,
+      "sell_partial": 0
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "确认2根K线",
+    "confirm_klines": 2,
+    "chan_config": {
+      "trigger_step": true,
+      "divergence_rate": 0.9,
+      "min_zs_cnt": 1
+    },
+    "strategy_params": {
+      "buy_percent": 0.25,
+      "stop_loss": -0.05,
+      "take_profit": 0.2,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>, <BSP_TYPE.T2: '2'>, <BSP_TYPE.T2S: '2s'>]"
+    },
+    "metrics": {
+      "final_value": 89686.69552089,
+      "total_return": -0.10313304479109997,
+      "annual_return": -0.017977728987507602,
+      "max_drawdown": 0.12375132142544165,
+      "win_rate": 0.15384615384615385,
+      "profit_loss_ratio": 1.9460031874210568,
+      "trade_count": 13,
+      "win_count": 2,
+      "loss_count": 11
+    },
+    "accuracy": {
+      "buy_accuracy": 0.11538461538461539,
+      "sell_accuracy": 0.08333333333333333,
+      "overall_accuracy": 0.1,
+      "buy_signal_count": 13,
+      "sell_signal_count": 12,
+      "buy_correct": 1,
+      "buy_partial": 1,
+      "sell_correct": 1,
+      "sell_partial": 0
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "确认1根K线",
+    "confirm_klines": 1,
+    "chan_config": {
+      "trigger_step": true,
+      "divergence_rate": 0.9,
+      "min_zs_cnt": 1
+    },
+    "strategy_params": {
+      "buy_percent": 0.25,
+      "stop_loss": -0.05,
+      "take_profit": 0.2,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>, <BSP_TYPE.T2: '2'>, <BSP_TYPE.T2S: '2s'>]"
+    },
+    "metrics": {
+      "final_value": 86119.39451313803,
+      "total_return": -0.1388060548686197,
+      "annual_return": -0.02459833044119908,
+      "max_drawdown": 0.14963131742650676,
+      "win_rate": 0.06666666666666667,
+      "profit_loss_ratio": 3.510556994909461,
+      "trade_count": 15,
+      "win_count": 1,
+      "loss_count": 14
+    },
+    "accuracy": {
+      "buy_accuracy": 0.1,
+      "sell_accuracy": 0.07142857142857142,
+      "overall_accuracy": 0.08620689655172414,
+      "buy_signal_count": 15,
+      "sell_signal_count": 14,
+      "buy_correct": 1,
+      "buy_partial": 1,
+      "sell_correct": 1,
+      "sell_partial": 0
+    }
+  }
+]

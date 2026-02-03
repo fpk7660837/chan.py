@@ -1,0 +1,1307 @@
+[
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "config_name": "纯T1+3K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 96133.29867470104,
+      "total_return": -0.03866701325298957,
+      "annual_return": -0.006550853948378399,
+      "max_drawdown": 0.07892511301276525,
+      "win_rate": 0.14285714285714285,
+      "trade_count": 7,
+      "win_count": 1,
+      "loss_count": 6
+    },
+    "accuracy": {
+      "buy_accuracy": 0.14285714285714285,
+      "sell_accuracy": 0.14285714285714285,
+      "overall_accuracy": 0.14285714285714285,
+      "buy_signal_count": 7,
+      "sell_signal_count": 7,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "config_name": "纯T1+5K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 5,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 98253.20588618,
+      "total_return": -0.017467941138199966,
+      "annual_return": -0.0029327420663470827,
+      "max_drawdown": 0.049283598113698694,
+      "win_rate": 0.2,
+      "trade_count": 5,
+      "win_count": 1,
+      "loss_count": 4
+    },
+    "accuracy": {
+      "buy_accuracy": 0.2,
+      "sell_accuracy": 0.2,
+      "overall_accuracy": 0.2,
+      "buy_signal_count": 5,
+      "sell_signal_count": 5,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "config_name": "纯T1+3K",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 96133.29867470104,
+      "total_return": -0.03866701325298957,
+      "annual_return": -0.006550853948378399,
+      "max_drawdown": 0.07892511301276525,
+      "win_rate": 0.14285714285714285,
+      "trade_count": 7,
+      "win_count": 1,
+      "loss_count": 6
+    },
+    "accuracy": {
+      "buy_accuracy": 0.14285714285714285,
+      "sell_accuracy": 0.14285714285714285,
+      "overall_accuracy": 0.14285714285714285,
+      "buy_signal_count": 7,
+      "sell_signal_count": 7,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "config_name": "纯T1+1K",
+    "bsp_filter_config": {
+      "need_confirm": 1,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 92926.836967755,
+      "total_return": -0.07073163032244993,
+      "annual_return": -0.012151846286666657,
+      "max_drawdown": 0.08337159469014346,
+      "win_rate": 0.1111111111111111,
+      "trade_count": 9,
+      "win_count": 1,
+      "loss_count": 8
+    },
+    "accuracy": {
+      "buy_accuracy": 0.1111111111111111,
+      "sell_accuracy": 0.1111111111111111,
+      "overall_accuracy": 0.1111111111111111,
+      "buy_signal_count": 9,
+      "sell_signal_count": 9,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "config_name": "对照组T1+10K",
+    "bsp_filter_config": {
+      "need_confirm": 10,
+      "pure_t1_only": false,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 95849.02461011501,
+      "total_return": -0.04150975389884989,
+      "annual_return": -0.007041076769728094,
+      "max_drawdown": 0.0680195076100573,
+      "win_rate": 0.14285714285714285,
+      "trade_count": 7,
+      "win_count": 1,
+      "loss_count": 6
+    },
+    "accuracy": {
+      "buy_accuracy": 0.14285714285714285,
+      "sell_accuracy": 0.14285714285714285,
+      "overall_accuracy": 0.14285714285714285,
+      "buy_signal_count": 7,
+      "sell_signal_count": 7,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000333",
+    "stock_name": "美的集团",
+    "config_name": "纯T1+3K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 99732.57979926403,
+      "total_return": -0.002674202007359709,
+      "annual_return": -0.000446197769667811,
+      "max_drawdown": 0.032744704554855245,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sz.000333",
+    "stock_name": "美的集团",
+    "config_name": "纯T1+5K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 5,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 99195.60628718199,
+      "total_return": -0.008043937128180113,
+      "annual_return": -0.0013451718005734747,
+      "max_drawdown": 0.03130165238727057,
+      "win_rate": 0.3333333333333333,
+      "trade_count": 3,
+      "win_count": 1,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.3333333333333333,
+      "sell_accuracy": 0.3333333333333333,
+      "overall_accuracy": 0.3333333333333333,
+      "buy_signal_count": 3,
+      "sell_signal_count": 3,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000333",
+    "stock_name": "美的集团",
+    "config_name": "纯T1+3K",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 99732.57979926403,
+      "total_return": -0.002674202007359709,
+      "annual_return": -0.000446197769667811,
+      "max_drawdown": 0.032744704554855245,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sz.000333",
+    "stock_name": "美的集团",
+    "config_name": "纯T1+1K",
+    "bsp_filter_config": {
+      "need_confirm": 1,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 97472.39727405002,
+      "total_return": -0.025276027259499824,
+      "annual_return": -0.0042577355244066695,
+      "max_drawdown": 0.08921808907535426,
+      "win_rate": 0.25,
+      "trade_count": 8,
+      "win_count": 2,
+      "loss_count": 6
+    },
+    "accuracy": {
+      "buy_accuracy": 0.25,
+      "sell_accuracy": 0.25,
+      "overall_accuracy": 0.25,
+      "buy_signal_count": 8,
+      "sell_signal_count": 8,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sz.000333",
+    "stock_name": "美的集团",
+    "config_name": "对照组T1+10K",
+    "bsp_filter_config": {
+      "need_confirm": 10,
+      "pure_t1_only": false,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 106393.544242742,
+      "total_return": 0.06393544242742005,
+      "annual_return": 0.010382648607633271,
+      "max_drawdown": 0.032966588124325576,
+      "win_rate": 0.6666666666666666,
+      "trade_count": 3,
+      "win_count": 2,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.6666666666666666,
+      "sell_accuracy": 0.6666666666666666,
+      "overall_accuracy": 0.6666666666666666,
+      "buy_signal_count": 3,
+      "sell_signal_count": 3,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.600030",
+    "stock_name": "中信证券",
+    "config_name": "纯T1+3K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 103942.06877613402,
+      "total_return": 0.03942068776134023,
+      "annual_return": 0.006464727887443011,
+      "max_drawdown": 0.06356964418302807,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.600030",
+    "stock_name": "中信证券",
+    "config_name": "纯T1+5K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 5,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 104210.61338368602,
+      "total_return": 0.042106133836860245,
+      "annual_return": 0.0068976456015634735,
+      "max_drawdown": 0.06414719198985999,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.600030",
+    "stock_name": "中信证券",
+    "config_name": "纯T1+3K",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 103942.06877613402,
+      "total_return": 0.03942068776134023,
+      "annual_return": 0.006464727887443011,
+      "max_drawdown": 0.06356964418302807,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.600030",
+    "stock_name": "中信证券",
+    "config_name": "纯T1+1K",
+    "bsp_filter_config": {
+      "need_confirm": 1,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 100485.86347106201,
+      "total_return": 0.004858634710620099,
+      "annual_return": 0.0008081379739597327,
+      "max_drawdown": 0.05791458908244656,
+      "win_rate": 0.25,
+      "trade_count": 4,
+      "win_count": 1,
+      "loss_count": 3
+    },
+    "accuracy": {
+      "buy_accuracy": 0.25,
+      "sell_accuracy": 0.25,
+      "overall_accuracy": 0.25,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sh.600030",
+    "stock_name": "中信证券",
+    "config_name": "对照组T1+10K",
+    "bsp_filter_config": {
+      "need_confirm": 10,
+      "pure_t1_only": false,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 104630.30409600101,
+      "total_return": 0.04630304096001011,
+      "annual_return": 0.007572366078495207,
+      "max_drawdown": 0.06626312893107635,
+      "win_rate": 0.3333333333333333,
+      "trade_count": 6,
+      "win_count": 2,
+      "loss_count": 4
+    },
+    "accuracy": {
+      "buy_accuracy": 0.3333333333333333,
+      "sell_accuracy": 0.3333333333333333,
+      "overall_accuracy": 0.3333333333333333,
+      "buy_signal_count": 6,
+      "sell_signal_count": 6,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.601318",
+    "stock_name": "中国平安",
+    "config_name": "纯T1+3K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 102460.96008116502,
+      "total_return": 0.024609600811650163,
+      "annual_return": 0.00406016402002396,
+      "max_drawdown": 0.028893708151626413,
+      "win_rate": 0.5,
+      "trade_count": 8,
+      "win_count": 4,
+      "loss_count": 4
+    },
+    "accuracy": {
+      "buy_accuracy": 0.375,
+      "sell_accuracy": 0.35714285714285715,
+      "overall_accuracy": 0.36666666666666664,
+      "buy_signal_count": 8,
+      "sell_signal_count": 7,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.601318",
+    "stock_name": "中国平安",
+    "config_name": "纯T1+5K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 5,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 101974.34088541196,
+      "total_return": 0.019743408854119626,
+      "annual_return": 0.0032638206520634316,
+      "max_drawdown": 0.031168613796312937,
+      "win_rate": 0.42857142857142855,
+      "trade_count": 7,
+      "win_count": 3,
+      "loss_count": 4
+    },
+    "accuracy": {
+      "buy_accuracy": 0.42857142857142855,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.46153846153846156,
+      "buy_signal_count": 7,
+      "sell_signal_count": 6,
+      "buy_correct": 3,
+      "sell_correct": 3
+    }
+  },
+  {
+    "stock_code": "sh.601318",
+    "stock_name": "中国平安",
+    "config_name": "纯T1+3K",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 102460.96008116502,
+      "total_return": 0.024609600811650163,
+      "annual_return": 0.00406016402002396,
+      "max_drawdown": 0.028893708151626413,
+      "win_rate": 0.5,
+      "trade_count": 8,
+      "win_count": 4,
+      "loss_count": 4
+    },
+    "accuracy": {
+      "buy_accuracy": 0.375,
+      "sell_accuracy": 0.35714285714285715,
+      "overall_accuracy": 0.36666666666666664,
+      "buy_signal_count": 8,
+      "sell_signal_count": 7,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.601318",
+    "stock_name": "中国平安",
+    "config_name": "纯T1+1K",
+    "bsp_filter_config": {
+      "need_confirm": 1,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 100729.059248699,
+      "total_return": 0.007290592486990063,
+      "annual_return": 0.0012114239464240395,
+      "max_drawdown": 0.03906948475001329,
+      "win_rate": 0.4,
+      "trade_count": 10,
+      "win_count": 4,
+      "loss_count": 6
+    },
+    "accuracy": {
+      "buy_accuracy": 0.3,
+      "sell_accuracy": 0.2777777777777778,
+      "overall_accuracy": 0.2894736842105263,
+      "buy_signal_count": 10,
+      "sell_signal_count": 9,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.601318",
+    "stock_name": "中国平安",
+    "config_name": "对照组T1+10K",
+    "bsp_filter_config": {
+      "need_confirm": 10,
+      "pure_t1_only": false,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 103163.06044379502,
+      "total_return": 0.031630604437950245,
+      "annual_return": 0.005203602211546032,
+      "max_drawdown": 0.06658934512540914,
+      "win_rate": 0.38461538461538464,
+      "trade_count": 13,
+      "win_count": 5,
+      "loss_count": 8
+    },
+    "accuracy": {
+      "buy_accuracy": 0.34615384615384615,
+      "sell_accuracy": 0.34615384615384615,
+      "overall_accuracy": 0.34615384615384615,
+      "buy_signal_count": 13,
+      "sell_signal_count": 13,
+      "buy_correct": 4,
+      "sell_correct": 4
+    }
+  },
+  {
+    "stock_code": "sz.000596",
+    "stock_name": "古井贡酒",
+    "config_name": "纯T1+3K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 104087.05431629601,
+      "total_return": 0.04087054316296009,
+      "annual_return": 0.006698573041931333,
+      "max_drawdown": 0.002814206702751006,
+      "win_rate": 1.0,
+      "trade_count": 1,
+      "win_count": 1,
+      "loss_count": 0
+    },
+    "accuracy": {
+      "buy_accuracy": 1.0,
+      "sell_accuracy": 1.0,
+      "overall_accuracy": 1.0,
+      "buy_signal_count": 1,
+      "sell_signal_count": 1,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000596",
+    "stock_name": "古井贡酒",
+    "config_name": "纯T1+5K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 5,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 104347.06822855202,
+      "total_return": 0.04347068228552016,
+      "annual_return": 0.007117266802143973,
+      "max_drawdown": 0.002994116598479886,
+      "win_rate": 1.0,
+      "trade_count": 1,
+      "win_count": 1,
+      "loss_count": 0
+    },
+    "accuracy": {
+      "buy_accuracy": 1.0,
+      "sell_accuracy": 1.0,
+      "overall_accuracy": 1.0,
+      "buy_signal_count": 1,
+      "sell_signal_count": 1,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000596",
+    "stock_name": "古井贡酒",
+    "config_name": "纯T1+3K",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 104087.05431629601,
+      "total_return": 0.04087054316296009,
+      "annual_return": 0.006698573041931333,
+      "max_drawdown": 0.002814206702751006,
+      "win_rate": 1.0,
+      "trade_count": 1,
+      "win_count": 1,
+      "loss_count": 0
+    },
+    "accuracy": {
+      "buy_accuracy": 1.0,
+      "sell_accuracy": 1.0,
+      "overall_accuracy": 1.0,
+      "buy_signal_count": 1,
+      "sell_signal_count": 1,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000596",
+    "stock_name": "古井贡酒",
+    "config_name": "纯T1+1K",
+    "bsp_filter_config": {
+      "need_confirm": 1,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 98454.459938168,
+      "total_return": -0.015455400618319981,
+      "annual_return": -0.0025926466667539616,
+      "max_drawdown": 0.02270936813184002,
+      "win_rate": 0.5,
+      "trade_count": 2,
+      "win_count": 1,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.25,
+      "sell_accuracy": 0.25,
+      "overall_accuracy": 0.25,
+      "buy_signal_count": 2,
+      "sell_signal_count": 2,
+      "buy_correct": 0,
+      "sell_correct": 0
+    }
+  },
+  {
+    "stock_code": "sz.000596",
+    "stock_name": "古井贡酒",
+    "config_name": "对照组T1+10K",
+    "bsp_filter_config": {
+      "need_confirm": 10,
+      "pure_t1_only": false,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 111575.18652788602,
+      "total_return": 0.11575186527886021,
+      "annual_return": 0.018422385820475506,
+      "max_drawdown": 0.02688636398811227,
+      "win_rate": 0.6666666666666666,
+      "trade_count": 6,
+      "win_count": 4,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.6666666666666666,
+      "sell_accuracy": 0.6666666666666666,
+      "overall_accuracy": 0.6666666666666666,
+      "buy_signal_count": 6,
+      "sell_signal_count": 6,
+      "buy_correct": 4,
+      "sell_correct": 4
+    }
+  },
+  {
+    "stock_code": "sz.000661",
+    "stock_name": "长春高新",
+    "config_name": "纯T1+3K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 99240.39843626799,
+      "total_return": -0.0075960156373200876,
+      "annual_return": -0.001270028213480101,
+      "max_drawdown": 0.012113454007500482,
+      "win_rate": 0.0,
+      "trade_count": 1,
+      "win_count": 0,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.0,
+      "sell_accuracy": 0.0,
+      "overall_accuracy": 0.0,
+      "buy_signal_count": 1,
+      "sell_signal_count": 1,
+      "buy_correct": 0,
+      "sell_correct": 0
+    }
+  },
+  {
+    "stock_code": "sz.000661",
+    "stock_name": "长春高新",
+    "config_name": "纯T1+5K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 5,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 99180.15085687599,
+      "total_return": -0.008198491431240108,
+      "annual_return": -0.001371106487912388,
+      "max_drawdown": 0.012120723209007625,
+      "win_rate": 0.0,
+      "trade_count": 1,
+      "win_count": 0,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.0,
+      "sell_accuracy": 0.0,
+      "overall_accuracy": 0.0,
+      "buy_signal_count": 1,
+      "sell_signal_count": 1,
+      "buy_correct": 0,
+      "sell_correct": 0
+    }
+  },
+  {
+    "stock_code": "sz.000661",
+    "stock_name": "长春高新",
+    "config_name": "纯T1+3K",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 99240.39843626799,
+      "total_return": -0.0075960156373200876,
+      "annual_return": -0.001270028213480101,
+      "max_drawdown": 0.012113454007500482,
+      "win_rate": 0.0,
+      "trade_count": 1,
+      "win_count": 0,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.0,
+      "sell_accuracy": 0.0,
+      "overall_accuracy": 0.0,
+      "buy_signal_count": 1,
+      "sell_signal_count": 1,
+      "buy_correct": 0,
+      "sell_correct": 0
+    }
+  },
+  {
+    "stock_code": "sz.000661",
+    "stock_name": "长春高新",
+    "config_name": "纯T1+1K",
+    "bsp_filter_config": {
+      "need_confirm": 1,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 99044.593803244,
+      "total_return": -0.009554061967559974,
+      "annual_return": -0.001598719819648542,
+      "max_drawdown": 0.012137110854103017,
+      "win_rate": 0.0,
+      "trade_count": 1,
+      "win_count": 0,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.0,
+      "sell_accuracy": 0.0,
+      "overall_accuracy": 0.0,
+      "buy_signal_count": 1,
+      "sell_signal_count": 1,
+      "buy_correct": 0,
+      "sell_correct": 0
+    }
+  },
+  {
+    "stock_code": "sz.000661",
+    "stock_name": "长春高新",
+    "config_name": "对照组T1+10K",
+    "bsp_filter_config": {
+      "need_confirm": 10,
+      "pure_t1_only": false,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 107920.788333235,
+      "total_return": 0.07920788333235003,
+      "annual_return": 0.012785600826125343,
+      "max_drawdown": 0.023174230173513815,
+      "win_rate": 0.6666666666666666,
+      "trade_count": 3,
+      "win_count": 2,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.6666666666666666,
+      "sell_accuracy": 0.6666666666666666,
+      "overall_accuracy": 0.6666666666666666,
+      "buy_signal_count": 3,
+      "sell_signal_count": 3,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.601899",
+    "stock_name": "紫金矿业",
+    "config_name": "纯T1+3K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 98729.953486732,
+      "total_return": -0.012700465132679965,
+      "annual_return": -0.0021280334328827033,
+      "max_drawdown": 0.053552888884596146,
+      "win_rate": 0.0,
+      "trade_count": 1,
+      "win_count": 0,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.0,
+      "sell_accuracy": 0.0,
+      "overall_accuracy": 0.0,
+      "buy_signal_count": 1,
+      "sell_signal_count": 1,
+      "buy_correct": 0,
+      "sell_correct": 0
+    }
+  },
+  {
+    "stock_code": "sh.601899",
+    "stock_name": "紫金矿业",
+    "config_name": "纯T1+5K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 5,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 105600.12274108,
+      "total_return": 0.056001227410800054,
+      "annual_return": 0.00912292039834739,
+      "max_drawdown": 0.013478530942048868,
+      "win_rate": 1.0,
+      "trade_count": 1,
+      "win_count": 1,
+      "loss_count": 0
+    },
+    "accuracy": {
+      "buy_accuracy": 1.0,
+      "sell_accuracy": 1.0,
+      "overall_accuracy": 1.0,
+      "buy_signal_count": 1,
+      "sell_signal_count": 1,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sh.601899",
+    "stock_name": "紫金矿业",
+    "config_name": "纯T1+3K",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 98729.953486732,
+      "total_return": -0.012700465132679965,
+      "annual_return": -0.0021280334328827033,
+      "max_drawdown": 0.053552888884596146,
+      "win_rate": 0.0,
+      "trade_count": 1,
+      "win_count": 0,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.0,
+      "sell_accuracy": 0.0,
+      "overall_accuracy": 0.0,
+      "buy_signal_count": 1,
+      "sell_signal_count": 1,
+      "buy_correct": 0,
+      "sell_correct": 0
+    }
+  },
+  {
+    "stock_code": "sh.601899",
+    "stock_name": "紫金矿业",
+    "config_name": "纯T1+1K",
+    "bsp_filter_config": {
+      "need_confirm": 1,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 103771.46590746401,
+      "total_return": 0.037714659074640076,
+      "annual_return": 0.006189216542656917,
+      "max_drawdown": 0.018562746376450914,
+      "win_rate": 0.5,
+      "trade_count": 2,
+      "win_count": 1,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 2,
+      "sell_signal_count": 2,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sh.601899",
+    "stock_name": "紫金矿业",
+    "config_name": "对照组T1+10K",
+    "bsp_filter_config": {
+      "need_confirm": 10,
+      "pure_t1_only": false,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 103399.275776662,
+      "total_return": 0.03399275776662005,
+      "annual_return": 0.005586843855472479,
+      "max_drawdown": 0.053011785652542505,
+      "win_rate": 0.5,
+      "trade_count": 2,
+      "win_count": 1,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 2,
+      "sell_signal_count": 2,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sh.601186",
+    "stock_name": "中国铁建",
+    "config_name": "纯T1+3K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 107024.49521995001,
+      "total_return": 0.07024495219950011,
+      "annual_return": 0.011378843685402096,
+      "max_drawdown": 0.051547663346607535,
+      "win_rate": 0.4,
+      "trade_count": 5,
+      "win_count": 2,
+      "loss_count": 3
+    },
+    "accuracy": {
+      "buy_accuracy": 0.4,
+      "sell_accuracy": 0.4,
+      "overall_accuracy": 0.4,
+      "buy_signal_count": 5,
+      "sell_signal_count": 5,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.601186",
+    "stock_name": "中国铁建",
+    "config_name": "纯T1+5K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 5,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 100933.92735182801,
+      "total_return": 0.009339273518280096,
+      "annual_return": 0.0015505228437171503,
+      "max_drawdown": 0.06298913231091105,
+      "win_rate": 0.25,
+      "trade_count": 4,
+      "win_count": 1,
+      "loss_count": 3
+    },
+    "accuracy": {
+      "buy_accuracy": 0.25,
+      "sell_accuracy": 0.25,
+      "overall_accuracy": 0.25,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sh.601186",
+    "stock_name": "中国铁建",
+    "config_name": "纯T1+3K",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 107024.49521995001,
+      "total_return": 0.07024495219950011,
+      "annual_return": 0.011378843685402096,
+      "max_drawdown": 0.051547663346607535,
+      "win_rate": 0.4,
+      "trade_count": 5,
+      "win_count": 2,
+      "loss_count": 3
+    },
+    "accuracy": {
+      "buy_accuracy": 0.4,
+      "sell_accuracy": 0.4,
+      "overall_accuracy": 0.4,
+      "buy_signal_count": 5,
+      "sell_signal_count": 5,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.601186",
+    "stock_name": "中国铁建",
+    "config_name": "纯T1+1K",
+    "bsp_filter_config": {
+      "need_confirm": 1,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 101642.770697084,
+      "total_return": 0.016427706970839936,
+      "annual_return": 0.0027193962015212847,
+      "max_drawdown": 0.05641175331622021,
+      "win_rate": 0.25,
+      "trade_count": 4,
+      "win_count": 1,
+      "loss_count": 3
+    },
+    "accuracy": {
+      "buy_accuracy": 0.25,
+      "sell_accuracy": 0.25,
+      "overall_accuracy": 0.25,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sh.601186",
+    "stock_name": "中国铁建",
+    "config_name": "对照组T1+10K",
+    "bsp_filter_config": {
+      "need_confirm": 10,
+      "pure_t1_only": false,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 114049.62727751801,
+      "total_return": 0.14049627277518012,
+      "annual_return": 0.022152382017999406,
+      "max_drawdown": 0.05585070837581003,
+      "win_rate": 0.5,
+      "trade_count": 6,
+      "win_count": 3,
+      "loss_count": 3
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 6,
+      "sell_signal_count": 6,
+      "buy_correct": 3,
+      "sell_correct": 3
+    }
+  },
+  {
+    "stock_code": "sh.600089",
+    "stock_name": "特变电工",
+    "config_name": "纯T1+3K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 96341.94769636099,
+      "total_return": -0.036580523036390075,
+      "annual_return": -0.006191812578869804,
+      "max_drawdown": 0.04875853653951041,
+      "win_rate": 0.16666666666666666,
+      "trade_count": 6,
+      "win_count": 1,
+      "loss_count": 5
+    },
+    "accuracy": {
+      "buy_accuracy": 0.16666666666666666,
+      "sell_accuracy": 0.16666666666666666,
+      "overall_accuracy": 0.16666666666666666,
+      "buy_signal_count": 6,
+      "sell_signal_count": 6,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sh.600089",
+    "stock_name": "特变电工",
+    "config_name": "纯T1+5K+价格过滤",
+    "bsp_filter_config": {
+      "need_confirm": 5,
+      "pure_t1_only": true,
+      "use_price_filter": true
+    },
+    "metrics": {
+      "final_value": 99247.09071463003,
+      "total_return": -0.0075290928536996945,
+      "annual_return": -0.0012588036327441099,
+      "max_drawdown": 0.0487846295253663,
+      "win_rate": 0.25,
+      "trade_count": 4,
+      "win_count": 1,
+      "loss_count": 3
+    },
+    "accuracy": {
+      "buy_accuracy": 0.25,
+      "sell_accuracy": 0.25,
+      "overall_accuracy": 0.25,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sh.600089",
+    "stock_name": "特变电工",
+    "config_name": "纯T1+3K",
+    "bsp_filter_config": {
+      "need_confirm": 3,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 96341.94769636099,
+      "total_return": -0.036580523036390075,
+      "annual_return": -0.006191812578869804,
+      "max_drawdown": 0.04875853653951041,
+      "win_rate": 0.16666666666666666,
+      "trade_count": 6,
+      "win_count": 1,
+      "loss_count": 5
+    },
+    "accuracy": {
+      "buy_accuracy": 0.16666666666666666,
+      "sell_accuracy": 0.16666666666666666,
+      "overall_accuracy": 0.16666666666666666,
+      "buy_signal_count": 6,
+      "sell_signal_count": 6,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sh.600089",
+    "stock_name": "特变电工",
+    "config_name": "纯T1+1K",
+    "bsp_filter_config": {
+      "need_confirm": 1,
+      "pure_t1_only": true,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 98468.991923872,
+      "total_return": -0.01531008076127997,
+      "annual_return": -0.0025681117733582504,
+      "max_drawdown": 0.050660807738582773,
+      "win_rate": 0.3333333333333333,
+      "trade_count": 6,
+      "win_count": 2,
+      "loss_count": 4
+    },
+    "accuracy": {
+      "buy_accuracy": 0.25,
+      "sell_accuracy": 0.25,
+      "overall_accuracy": 0.25,
+      "buy_signal_count": 6,
+      "sell_signal_count": 6,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sh.600089",
+    "stock_name": "特变电工",
+    "config_name": "对照组T1+10K",
+    "bsp_filter_config": {
+      "need_confirm": 10,
+      "pure_t1_only": false,
+      "use_price_filter": false
+    },
+    "metrics": {
+      "final_value": 107483.664116042,
+      "total_return": 0.07483664116041996,
+      "annual_return": 0.012100743395267788,
+      "max_drawdown": 0.06752922078751727,
+      "win_rate": 0.3333333333333333,
+      "trade_count": 9,
+      "win_count": 3,
+      "loss_count": 6
+    },
+    "accuracy": {
+      "buy_accuracy": 0.3333333333333333,
+      "sell_accuracy": 0.3333333333333333,
+      "overall_accuracy": 0.3333333333333333,
+      "buy_signal_count": 9,
+      "sell_signal_count": 9,
+      "buy_correct": 3,
+      "sell_correct": 3
+    }
+  }
+]

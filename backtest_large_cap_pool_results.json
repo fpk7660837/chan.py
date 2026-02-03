@@ -1,0 +1,5335 @@
+{
+  "results": [
+    {
+      "stock_code": "sh.601166",
+      "stock_name": "兴业银行",
+      "metrics": {
+        "final_value": 101086.87112194303,
+        "total_return": 0.01086871121943026,
+        "annual_return": 0.0018033025460681973,
+        "max_drawdown": 0.04362706573578058,
+        "win_rate": 0.3333333333333333,
+        "trade_count": 6,
+        "win_count": 2,
+        "loss_count": 4
+      },
+      "accuracy": {
+        "buy_accuracy": 0.3333333333333333,
+        "sell_accuracy": 0.2,
+        "overall_accuracy": 0.2727272727272727,
+        "buy_signal_count": 6,
+        "sell_signal_count": 5,
+        "buy_correct": 2,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2021/07/07",
+          "type": "buy",
+          "price": 16.93439968,
+          "volume": 1400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/07/14",
+          "type": "sell",
+          "price": 15.72820064,
+          "volume": 1400,
+          "reason": "止损",
+          "profit": -1734.4062964479926,
+          "profit_rate": -0.07215558574508872
+        },
+        {
+          "time": "2021/08/24",
+          "type": "buy",
+          "price": 14.75213168,
+          "volume": 1600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/02/08",
+          "type": "sell",
+          "price": 17.75969376,
+          "volume": 1600,
+          "reason": "止盈",
+          "profit": 4760.080407296005,
+          "profit_rate": 0.20267037964724918
+        },
+        {
+          "time": "2022/08/19",
+          "type": "buy",
+          "price": 14.8641214,
+          "volume": 1700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/08/30",
+          "type": "sell",
+          "price": 14.04575966,
+          "volume": 1700,
+          "reason": "止损",
+          "profit": -1440.3617558020014,
+          "profit_rate": -0.05600017959568515
+        },
+        {
+          "time": "2022/09/19",
+          "type": "buy",
+          "price": 14.47999242,
+          "volume": 1700,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/10/11",
+          "type": "sell",
+          "price": 13.63657879,
+          "volume": 1700,
+          "reason": "止损",
+          "profit": -1481.601342056998,
+          "profit_rate": -0.059187640502519324
+        },
+        {
+          "time": "2022/11/21",
+          "type": "buy",
+          "price": 13.45286493,
+          "volume": 1800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/12/05",
+          "type": "sell",
+          "price": 12.73304444,
+          "volume": 1800,
+          "reason": "止损",
+          "profit": -1342.8115188659976,
+          "profit_rate": -0.05445240236392405
+        },
+        {
+          "time": "2023/12/28",
+          "type": "buy",
+          "price": 13.23590092,
+          "volume": 1800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/12/29",
+          "type": "sell",
+          "price": 14.55589918,
+          "volume": 1800,
+          "reason": "强制平仓",
+          "profit": 2325.9716278200067,
+          "profit_rate": 0.09862999957979622
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 400
+    },
+    {
+      "stock_code": "sh.600000",
+      "stock_name": "浦发银行",
+      "metrics": {
+        "final_value": 101021.804973905,
+        "total_return": 0.010218049739050038,
+        "annual_return": 0.001695802646946909,
+        "max_drawdown": 0.02330067374479583,
+        "win_rate": 0.5,
+        "trade_count": 2,
+        "win_count": 1,
+        "loss_count": 1
+      },
+      "accuracy": {
+        "buy_accuracy": 0.5,
+        "sell_accuracy": 0.5,
+        "overall_accuracy": 0.5,
+        "buy_signal_count": 2,
+        "sell_signal_count": 2,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2020/11/19",
+          "type": "buy",
+          "price": 7.86902392,
+          "volume": 3100,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/04/13",
+          "type": "sell",
+          "price": 8.69309008,
+          "volume": 3100,
+          "reason": "1p",
+          "profit": 2503.2625426000013,
+          "profit_rate": 0.10361917343436858
+        },
+        {
+          "time": "2022/08/26",
+          "type": "buy",
+          "price": 6.4679287,
+          "volume": 3900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/10/24",
+          "type": "sell",
+          "price": 6.10063635,
+          "volume": 3900,
+          "reason": "止损",
+          "profit": -1481.4575686949938,
+          "profit_rate": -0.0577289746264814
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 200
+    },
+    {
+      "stock_code": "sh.601169",
+      "stock_name": "北京银行",
+      "metrics": {
+        "final_value": 98689.62742285,
+        "total_return": -0.01310372577150003,
+        "annual_return": -0.0021959748179676275,
+        "max_drawdown": 0.024407879224295246,
+        "win_rate": 0.0,
+        "trade_count": 1,
+        "win_count": 0,
+        "loss_count": 1
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 1,
+        "sell_signal_count": 1,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2020/11/26",
+          "type": "buy",
+          "price": 3.55065375,
+          "volume": 7000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/07/28",
+          "type": "sell",
+          "price": 3.3703787,
+          "volume": 7000,
+          "reason": "止损",
+          "profit": -1310.3725771499958,
+          "profit_rate": -0.051720633612418965
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 150
+    },
+    {
+      "stock_code": "sh.600015",
+      "stock_name": "华夏银行",
+      "metrics": {
+        "final_value": 96790.27942345601,
+        "total_return": -0.03209720576543987,
+        "annual_return": -0.005422514127111477,
+        "max_drawdown": 0.06752157856942435,
+        "win_rate": 0.25,
+        "trade_count": 4,
+        "win_count": 1,
+        "loss_count": 3
+      },
+      "accuracy": {
+        "buy_accuracy": 0.25,
+        "sell_accuracy": 0.25,
+        "overall_accuracy": 0.25,
+        "buy_signal_count": 4,
+        "sell_signal_count": 4,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2020/02/24",
+          "type": "buy",
+          "price": 5.0465415,
+          "volume": 4900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/03/18",
+          "type": "sell",
+          "price": 4.728927,
+          "volume": 4900,
+          "reason": "止损",
+          "profit": -1604.2108456500027,
+          "profit_rate": -0.06387318974731562
+        },
+        {
+          "time": "2020/04/14",
+          "type": "buy",
+          "price": 4.5736488,
+          "volume": 5300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/07/27",
+          "type": "sell",
+          "price": 4.2871863,
+          "volume": 5300,
+          "reason": "止损",
+          "profit": -1565.2136760299945,
+          "profit_rate": -0.06356968278731907
+        },
+        {
+          "time": "2021/08/20",
+          "type": "buy",
+          "price": 4.2871863,
+          "volume": 5600,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/15",
+          "type": "sell",
+          "price": 3.9781999,
+          "volume": 5600,
+          "reason": "止损",
+          "profit": -1776.6100027199973,
+          "profit_rate": -0.07299907299907286
+        },
+        {
+          "time": "2022/11/22",
+          "type": "buy",
+          "price": 4.14606804,
+          "volume": 5700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/03/28",
+          "type": "sell",
+          "price": 4.45928988,
+          "volume": 5700,
+          "reason": "1",
+          "profit": 1736.3139478560006,
+          "profit_rate": 0.07447224743447405
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 120
+    },
+    {
+      "stock_code": "sh.601009",
+      "stock_name": "南京银行",
+      "metrics": {
+        "final_value": 93083.61657775902,
+        "total_return": -0.06916383422240979,
+        "annual_return": -0.011874270053472302,
+        "max_drawdown": 0.07036731578182392,
+        "win_rate": 0.0,
+        "trade_count": 5,
+        "win_count": 0,
+        "loss_count": 5
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 5,
+        "sell_signal_count": 5,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2018/07/24",
+          "type": "buy",
+          "price": 5.2855978,
+          "volume": 4700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/08/02",
+          "type": "sell",
+          "price": 4.96386576,
+          "volume": 4700,
+          "reason": "止损",
+          "profit": -1560.3130667319965,
+          "profit_rate": -0.06180775745993122
+        },
+        {
+          "time": "2022/07/29",
+          "type": "buy",
+          "price": 8.48116786,
+          "volume": 2900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/11/03",
+          "type": "sell",
+          "price": 7.89880527,
+          "volume": 2900,
+          "reason": "止损",
+          "profit": -1736.3534330769944,
+          "profit_rate": -0.06959578139462066
+        },
+        {
+          "time": "2022/12/01",
+          "type": "buy",
+          "price": 8.34993122,
+          "volume": 2800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/03/08",
+          "type": "sell",
+          "price": 7.93981672,
+          "volume": 2800,
+          "reason": "止损",
+          "profit": -1193.9318942319987,
+          "profit_rate": -0.05006584770828389
+        },
+        {
+          "time": "2023/05/09",
+          "type": "buy",
+          "price": 7.75936634,
+          "volume": 3000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/05/23",
+          "type": "sell",
+          "price": 7.36565642,
+          "volume": 3000,
+          "reason": "止损",
+          "profit": -1226.5048282800017,
+          "profit_rate": -0.05168826944725457
+        },
+        {
+          "time": "2023/09/28",
+          "type": "buy",
+          "price": 7.0375676,
+          "volume": 3300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/11/17",
+          "type": "sell",
+          "price": 6.6878748,
+          "volume": 3300,
+          "reason": "止损",
+          "profit": -1199.2801999199983,
+          "profit_rate": -0.050638802191597096
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 110
+    },
+    {
+      "stock_code": "sh.600016",
+      "stock_name": "民生银行",
+      "metrics": {
+        "final_value": 99769.36577826999,
+        "total_return": -0.002306342217300116,
+        "annual_return": -0.00038476028092226944,
+        "max_drawdown": 0.08462416038793148,
+        "win_rate": 0.16666666666666666,
+        "trade_count": 6,
+        "win_count": 1,
+        "loss_count": 5
+      },
+      "accuracy": {
+        "buy_accuracy": 0.16666666666666666,
+        "sell_accuracy": 0.16666666666666666,
+        "overall_accuracy": 0.16666666666666666,
+        "buy_signal_count": 6,
+        "sell_signal_count": 6,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2019/09/05",
+          "type": "buy",
+          "price": 4.25564106,
+          "volume": 5800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/02/03",
+          "type": "sell",
+          "price": 3.99580819,
+          "volume": 5800,
+          "reason": "止损",
+          "profit": -1554.8890516499996,
+          "profit_rate": -0.06199411149906194
+        },
+        {
+          "time": "2020/12/02",
+          "type": "buy",
+          "price": 4.0075773,
+          "volume": 6100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/02/02",
+          "type": "sell",
+          "price": 3.806079,
+          "volume": 6100,
+          "reason": "止损",
+          "profit": -1276.8029334299972,
+          "profit_rate": -0.05122810150743107
+        },
+        {
+          "time": "2021/03/04",
+          "type": "buy",
+          "price": 3.8956338,
+          "volume": 6200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/04/07",
+          "type": "sell",
+          "price": 3.6792097,
+          "volume": 6200,
+          "reason": "止损",
+          "profit": -1388.7934496999987,
+          "profit_rate": -0.056499056499056455
+        },
+        {
+          "time": "2021/09/16",
+          "type": "buy",
+          "price": 3.11135704,
+          "volume": 7600,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/09",
+          "type": "sell",
+          "price": 2.94718996,
+          "volume": 7600,
+          "reason": "止损",
+          "profit": -1293.7147651999985,
+          "profit_rate": -0.053710108986490826
+        },
+        {
+          "time": "2022/03/31",
+          "type": "buy",
+          "price": 2.98627736,
+          "volume": 7900,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/04/26",
+          "type": "sell",
+          "price": 2.83774524,
+          "volume": 7900,
+          "reason": "止损",
+          "profit": -1219.41352654,
+          "profit_rate": -0.05068753236292498
+        },
+        {
+          "time": "2022/11/22",
+          "type": "buy",
+          "price": 2.85754134,
+          "volume": 8100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/05/08",
+          "type": "sell",
+          "price": 3.66690276,
+          "volume": 8100,
+          "reason": "止盈",
+          "profit": 6502.979504790004,
+          "profit_rate": 0.28195503918047293
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 180
+    },
+    {
+      "stock_code": "sz.000001",
+      "stock_name": "平安银行",
+      "metrics": {
+        "final_value": 101904.56200251999,
+        "total_return": 0.019045620025199897,
+        "annual_return": 0.0031493693165343117,
+        "max_drawdown": 0.037085548311281774,
+        "win_rate": 0.3333333333333333,
+        "trade_count": 3,
+        "win_count": 1,
+        "loss_count": 2
+      },
+      "accuracy": {
+        "buy_accuracy": 0.3333333333333333,
+        "sell_accuracy": 0.3333333333333333,
+        "overall_accuracy": 0.3333333333333333,
+        "buy_signal_count": 3,
+        "sell_signal_count": 3,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2022/03/31",
+          "type": "buy",
+          "price": 12.7906232,
+          "volume": 1900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/05/09",
+          "type": "sell",
+          "price": 12.100362,
+          "volume": 1900,
+          "reason": "止损",
+          "profit": -1358.7891518799988,
+          "profit_rate": -0.054911278578378644
+        },
+        {
+          "time": "2022/11/16",
+          "type": "buy",
+          "price": 10.00689474,
+          "volume": 2400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/01/04",
+          "type": "sell",
+          "price": 12.12341224,
+          "volume": 2400,
+          "reason": "止盈",
+          "profit": 5026.529263248009,
+          "profit_rate": 0.21029562653928163
+        },
+        {
+          "time": "2023/06/20",
+          "type": "buy",
+          "price": 9.85182368,
+          "volume": 2600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/10/19",
+          "type": "sell",
+          "price": 9.1927228,
+          "volume": 2600,
+          "reason": "止损",
+          "profit": -1763.1781088479947,
+          "profit_rate": -0.06783357487582828
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 280
+    },
+    {
+      "stock_code": "sh.601601",
+      "stock_name": "中国太保",
+      "metrics": {
+        "final_value": 94570.20139744901,
+        "total_return": -0.05429798602550989,
+        "annual_return": -0.009261471808173605,
+        "max_drawdown": 0.05429798602550989,
+        "win_rate": 0.0,
+        "trade_count": 4,
+        "win_count": 0,
+        "loss_count": 4
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 4,
+        "sell_signal_count": 4,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2018/07/23",
+          "type": "buy",
+          "price": 26.37013358,
+          "volume": 900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/08/01",
+          "type": "sell",
+          "price": 24.94858331,
+          "volume": 900,
+          "reason": "止损",
+          "profit": -1325.5820882010012,
+          "profit_rate": -0.05485273425946556
+        },
+        {
+          "time": "2021/08/19",
+          "type": "buy",
+          "price": 23.42706714,
+          "volume": 1000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/08/26",
+          "type": "sell",
+          "price": 22.04849754,
+          "volume": 1000,
+          "reason": "止损",
+          "profit": -1424.0451646799957,
+          "profit_rate": -0.059785378284826496
+        },
+        {
+          "time": "2022/02/23",
+          "type": "buy",
+          "price": 23.46153138,
+          "volume": 1000,
+          "reason": "1,2s",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/07",
+          "type": "sell",
+          "price": 22.07434572,
+          "volume": 1000,
+          "reason": "止损",
+          "profit": -1432.7215370999984,
+          "profit_rate": -0.060065898112170495
+        },
+        {
+          "time": "2022/05/20",
+          "type": "buy",
+          "price": 18.2229669,
+          "volume": 1300,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/08/03",
+          "type": "sell",
+          "price": 17.298912,
+          "volume": 1300,
+          "reason": "止损",
+          "profit": -1247.4498125699938,
+          "profit_rate": -0.05165660100988421
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 280
+    },
+    {
+      "stock_code": "sh.601688",
+      "stock_name": "华泰证券",
+      "metrics": {
+        "final_value": 94460.04875073802,
+        "total_return": -0.05539951249261983,
+        "annual_return": -0.009453895833770543,
+        "max_drawdown": 0.05539951249261983,
+        "win_rate": 0.0,
+        "trade_count": 4,
+        "win_count": 0,
+        "loss_count": 4
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 4,
+        "sell_signal_count": 4,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2020/12/09",
+          "type": "buy",
+          "price": 16.00291316,
+          "volume": 1500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/12/22",
+          "type": "sell",
+          "price": 15.09482494,
+          "volume": 1500,
+          "reason": "止损",
+          "profit": -1408.778937149993,
+          "profit_rate": -0.05768749451832938
+        },
+        {
+          "time": "2021/01/27",
+          "type": "buy",
+          "price": 15.28329608,
+          "volume": 1600,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/02/04",
+          "type": "sell",
+          "price": 14.46944343,
+          "volume": 1600,
+          "reason": "止损",
+          "profit": -1349.768623215994,
+          "profit_rate": -0.054196924152080946
+        },
+        {
+          "time": "2021/05/25",
+          "type": "buy",
+          "price": 14.40090847,
+          "volume": 1600,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/06/15",
+          "type": "sell",
+          "price": 13.49282025,
+          "volume": 1600,
+          "reason": "止损",
+          "profit": -1497.5711179519967,
+          "profit_rate": -0.06399371003773131
+        },
+        {
+          "time": "2021/08/19",
+          "type": "buy",
+          "price": 14.20114234,
+          "volume": 1600,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/07",
+          "type": "sell",
+          "price": 13.4263745,
+          "volume": 1600,
+          "reason": "止损",
+          "profit": -1283.8325709439996,
+          "profit_rate": -0.05550122537103319
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 180
+    },
+    {
+      "stock_code": "sh.600030",
+      "stock_name": "中信证券",
+      "metrics": {
+        "final_value": 106820.78306945902,
+        "total_return": 0.06820783069459023,
+        "annual_return": 0.01105774312865826,
+        "max_drawdown": 0.040203486751057706,
+        "win_rate": 0.5,
+        "trade_count": 4,
+        "win_count": 2,
+        "loss_count": 2
+      },
+      "accuracy": {
+        "buy_accuracy": 0.5,
+        "sell_accuracy": 0.5,
+        "overall_accuracy": 0.5,
+        "buy_signal_count": 4,
+        "sell_signal_count": 4,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2021/05/25",
+          "type": "buy",
+          "price": 22.23842352,
+          "volume": 1100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/06/11",
+          "type": "sell",
+          "price": 21.14473056,
+          "volume": 1100,
+          "reason": "止损",
+          "profit": -1250.7837254879996,
+          "profit_rate": -0.05013019767118126
+        },
+        {
+          "time": "2021/08/25",
+          "type": "buy",
+          "price": 21.47640488,
+          "volume": 1100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/07",
+          "type": "sell",
+          "price": 19.87251226,
+          "volume": 1100,
+          "reason": "止损",
+          "profit": -1809.7656908540012,
+          "profit_rate": -0.07560600988261856
+        },
+        {
+          "time": "2022/10/28",
+          "type": "buy",
+          "price": 16.17490098,
+          "volume": 1400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/12/05",
+          "type": "sell",
+          "price": 19.56580647,
+          "volume": 1400,
+          "reason": "止盈",
+          "profit": 4697.2306955700005,
+          "profit_rate": 0.20843152202037224
+        },
+        {
+          "time": "2022/12/27",
+          "type": "buy",
+          "price": 18.91768326,
+          "volume": 1300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/08/03",
+          "type": "sell",
+          "price": 22.94731887,
+          "volume": 1300,
+          "reason": "止盈",
+          "profit": 5184.101790231005,
+          "profit_rate": 0.21179714029763705
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 350
+    },
+    {
+      "stock_code": "sz.000166",
+      "stock_name": "申万宏源",
+      "metrics": {
+        "final_value": 99317.520034928,
+        "total_return": -0.006824799650719943,
+        "annual_return": -0.0011407147402061613,
+        "max_drawdown": 0.06943255488689819,
+        "win_rate": 0.16666666666666666,
+        "trade_count": 6,
+        "win_count": 1,
+        "loss_count": 5
+      },
+      "accuracy": {
+        "buy_accuracy": 0.16666666666666666,
+        "sell_accuracy": 0.16666666666666666,
+        "overall_accuracy": 0.16666666666666666,
+        "buy_signal_count": 6,
+        "sell_signal_count": 6,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2019/09/10",
+          "type": "buy",
+          "price": 4.6196463,
+          "volume": 5400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/09/26",
+          "type": "sell",
+          "price": 4.3479024,
+          "volume": 5400,
+          "reason": "止损",
+          "profit": -1515.8418229799972,
+          "profit_rate": -0.05976376564611855
+        },
+        {
+          "time": "2020/11/25",
+          "type": "buy",
+          "price": 4.84899888,
+          "volume": 5000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/12/22",
+          "type": "sell",
+          "price": 4.61022242,
+          "volume": 5000,
+          "reason": "止损",
+          "profit": -1241.1784064999956,
+          "profit_rate": -0.05019223201041356
+        },
+        {
+          "time": "2021/01/18",
+          "type": "buy",
+          "price": 4.69287581,
+          "volume": 5100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/01/25",
+          "type": "sell",
+          "price": 4.41736451,
+          "volume": 5100,
+          "reason": "止损",
+          "profit": -1451.5698556319985,
+          "profit_rate": -0.0596487661066917
+        },
+        {
+          "time": "2021/03/09",
+          "type": "buy",
+          "price": 4.32552741,
+          "volume": 5500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/04/28",
+          "type": "sell",
+          "price": 4.10511837,
+          "volume": 5500,
+          "reason": "止损",
+          "profit": -1258.618271790001,
+          "profit_rate": -0.05190351050223674
+        },
+        {
+          "time": "2021/06/01",
+          "type": "buy",
+          "price": 4.35307854,
+          "volume": 5400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/07/08",
+          "type": "sell",
+          "price": 4.12348579,
+          "volume": 5400,
+          "reason": "止损",
+          "profit": -1285.574297381998,
+          "profit_rate": -0.05368892710664853
+        },
+        {
+          "time": "2021/08/19",
+          "type": "buy",
+          "price": 4.35786944,
+          "volume": 5300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/09/06",
+          "type": "sell",
+          "price": 5.51308052,
+          "volume": 5300,
+          "reason": "止盈",
+          "profit": 6070.302689212,
+          "profit_rate": 0.26382238451203976
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 120
+    },
+    {
+      "stock_code": "sz.000063",
+      "stock_name": "中兴通讯",
+      "metrics": {
+        "final_value": 103235.113116719,
+        "total_return": 0.03235113116719003,
+        "annual_return": 0.005320579705829331,
+        "max_drawdown": 0.060581177708141094,
+        "win_rate": 0.2857142857142857,
+        "trade_count": 7,
+        "win_count": 2,
+        "loss_count": 5
+      },
+      "accuracy": {
+        "buy_accuracy": 0.2857142857142857,
+        "sell_accuracy": 0.2857142857142857,
+        "overall_accuracy": 0.2857142857142857,
+        "buy_signal_count": 7,
+        "sell_signal_count": 7,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2020/09/30",
+          "type": "buy",
+          "price": 30.7107427,
+          "volume": 800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/11/02",
+          "type": "sell",
+          "price": 28.88294321,
+          "volume": 800,
+          "reason": "止损",
+          "profit": -1509.9145407279975,
+          "profit_rate": -0.0604561601540452
+        },
+        {
+          "time": "2020/11/18",
+          "type": "buy",
+          "price": 33.15090141,
+          "volume": 700,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/12/07",
+          "type": "sell",
+          "price": 31.36949277,
+          "volume": 700,
+          "reason": "止损",
+          "profit": -1292.1503239259982,
+          "profit_rate": -0.054681674329029456
+        },
+        {
+          "time": "2021/04/06",
+          "type": "buy",
+          "price": 27.2778198,
+          "volume": 800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/04/15",
+          "type": "sell",
+          "price": 25.71908724,
+          "volume": 800,
+          "reason": "止损",
+          "profit": -1289.3835736319998,
+          "profit_rate": -0.05808477237048657
+        },
+        {
+          "time": "2021/05/10",
+          "type": "buy",
+          "price": 26.28505561,
+          "volume": 900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/06/18",
+          "type": "sell",
+          "price": 31.68495055,
+          "volume": 900,
+          "reason": "止盈",
+          "profit": 4807.732440456002,
+          "profit_rate": 0.2042317019373145
+        },
+        {
+          "time": "2022/03/31",
+          "type": "buy",
+          "price": 22.2977201,
+          "volume": 1100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/04/11",
+          "type": "sell",
+          "price": 20.40381333,
+          "volume": 1100,
+          "reason": "止损",
+          "profit": -2130.2691337729993,
+          "profit_rate": -0.08585138710661724
+        },
+        {
+          "time": "2022/04/29",
+          "type": "buy",
+          "price": 22.51230067,
+          "volume": 1000,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/05/24",
+          "type": "sell",
+          "price": 21.13471672,
+          "volume": 1000,
+          "reason": "止损",
+          "profit": -1421.2309673899945,
+          "profit_rate": -0.06213036924212685
+        },
+        {
+          "time": "2022/10/28",
+          "type": "buy",
+          "price": 20.18951472,
+          "volume": 1200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/12/05",
+          "type": "sell",
+          "price": 25.29360552,
+          "volume": 1200,
+          "reason": "止盈",
+          "profit": 6070.329215712005,
+          "profit_rate": 0.2515574313327124
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 140
+    },
+    {
+      "stock_code": "sz.000725",
+      "stock_name": "京东方A",
+      "metrics": {
+        "final_value": 102096.68264721503,
+        "total_return": 0.020966826472150278,
+        "annual_return": 0.0034643282021116217,
+        "max_drawdown": 0.06829212252406758,
+        "win_rate": 0.2222222222222222,
+        "trade_count": 9,
+        "win_count": 2,
+        "loss_count": 7
+      },
+      "accuracy": {
+        "buy_accuracy": 0.2222222222222222,
+        "sell_accuracy": 0.2222222222222222,
+        "overall_accuracy": 0.2222222222222222,
+        "buy_signal_count": 9,
+        "sell_signal_count": 9,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2018/05/22",
+          "type": "buy",
+          "price": 3.84009982,
+          "volume": 6500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/05/25",
+          "type": "sell",
+          "price": 3.60392056,
+          "volume": 6500,
+          "reason": "止损",
+          "profit": -1583.5513224699935,
+          "profit_rate": -0.06244097588061125
+        },
+        {
+          "time": "2018/07/26",
+          "type": "buy",
+          "price": 3.32005784,
+          "volume": 7400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/08/02",
+          "type": "sell",
+          "price": 3.11588316,
+          "volume": 7400,
+          "reason": "止损",
+          "profit": -1558.5185953999935,
+          "profit_rate": -0.06243489131189649
+        },
+        {
+          "time": "2018/10/31",
+          "type": "buy",
+          "price": 2.441219,
+          "volume": 9900,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/12/21",
+          "type": "sell",
+          "price": 2.3080616,
+          "volume": 9900,
+          "reason": "止损",
+          "profit": -1365.2761379399963,
+          "profit_rate": -0.05548996458087352
+        },
+        {
+          "time": "2019/01/22",
+          "type": "buy",
+          "price": 2.36132456,
+          "volume": 10100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/02/13",
+          "type": "sell",
+          "price": 2.93833996,
+          "volume": 10100,
+          "reason": "止盈",
+          "profit": 5774.328928348001,
+          "profit_rate": 0.24311778447116805
+        },
+        {
+          "time": "2019/11/20",
+          "type": "buy",
+          "price": 3.27713106,
+          "volume": 7700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/12/17",
+          "type": "sell",
+          "price": 4.25310725,
+          "volume": 7700,
+          "reason": "止盈",
+          "profit": 7457.033828013009,
+          "profit_rate": 0.29651768996031325
+        },
+        {
+          "time": "2022/03/28",
+          "type": "buy",
+          "price": 3.8833695,
+          "volume": 6900,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/04/21",
+          "type": "sell",
+          "price": 3.6092493,
+          "volume": 6900,
+          "reason": "止损",
+          "profit": -1943.1284497199958,
+          "profit_rate": -0.07151671857554201
+        },
+        {
+          "time": "2022/05/24",
+          "type": "buy",
+          "price": 3.50873856,
+          "volume": 7600,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/09/16",
+          "type": "sell",
+          "price": 3.3303402,
+          "volume": 7600,
+          "reason": "止损",
+          "profit": -1407.8045345759965,
+          "profit_rate": -0.051792223923007905
+        },
+        {
+          "time": "2022/10/26",
+          "type": "buy",
+          "price": 3.4751376,
+          "volume": 7500,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/10/31",
+          "type": "sell",
+          "price": 3.22415544,
+          "volume": 7500,
+          "reason": "止损",
+          "profit": -1932.6108977999975,
+          "profit_rate": -0.07314907314907307
+        },
+        {
+          "time": "2023/11/13",
+          "type": "buy",
+          "price": 3.8721139,
+          "volume": 6600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/12/13",
+          "type": "sell",
+          "price": 3.6760575,
+          "volume": 6600,
+          "reason": "止损",
+          "profit": -1343.7901712399944,
+          "profit_rate": -0.051581330062342556
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 180
+    },
+    {
+      "stock_code": "sz.002236",
+      "stock_name": "大华股份",
+      "metrics": {
+        "final_value": 91495.01553611603,
+        "total_return": -0.08504984463883972,
+        "annual_return": -0.014705090093176332,
+        "max_drawdown": 0.08625546851967701,
+        "win_rate": 0.0,
+        "trade_count": 5,
+        "win_count": 0,
+        "loss_count": 5
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 5,
+        "sell_signal_count": 5,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2018/07/30",
+          "type": "buy",
+          "price": 16.20697892,
+          "volume": 1500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/08/02",
+          "type": "sell",
+          "price": 14.74861124,
+          "volume": 1500,
+          "reason": "止损",
+          "profit": -2233.9849052399986,
+          "profit_rate": -0.09089303840241172
+        },
+        {
+          "time": "2018/11/15",
+          "type": "buy",
+          "price": 11.99681032,
+          "volume": 2000,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/11/20",
+          "type": "sell",
+          "price": 11.27630724,
+          "volume": 2000,
+          "reason": "止损",
+          "profit": -1487.5523951199975,
+          "profit_rate": -0.06099689022988587
+        },
+        {
+          "time": "2021/07/23",
+          "type": "buy",
+          "price": 20.00056262,
+          "volume": 1200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/07/27",
+          "type": "sell",
+          "price": 18.46890778,
+          "volume": 1200,
+          "reason": "止损",
+          "profit": -1884.1491724799998,
+          "profit_rate": -0.07750308462686023
+        },
+        {
+          "time": "2022/10/27",
+          "type": "buy",
+          "price": 11.2296632,
+          "volume": 2100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/10/31",
+          "type": "sell",
+          "price": 10.48705644,
+          "volume": 2100,
+          "reason": "止损",
+          "profit": -1605.0793072439956,
+          "profit_rate": -0.06706197028777652
+        },
+        {
+          "time": "2022/11/15",
+          "type": "buy",
+          "price": 11.42889916,
+          "volume": 2000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/11/24",
+          "type": "sell",
+          "price": 10.80402274,
+          "volume": 2000,
+          "reason": "止损",
+          "profit": -1294.218683799998,
+          "profit_rate": -0.05561949935959429
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 110
+    },
+    {
+      "stock_code": "sz.002415",
+      "stock_name": "海康威视",
+      "metrics": {
+        "final_value": 101084.09234350201,
+        "total_return": 0.010840923435020086,
+        "annual_return": 0.0017987127292871108,
+        "max_drawdown": 0.060058868055874806,
+        "win_rate": 0.25,
+        "trade_count": 4,
+        "win_count": 1,
+        "loss_count": 3
+      },
+      "accuracy": {
+        "buy_accuracy": 0.25,
+        "sell_accuracy": 0.25,
+        "overall_accuracy": 0.25,
+        "buy_signal_count": 4,
+        "sell_signal_count": 4,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2018/11/07",
+          "type": "buy",
+          "price": 22.815241,
+          "volume": 1000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/11/27",
+          "type": "sell",
+          "price": 21.621518,
+          "volume": 1000,
+          "reason": "止损",
+          "profit": -1238.1597589999983,
+          "profit_rate": -0.053268028949679594
+        },
+        {
+          "time": "2021/12/17",
+          "type": "buy",
+          "price": 46.65281635,
+          "volume": 500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/01/12",
+          "type": "sell",
+          "price": 44.05850825,
+          "volume": 500,
+          "reason": "止损",
+          "profit": -1342.5097122999941,
+          "profit_rate": -0.056552268441050726
+        },
+        {
+          "time": "2022/03/03",
+          "type": "buy",
+          "price": 41.87571109,
+          "volume": 500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/07",
+          "type": "sell",
+          "price": 39.2724571,
+          "volume": 500,
+          "reason": "止损",
+          "profit": -1342.201079094997,
+          "profit_rate": -0.06310310070190436
+        },
+        {
+          "time": "2022/09/26",
+          "type": "buy",
+          "price": 26.57367208,
+          "volume": 900,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/12/14",
+          "type": "sell",
+          "price": 32.19573359,
+          "volume": 900,
+          "reason": "止盈",
+          "profit": 5006.962893897002,
+          "profit_rate": 0.21035474221069805
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 420
+    },
+    {
+      "stock_code": "sh.600887",
+      "stock_name": "伊利股份",
+      "metrics": {
+        "final_value": 93557.818352176,
+        "total_return": -0.06442181647824007,
+        "annual_return": -0.011037066787301986,
+        "max_drawdown": 0.07723634311236074,
+        "win_rate": 0.0,
+        "trade_count": 5,
+        "win_count": 0,
+        "loss_count": 5
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 5,
+        "sell_signal_count": 5,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2018/04/18",
+          "type": "buy",
+          "price": 21.73076108,
+          "volume": 1100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/04/27",
+          "type": "sell",
+          "price": 20.33052336,
+          "volume": 1100,
+          "reason": "止损",
+          "profit": -1586.5289048839986,
+          "profit_rate": -0.06537037188514569
+        },
+        {
+          "time": "2018/05/21",
+          "type": "buy",
+          "price": 21.11187148,
+          "volume": 1100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/05/24",
+          "type": "sell",
+          "price": 20.0752314,
+          "volume": 1100,
+          "reason": "止损",
+          "profit": -1185.6099011680017,
+          "profit_rate": -0.050052183067939765
+        },
+        {
+          "time": "2021/08/13",
+          "type": "buy",
+          "price": 30.0183798,
+          "volume": 800,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/08/19",
+          "type": "sell",
+          "price": 28.3936956,
+          "volume": 800,
+          "reason": "止损",
+          "profit": -1346.4770203199987,
+          "profit_rate": -0.05506791310135029
+        },
+        {
+          "time": "2022/03/01",
+          "type": "buy",
+          "price": 33.59949,
+          "volume": 700,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/07",
+          "type": "sell",
+          "price": 31.940781,
+          "volume": 700,
+          "reason": "止损",
+          "profit": -1206.9744896999946,
+          "profit_rate": -0.050316771835759035
+        },
+        {
+          "time": "2023/09/26",
+          "type": "buy",
+          "price": 24.20339948,
+          "volume": 900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/12/19",
+          "type": "sell",
+          "price": 23.0099558,
+          "volume": 900,
+          "reason": "止损",
+          "profit": -1116.591331751999,
+          "profit_rate": -0.05025866923513539
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 200
+    },
+    {
+      "stock_code": "sz.002304",
+      "stock_name": "洋河股份",
+      "metrics": {
+        "final_value": 98337.523400524,
+        "total_return": -0.016624765994759944,
+        "annual_return": -0.0027901849068230344,
+        "max_drawdown": 0.06135866681344087,
+        "win_rate": 0.0,
+        "trade_count": 1,
+        "win_count": 0,
+        "loss_count": 1
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 1,
+        "sell_signal_count": 1,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2019/12/03",
+          "type": "buy",
+          "price": 81.11284632,
+          "volume": 300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/03/12",
+          "type": "sell",
+          "price": 75.7280986,
+          "volume": 300,
+          "reason": "止损",
+          "profit": -1662.4765994759982,
+          "profit_rate": -0.0673185619033995
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 180
+    },
+    {
+      "stock_code": "sh.600809",
+      "stock_name": "山西汾酒",
+      "metrics": {
+        "final_value": 98754.4390438,
+        "total_return": -0.012455609562000028,
+        "annual_return": -0.002086791429385171,
+        "max_drawdown": 0.01677742374278141,
+        "win_rate": 0.0,
+        "trade_count": 1,
+        "win_count": 0,
+        "loss_count": 1
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 1,
+        "sell_signal_count": 1,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2018/11/13",
+          "type": "buy",
+          "price": 21.94615368,
+          "volume": 1100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/11/26",
+          "type": "sell",
+          "price": 20.85662832,
+          "volume": 1100,
+          "reason": "止损",
+          "profit": -1245.560956199999,
+          "profit_rate": -0.050594795275646254
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 380
+    },
+    {
+      "stock_code": "sz.000596",
+      "stock_name": "古井贡酒",
+      "metrics": {
+        "final_value": 108780.73799250401,
+        "total_return": 0.08780737992504015,
+        "annual_return": 0.014126193600745518,
+        "max_drawdown": 0.002608025510703046,
+        "win_rate": 1.0,
+        "trade_count": 2,
+        "win_count": 2,
+        "loss_count": 0
+      },
+      "accuracy": {
+        "buy_accuracy": 1.0,
+        "sell_accuracy": 1.0,
+        "overall_accuracy": 1.0,
+        "buy_signal_count": 2,
+        "sell_signal_count": 2,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2019/01/23",
+          "type": "buy",
+          "price": 56.68806234,
+          "volume": 400,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/02/18",
+          "type": "sell",
+          "price": 68.55425148,
+          "volume": 400,
+          "reason": "止盈",
+          "profit": 4696.378730472003,
+          "profit_rate": 0.208116186852996
+        },
+        {
+          "time": "2020/04/09",
+          "type": "buy",
+          "price": 104.68901184,
+          "volume": 200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/04/28",
+          "type": "sell",
+          "price": 125.340838,
+          "volume": 200,
+          "reason": "1",
+          "profit": 4084.3592620320014,
+          "profit_rate": 0.19607225416354052
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 140
+    },
+    {
+      "stock_code": "sz.000661",
+      "stock_name": "长春高新",
+      "metrics": {
+        "final_value": 107920.788333235,
+        "total_return": 0.07920788333235003,
+        "annual_return": 0.012785600826125343,
+        "max_drawdown": 0.023174230173513815,
+        "win_rate": 0.6666666666666666,
+        "trade_count": 3,
+        "win_count": 2,
+        "loss_count": 1
+      },
+      "accuracy": {
+        "buy_accuracy": 0.6666666666666666,
+        "sell_accuracy": 0.6666666666666666,
+        "overall_accuracy": 0.6666666666666666,
+        "buy_signal_count": 3,
+        "sell_signal_count": 3,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2022/03/29",
+          "type": "buy",
+          "price": 152.0719186,
+          "volume": 100,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/04/18",
+          "type": "sell",
+          "price": 143.89380808,
+          "volume": 100,
+          "reason": "止损",
+          "profit": -847.4076246679942,
+          "profit_rate": -0.0547231905445424
+        },
+        {
+          "time": "2022/05/19",
+          "type": "buy",
+          "price": 138.46034216,
+          "volume": 100,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/06/15",
+          "type": "sell",
+          "price": 173.07265873,
+          "volume": 100,
+          "reason": "止盈",
+          "profit": 3430.078356910999,
+          "profit_rate": 0.24873127044010893
+        },
+        {
+          "time": "2023/09/15",
+          "type": "buy",
+          "price": 126.95778,
+          "volume": 200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/11/28",
+          "type": "sell",
+          "price": 153.92925504,
+          "volume": 200,
+          "reason": "止盈",
+          "profit": 5338.117600992002,
+          "profit_rate": 0.2112332112332113
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 150
+    },
+    {
+      "stock_code": "sz.002607",
+      "stock_name": "中公教育",
+      "metrics": {
+        "final_value": 103059.134,
+        "total_return": 0.030591340000000054,
+        "annual_return": 0.0050347576782001635,
+        "max_drawdown": 0.07398248999999982,
+        "win_rate": 0.3333333333333333,
+        "trade_count": 6,
+        "win_count": 2,
+        "loss_count": 4
+      },
+      "accuracy": {
+        "buy_accuracy": 0.3333333333333333,
+        "sell_accuracy": 0.3333333333333333,
+        "overall_accuracy": 0.3333333333333333,
+        "buy_signal_count": 6,
+        "sell_signal_count": 6,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2021/09/15",
+          "type": "buy",
+          "price": 12.2,
+          "volume": 2000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/09/27",
+          "type": "sell",
+          "price": 11.01,
+          "volume": 2000,
+          "reason": "止损",
+          "profit": -2426.4199999999946,
+          "profit_rate": -0.09844254106549172
+        },
+        {
+          "time": "2021/11/29",
+          "type": "buy",
+          "price": 9.96,
+          "volume": 2400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/12/01",
+          "type": "sell",
+          "price": 9.19,
+          "volume": 2400,
+          "reason": "止损",
+          "profit": -1893.9600000000028,
+          "profit_rate": -0.0782310059418494
+        },
+        {
+          "time": "2022/02/23",
+          "type": "buy",
+          "price": 7.23,
+          "volume": 3300,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/08",
+          "type": "sell",
+          "price": 6.35,
+          "volume": 3300,
+          "reason": "止损",
+          "profit": -2948.8139999999985,
+          "profit_rate": -0.12259248358833419
+        },
+        {
+          "time": "2022/10/31",
+          "type": "buy",
+          "price": 4.35,
+          "volume": 5300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/11/18",
+          "type": "sell",
+          "price": 5.49,
+          "volume": 5300,
+          "reason": "止盈",
+          "profit": 5989.848000000002,
+          "profit_rate": 0.2608081573598818
+        },
+        {
+          "time": "2023/09/13",
+          "type": "buy",
+          "price": 4.2,
+          "volume": 5800,
+          "reason": "1,2s",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/09/19",
+          "type": "sell",
+          "price": 3.95,
+          "volume": 5800,
+          "reason": "止损",
+          "profit": -1497.2700000000004,
+          "profit_rate": -0.06046334617763188
+        },
+        {
+          "time": "2023/10/25",
+          "type": "buy",
+          "price": 3.9,
+          "volume": 6200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/11/29",
+          "type": "sell",
+          "price": 4.85,
+          "volume": 6200,
+          "reason": "止盈",
+          "profit": 5835.75,
+          "profit_rate": 0.2423473961935502
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 200
+    },
+    {
+      "stock_code": "sh.600276",
+      "stock_name": "恒瑞医药",
+      "metrics": {
+        "final_value": 103954.147119538,
+        "total_return": 0.03954147119538,
+        "annual_return": 0.006484219254453638,
+        "max_drawdown": 0.04923030511053338,
+        "win_rate": 0.4,
+        "trade_count": 5,
+        "win_count": 2,
+        "loss_count": 3
+      },
+      "accuracy": {
+        "buy_accuracy": 0.4,
+        "sell_accuracy": 0.4,
+        "overall_accuracy": 0.4,
+        "buy_signal_count": 5,
+        "sell_signal_count": 5,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2020/12/03",
+          "type": "buy",
+          "price": 73.6307179,
+          "volume": 300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/12/22",
+          "type": "sell",
+          "price": 86.893902,
+          "volume": 300,
+          "reason": "1p",
+          "profit": 3930.797844030003,
+          "profit_rate": 0.1789521735071243
+        },
+        {
+          "time": "2021/05/12",
+          "type": "buy",
+          "price": 68.0587078,
+          "volume": 300,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/07/05",
+          "type": "sell",
+          "price": 61.9533756,
+          "volume": 300,
+          "reason": "止损",
+          "profit": -1870.6032850199954,
+          "profit_rate": -0.09061623241862182
+        },
+        {
+          "time": "2021/09/22",
+          "type": "buy",
+          "price": 47.1416472,
+          "volume": 500,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/01/21",
+          "type": "sell",
+          "price": 44.22850992,
+          "volume": 500,
+          "reason": "止损",
+          "profit": -1502.2537185599977,
+          "profit_rate": -0.06273267442369726
+        },
+        {
+          "time": "2022/05/19",
+          "type": "buy",
+          "price": 28.786914,
+          "volume": 800,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/06/27",
+          "type": "sell",
+          "price": 34.99701408,
+          "volume": 800,
+          "reason": "止盈",
+          "profit": 4917.052921536,
+          "profit_rate": 0.21451198374275307
+        },
+        {
+          "time": "2022/10/19",
+          "type": "buy",
+          "price": 38.532312,
+          "volume": 600,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/12/20",
+          "type": "sell",
+          "price": 36.07217208,
+          "volume": 600,
+          "reason": "止损",
+          "profit": -1520.8466424479957,
+          "profit_rate": -0.06478137247367992
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 320
+    },
+    {
+      "stock_code": "sz.000538",
+      "stock_name": "云南白药",
+      "metrics": {
+        "final_value": 102998.86134728201,
+        "total_return": 0.029988613472820145,
+        "annual_return": 0.004936770443229044,
+        "max_drawdown": 0.04598115800582169,
+        "win_rate": 0.3333333333333333,
+        "trade_count": 6,
+        "win_count": 2,
+        "loss_count": 4
+      },
+      "accuracy": {
+        "buy_accuracy": 0.3333333333333333,
+        "sell_accuracy": 0.3333333333333333,
+        "overall_accuracy": 0.3333333333333333,
+        "buy_signal_count": 6,
+        "sell_signal_count": 6,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2020/12/15",
+          "type": "buy",
+          "price": 67.705306,
+          "volume": 300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/01/05",
+          "type": "sell",
+          "price": 82.36080852,
+          "volume": 300,
+          "reason": "止盈",
+          "profit": 4351.630921644006,
+          "profit_rate": 0.21524493205909168
+        },
+        {
+          "time": "2021/09/22",
+          "type": "buy",
+          "price": 59.84524158,
+          "volume": 400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/10/27",
+          "type": "sell",
+          "price": 56.76833364,
+          "volume": 400,
+          "reason": "止损",
+          "profit": -1277.4086060879963,
+          "profit_rate": -0.0523620505036981
+        },
+        {
+          "time": "2021/11/19",
+          "type": "buy",
+          "price": 55.61912706,
+          "volume": 400,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/01/11",
+          "type": "sell",
+          "price": 67.6549035,
+          "volume": 400,
+          "reason": "止盈",
+          "profit": 4765.000963776005,
+          "profit_rate": 0.21518117519006244
+        },
+        {
+          "time": "2022/05/17",
+          "type": "buy",
+          "price": 51.5123059,
+          "volume": 500,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/05/24",
+          "type": "sell",
+          "price": 48.95877993,
+          "volume": 500,
+          "reason": "止损",
+          "profit": -1326.9985279149987,
+          "profit_rate": -0.05052066287057711
+        },
+        {
+          "time": "2023/04/13",
+          "type": "buy",
+          "price": 49.32104486,
+          "volume": 500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/06/26",
+          "type": "sell",
+          "price": 45.95929416,
+          "volume": 500,
+          "reason": "止损",
+          "profit": -1728.5155195099978,
+          "profit_rate": -0.06909148195160959
+        },
+        {
+          "time": "2023/07/11",
+          "type": "buy",
+          "price": 48.59124426,
+          "volume": 500,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/10/19",
+          "type": "sell",
+          "price": 45.11525499,
+          "volume": 500,
+          "reason": "止损",
+          "profit": -1784.8478846250036,
+          "profit_rate": -0.07246283787187788
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 120
+    },
+    {
+      "stock_code": "sz.000002",
+      "stock_name": "万科A",
+      "metrics": {
+        "final_value": 97373.726124283,
+        "total_return": -0.026262738757170008,
+        "annual_return": -0.004425804475057582,
+        "max_drawdown": 0.026345705617769312,
+        "win_rate": 0.0,
+        "trade_count": 2,
+        "win_count": 0,
+        "loss_count": 2
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 2,
+        "sell_signal_count": 2,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2023/08/07",
+          "type": "buy",
+          "price": 14.01015963,
+          "volume": 1700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/08/21",
+          "type": "sell",
+          "price": 13.29681138,
+          "volume": 1700,
+          "reason": "止损",
+          "profit": -1259.113875717001,
+          "profit_rate": -0.05186463231269748
+        },
+        {
+          "time": "2023/11/24",
+          "type": "buy",
+          "price": 12.12,
+          "volume": 2000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/11/29",
+          "type": "sell",
+          "price": 11.46,
+          "volume": 2000,
+          "reason": "止损",
+          "profit": -1367.1599999999962,
+          "profit_rate": -0.05540004549905523
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 160
+    },
+    {
+      "stock_code": "sz.001979",
+      "stock_name": "招商蛇口",
+      "metrics": {
+        "final_value": 94406.989218539,
+        "total_return": -0.05593010781460995,
+        "annual_return": -0.00954665148175149,
+        "max_drawdown": 0.06468292455150591,
+        "win_rate": 0.0,
+        "trade_count": 3,
+        "win_count": 0,
+        "loss_count": 3
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 3,
+        "sell_signal_count": 3,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2019/09/02",
+          "type": "buy",
+          "price": 15.86326819,
+          "volume": 1500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/10/31",
+          "type": "sell",
+          "price": 15.08178672,
+          "volume": 1500,
+          "reason": "止损",
+          "profit": -1218.6397873649948,
+          "profit_rate": -0.050213372204230326
+        },
+        {
+          "time": "2019/12/05",
+          "type": "buy",
+          "price": 15.01733464,
+          "volume": 1600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/02/03",
+          "type": "sell",
+          "price": 13.14822432,
+          "volume": 1600,
+          "reason": "止损",
+          "profit": -3035.6414063359953,
+          "profit_rate": -0.12533818113217235
+        },
+        {
+          "time": "2021/07/06",
+          "type": "buy",
+          "price": 9.80656225,
+          "volume": 2400,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/07/14",
+          "type": "sell",
+          "price": 9.26783265,
+          "volume": 2400,
+          "reason": "止损",
+          "profit": -1338.7295877599972,
+          "profit_rate": -0.055879742575021416
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 140
+    },
+    {
+      "stock_code": "sh.601012",
+      "stock_name": "隆基绿能",
+      "metrics": {
+        "final_value": 96084.674124644,
+        "total_return": -0.03915325875355993,
+        "annual_return": -0.006634619931146002,
+        "max_drawdown": 0.04642161010048065,
+        "win_rate": 0.0,
+        "trade_count": 3,
+        "win_count": 0,
+        "loss_count": 3
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 3,
+        "sell_signal_count": 3,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2018/09/07",
+          "type": "buy",
+          "price": 5.30738345,
+          "volume": 4700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/09/11",
+          "type": "sell",
+          "price": 5.02721674,
+          "volume": 4700,
+          "reason": "止损",
+          "profit": -1365.3561578929948,
+          "profit_rate": -0.05373436971949959
+        },
+        {
+          "time": "2023/01/17",
+          "type": "buy",
+          "price": 43.15852044,
+          "volume": 500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/03/13",
+          "type": "sell",
+          "price": 40.92651927,
+          "volume": 500,
+          "reason": "止损",
+          "profit": -1158.0431048549945,
+          "profit_rate": -0.052663686810028094
+        },
+        {
+          "time": "2023/04/10",
+          "type": "buy",
+          "price": 40.18576779,
+          "volume": 600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/04/19",
+          "type": "sell",
+          "price": 37.94401989,
+          "volume": 600,
+          "reason": "止损",
+          "profit": -1391.9266126079965,
+          "profit_rate": -0.05672789495248852
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 280
+    },
+    {
+      "stock_code": "sz.300274",
+      "stock_name": "阳光电源",
+      "metrics": {
+        "final_value": 98832.08841472,
+        "total_return": -0.011679115852800024,
+        "annual_return": -0.0019560598230571324,
+        "max_drawdown": 0.021489788057043928,
+        "win_rate": 0.0,
+        "trade_count": 1,
+        "win_count": 0,
+        "loss_count": 1
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 1,
+        "sell_signal_count": 1,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2022/03/04",
+          "type": "buy",
+          "price": 84.0049758,
+          "volume": 200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/22",
+          "type": "sell",
+          "price": 78.3277506,
+          "volume": 200,
+          "reason": "止损",
+          "profit": -1167.911585279995,
+          "profit_rate": -0.0685134975194991
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 200
+    },
+    {
+      "stock_code": "sz.002129",
+      "stock_name": "中环股份",
+      "metrics": {
+        "final_value": 97402.305764188,
+        "total_return": -0.025976942358119995,
+        "annual_return": -0.004377109489724806,
+        "max_drawdown": 0.029598755108731164,
+        "win_rate": 0.0,
+        "trade_count": 2,
+        "win_count": 0,
+        "loss_count": 2
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 2,
+        "sell_signal_count": 2,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2023/09/08",
+          "type": "buy",
+          "price": 23.62743981,
+          "volume": 1000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/09/19",
+          "type": "sell",
+          "price": 22.37879592,
+          "volume": 1000,
+          "reason": "止损",
+          "profit": -1294.650125729997,
+          "profit_rate": -0.053793400372670865
+        },
+        {
+          "time": "2023/11/23",
+          "type": "buy",
+          "price": 17.68428207,
+          "volume": 1300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/11/28",
+          "type": "sell",
+          "price": 16.71634107,
+          "volume": 1300,
+          "reason": "止损",
+          "profit": -1303.044110081999,
+          "profit_rate": -0.05567885863452347
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 150
+    },
+    {
+      "stock_code": "sh.600309",
+      "stock_name": "万华化学",
+      "metrics": {
+        "final_value": 98513.41734693,
+        "total_return": -0.014865826530699996,
+        "annual_return": -0.0024931253821850463,
+        "max_drawdown": 0.035503516645248305,
+        "win_rate": 0.0,
+        "trade_count": 1,
+        "win_count": 0,
+        "loss_count": 1
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 1,
+        "sell_signal_count": 1,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2021/11/29",
+          "type": "buy",
+          "price": 86.832565,
+          "volume": 200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/07",
+          "type": "sell",
+          "price": 79.56605035,
+          "volume": 200,
+          "reason": "止损",
+          "profit": -1486.5826530700015,
+          "profit_rate": -0.08459961091540039
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 350
+    },
+    {
+      "stock_code": "sz.002648",
+      "stock_name": "卫星化学",
+      "metrics": {
+        "final_value": 99200.38808833502,
+        "total_return": -0.007996119116649788,
+        "annual_return": -0.0013371484732748184,
+        "max_drawdown": 0.08448416124475973,
+        "win_rate": 0.2,
+        "trade_count": 5,
+        "win_count": 1,
+        "loss_count": 4
+      },
+      "accuracy": {
+        "buy_accuracy": 0.2,
+        "sell_accuracy": 0.2,
+        "overall_accuracy": 0.2,
+        "buy_signal_count": 5,
+        "sell_signal_count": 5,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2018/07/20",
+          "type": "buy",
+          "price": 3.46947705,
+          "volume": 7200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/08/02",
+          "type": "sell",
+          "price": 3.27178605,
+          "volume": 7200,
+          "reason": "止损",
+          "profit": -1471.9122943200018,
+          "profit_rate": -0.0579221348452117
+        },
+        {
+          "time": "2018/09/05",
+          "type": "buy",
+          "price": 3.6704629,
+          "volume": 6700,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/09/11",
+          "type": "sell",
+          "price": 3.48924615,
+          "volume": 6700,
+          "reason": "止损",
+          "profit": -1262.1222756349998,
+          "profit_rate": -0.05032131243980427
+        },
+        {
+          "time": "2019/09/06",
+          "type": "buy",
+          "price": 4.64624495,
+          "volume": 5200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/09/19",
+          "type": "sell",
+          "price": 4.37468965,
+          "volume": 5200,
+          "reason": "止损",
+          "profit": -1458.9964199199967,
+          "profit_rate": -0.05938679994275133
+        },
+        {
+          "time": "2022/08/19",
+          "type": "buy",
+          "price": 16.5433408,
+          "volume": 1400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/08/30",
+          "type": "sell",
+          "price": 15.05211008,
+          "volume": 1400,
+          "reason": "止损",
+          "profit": -2131.9566392319975,
+          "profit_rate": -0.09104979527514724
+        },
+        {
+          "time": "2022/11/09",
+          "type": "buy",
+          "price": 13.44484932,
+          "volume": 1700,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/01/19",
+          "type": "sell",
+          "price": 16.72524042,
+          "volume": 1700,
+          "reason": "止盈",
+          "profit": 5525.375717441999,
+          "profit_rate": 0.24274593864409993
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 110
+    },
+    {
+      "stock_code": "sz.300037",
+      "stock_name": "新宙邦",
+      "metrics": {
+        "final_value": 108833.31378768299,
+        "total_return": 0.08833313787682986,
+        "annual_return": 0.014207868227095855,
+        "max_drawdown": 0.027881469104347,
+        "win_rate": 0.5714285714285714,
+        "trade_count": 7,
+        "win_count": 4,
+        "loss_count": 3
+      },
+      "accuracy": {
+        "buy_accuracy": 0.5,
+        "sell_accuracy": 0.4166666666666667,
+        "overall_accuracy": 0.46153846153846156,
+        "buy_signal_count": 7,
+        "sell_signal_count": 6,
+        "buy_correct": 3,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2018/11/01",
+          "type": "buy",
+          "price": 11.38552166,
+          "volume": 2100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/11/21",
+          "type": "sell",
+          "price": 11.90965005,
+          "volume": 2100,
+          "reason": "1",
+          "profit": 1051.7497584089979,
+          "profit_rate": 0.04498965027679706
+        },
+        {
+          "time": "2020/09/25",
+          "type": "buy",
+          "price": 29.32321132,
+          "volume": 800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/10/12",
+          "type": "sell",
+          "price": 35.747192,
+          "volume": 800,
+          "reason": "止盈",
+          "profit": 5087.128221344003,
+          "profit_rate": 0.21785708017332264
+        },
+        {
+          "time": "2022/03/24",
+          "type": "buy",
+          "price": 44.2888866,
+          "volume": 500,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/28",
+          "type": "sell",
+          "price": 41.99516622,
+          "volume": 500,
+          "reason": "止损",
+          "profit": -1190.0022164099937,
+          "profit_rate": -0.05273723889475657
+        },
+        {
+          "time": "2022/05/20",
+          "type": "buy",
+          "price": 41.01508752,
+          "volume": 600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/05/24",
+          "type": "sell",
+          "price": 38.93169005,
+          "volume": 600,
+          "reason": "止损",
+          "profit": -1298.0065485419982,
+          "profit_rate": -0.05174413601379884
+        },
+        {
+          "time": "2022/11/14",
+          "type": "buy",
+          "price": 38.29802999,
+          "volume": 600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/01/06",
+          "type": "sell",
+          "price": 46.20917983,
+          "volume": 600,
+          "reason": "止盈",
+          "profit": 4695.985578107997,
+          "profit_rate": 0.2053626994714986
+        },
+        {
+          "time": "2023/10/13",
+          "type": "buy",
+          "price": 41.50283401,
+          "volume": 600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/10/23",
+          "type": "sell",
+          "price": 39.03923975,
+          "volume": 600,
+          "reason": "止损",
+          "profit": -1526.481800255995,
+          "profit_rate": -0.060299364108665286
+        },
+        {
+          "time": "2023/11/14",
+          "type": "buy",
+          "price": 42.43395625,
+          "volume": 600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/12/29",
+          "type": "sell",
+          "price": 45.8771687,
+          "volume": 600,
+          "reason": "强制平仓",
+          "profit": 2012.940795030001,
+          "profit_rate": 0.08006279434850873
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 100
+    },
+    {
+      "stock_code": "sz.000333",
+      "stock_name": "美的集团",
+      "metrics": {
+        "final_value": 101707.87589735202,
+        "total_return": 0.017078758973520163,
+        "annual_return": 0.0028264128810606692,
+        "max_drawdown": 0.012969558342188462,
+        "win_rate": 0.5,
+        "trade_count": 2,
+        "win_count": 1,
+        "loss_count": 1
+      },
+      "accuracy": {
+        "buy_accuracy": 0.5,
+        "sell_accuracy": 0.5,
+        "overall_accuracy": 0.5,
+        "buy_signal_count": 2,
+        "sell_signal_count": 2,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2021/05/31",
+          "type": "buy",
+          "price": 66.5577,
+          "volume": 300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/06/10",
+          "type": "sell",
+          "price": 63.1937202,
+          "volume": 300,
+          "reason": "止损",
+          "profit": -1048.1193660599965,
+          "profit_rate": -0.051490817585499137
+        },
+        {
+          "time": "2022/11/21",
+          "type": "buy",
+          "price": 40.07121748,
+          "volume": 600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/12/08",
+          "type": "sell",
+          "price": 44.7493635,
+          "volume": 600,
+          "reason": "1",
+          "profit": 2755.995263411998,
+          "profit_rate": 0.11563016181056757
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 450
+    },
+    {
+      "stock_code": "sz.000651",
+      "stock_name": "格力电器",
+      "metrics": {
+        "final_value": 97005.03729822,
+        "total_return": -0.029949627017799938,
+        "annual_return": -0.005055059617780966,
+        "max_drawdown": 0.047720318678304605,
+        "win_rate": 0.16666666666666666,
+        "trade_count": 6,
+        "win_count": 1,
+        "loss_count": 5
+      },
+      "accuracy": {
+        "buy_accuracy": 0.16666666666666666,
+        "sell_accuracy": 0.16666666666666666,
+        "overall_accuracy": 0.16666666666666666,
+        "buy_signal_count": 6,
+        "sell_signal_count": 6,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2018/07/25",
+          "type": "buy",
+          "price": 29.17692688,
+          "volume": 800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/08/02",
+          "type": "sell",
+          "price": 26.68494736,
+          "volume": 800,
+          "reason": "止损",
+          "profit": -2038.2731153919958,
+          "profit_rate": -0.08632292973929982
+        },
+        {
+          "time": "2018/10/09",
+          "type": "buy",
+          "price": 25.19884499,
+          "volume": 900,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/10/29",
+          "type": "sell",
+          "price": 23.60891014,
+          "volume": 900,
+          "reason": "止损",
+          "profit": -1474.8683446169998,
+          "profit_rate": -0.06403151316877817
+        },
+        {
+          "time": "2019/01/18",
+          "type": "buy",
+          "price": 25.28969841,
+          "volume": 900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/03/04",
+          "type": "sell",
+          "price": 30.6831045,
+          "volume": 900,
+          "reason": "止盈",
+          "profit": 4803.6899583810045,
+          "profit_rate": 0.21205289011400483
+        },
+        {
+          "time": "2021/08/12",
+          "type": "buy",
+          "price": 32.7782868,
+          "volume": 700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/08/30",
+          "type": "sell",
+          "price": 30.578456,
+          "volume": 700,
+          "reason": "止损",
+          "profit": -1584.2312799599931,
+          "profit_rate": -0.06804439541641638
+        },
+        {
+          "time": "2021/10/20",
+          "type": "buy",
+          "price": 28.77358128,
+          "volume": 800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/10/28",
+          "type": "sell",
+          "price": 27.222284,
+          "volume": 800,
+          "reason": "止损",
+          "profit": -1285.8345162239966,
+          "profit_rate": -0.0548590859632849
+        },
+        {
+          "time": "2021/11/25",
+          "type": "buy",
+          "price": 26.38697008,
+          "volume": 900,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/09",
+          "type": "sell",
+          "price": 24.86550544,
+          "volume": 900,
+          "reason": "止损",
+          "profit": -1415.4454039680022,
+          "profit_rate": -0.05860109364914334
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 280
+    },
+    {
+      "stock_code": "sh.600089",
+      "stock_name": "特变电工",
+      "metrics": {
+        "final_value": 107652.813370482,
+        "total_return": 0.07652813370482006,
+        "annual_return": 0.012366030123938998,
+        "max_drawdown": 0.05154558664162154,
+        "win_rate": 0.5,
+        "trade_count": 4,
+        "win_count": 2,
+        "loss_count": 2
+      },
+      "accuracy": {
+        "buy_accuracy": 0.5,
+        "sell_accuracy": 0.5,
+        "overall_accuracy": 0.5,
+        "buy_signal_count": 4,
+        "sell_signal_count": 4,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2019/08/30",
+          "type": "buy",
+          "price": 4.36038834,
+          "volume": 5700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/02/03",
+          "type": "sell",
+          "price": 3.79048956,
+          "volume": 5700,
+          "reason": "止损",
+          "profit": -3294.883050029999,
+          "profit_rate": -0.13156752062527124
+        },
+        {
+          "time": "2020/02/21",
+          "type": "buy",
+          "price": 4.29412104,
+          "volume": 5600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/03/13",
+          "type": "sell",
+          "price": 5.36102457,
+          "volume": 5600,
+          "reason": "止盈",
+          "profit": 5920.590952584,
+          "profit_rate": 0.24720958054291395
+        },
+        {
+          "time": "2022/02/18",
+          "type": "buy",
+          "price": 13.7807418,
+          "volume": 1800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/04/11",
+          "type": "sell",
+          "price": 13.01399376,
+          "volume": 1800,
+          "reason": "止损",
+          "profit": -1428.3769960079953,
+          "profit_rate": -0.0565825152291316
+        },
+        {
+          "time": "2022/05/25",
+          "type": "buy",
+          "price": 14.92741004,
+          "volume": 1600,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/06/13",
+          "type": "sell",
+          "price": 18.99601,
+          "volume": 1600,
+          "reason": "止盈",
+          "profit": 6455.482463936001,
+          "profit_rate": 0.27128771274999874
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 130
+    },
+    {
+      "stock_code": "sh.601766",
+      "stock_name": "中国中车",
+      "metrics": {
+        "final_value": 95485.32068280605,
+        "total_return": -0.045146793171939495,
+        "annual_return": -0.007670044007363708,
+        "max_drawdown": 0.098031184732635,
+        "win_rate": 0.14285714285714285,
+        "trade_count": 7,
+        "win_count": 1,
+        "loss_count": 6
+      },
+      "accuracy": {
+        "buy_accuracy": 0.14285714285714285,
+        "sell_accuracy": 0.14285714285714285,
+        "overall_accuracy": 0.14285714285714285,
+        "buy_signal_count": 7,
+        "sell_signal_count": 7,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2019/12/05",
+          "type": "buy",
+          "price": 5.69364107,
+          "volume": 4300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/02/03",
+          "type": "sell",
+          "price": 5.02428704,
+          "volume": 4300,
+          "reason": "止损",
+          "profit": -2924.309419873003,
+          "profit_rate": -0.11844324035906036
+        },
+        {
+          "time": "2020/07/14",
+          "type": "buy",
+          "price": 5.13171423,
+          "volume": 4700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/07/17",
+          "type": "sell",
+          "price": 4.8755417,
+          "volume": 4700,
+          "reason": "止损",
+          "profit": -1251.0449938709935,
+          "profit_rate": -0.05086861608600718
+        },
+        {
+          "time": "2020/11/23",
+          "type": "buy",
+          "price": 4.7876518,
+          "volume": 5000,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/12/16",
+          "type": "sell",
+          "price": 4.55038764,
+          "volume": 5000,
+          "reason": "止损",
+          "profit": -1233.0109971999955,
+          "profit_rate": -0.050507015108784775
+        },
+        {
+          "time": "2022/02/22",
+          "type": "buy",
+          "price": 5.15998554,
+          "volume": 4500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/08",
+          "type": "sell",
+          "price": 4.88059546,
+          "volume": 4500,
+          "reason": "止损",
+          "profit": -1302.437974499997,
+          "profit_rate": -0.05509042564880119
+        },
+        {
+          "time": "2022/04/11",
+          "type": "buy",
+          "price": 4.7147076,
+          "volume": 4900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/04/21",
+          "type": "sell",
+          "price": 4.46151034,
+          "volume": 4900,
+          "reason": "止损",
+          "profit": -1285.6300419059953,
+          "profit_rate": -0.05464905464905449
+        },
+        {
+          "time": "2022/05/17",
+          "type": "buy",
+          "price": 4.33927718,
+          "volume": 5300,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/03/01",
+          "type": "sell",
+          "price": 5.23866462,
+          "volume": 5300,
+          "reason": "止盈",
+          "profit": 4715.990340460001,
+          "profit_rate": 0.20606058836997113
+        },
+        {
+          "time": "2023/03/24",
+          "type": "buy",
+          "price": 5.40152466,
+          "volume": 4400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/10/18",
+          "type": "sell",
+          "price": 5.1315495,
+          "volume": 4400,
+          "reason": "止损",
+          "profit": -1234.2362303039954,
+          "profit_rate": -0.05093035770328626
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 180
+    },
+    {
+      "stock_code": "sz.002008",
+      "stock_name": "大族激光",
+      "metrics": {
+        "final_value": 98691.690165258,
+        "total_return": -0.013083098347420018,
+        "annual_return": -0.0021924989465127442,
+        "max_drawdown": 0.028125899440860084,
+        "win_rate": 0.3333333333333333,
+        "trade_count": 3,
+        "win_count": 1,
+        "loss_count": 2
+      },
+      "accuracy": {
+        "buy_accuracy": 0.3333333333333333,
+        "sell_accuracy": 0.3333333333333333,
+        "overall_accuracy": 0.3333333333333333,
+        "buy_signal_count": 3,
+        "sell_signal_count": 3,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2018/10/08",
+          "type": "buy",
+          "price": 37.2383221,
+          "volume": 600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/10/11",
+          "type": "sell",
+          "price": 33.45821031,
+          "volume": 600,
+          "reason": "止损",
+          "profit": -2310.484993445996,
+          "profit_rate": -0.10240892608650783
+        },
+        {
+          "time": "2023/06/07",
+          "type": "buy",
+          "price": 23.68659064,
+          "volume": 1000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/07/06",
+          "type": "sell",
+          "price": 26.01033696,
+          "volume": 1000,
+          "reason": "1p",
+          "profit": 2274.049392400004,
+          "profit_rate": 0.09700686782302631
+        },
+        {
+          "time": "2023/09/13",
+          "type": "buy",
+          "price": 22.15369916,
+          "volume": 1100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/10/20",
+          "type": "sell",
+          "price": 21.0406442,
+          "volume": 1100,
+          "reason": "止损",
+          "profit": -1271.874233695995,
+          "profit_rate": -0.05119120632562662
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 110
+    },
+    {
+      "stock_code": "sh.601088",
+      "stock_name": "中国神华",
+      "metrics": {
+        "final_value": 98730.06131174,
+        "total_return": -0.012699386882599938,
+        "annual_return": -0.00212785180022379,
+        "max_drawdown": 0.01363094049775874,
+        "win_rate": 0.0,
+        "trade_count": 1,
+        "win_count": 0,
+        "loss_count": 1
+      },
+      "accuracy": {
+        "buy_accuracy": 0.0,
+        "sell_accuracy": 0.0,
+        "overall_accuracy": 0.0,
+        "buy_signal_count": 1,
+        "sell_signal_count": 1,
+        "buy_correct": 0,
+        "sell_correct": 0
+      },
+      "trades": [
+        {
+          "time": "2018/08/08",
+          "type": "buy",
+          "price": 10.881598,
+          "volume": 2200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/08/16",
+          "type": "sell",
+          "price": 10.3255603,
+          "volume": 2200,
+          "reason": "止损",
+          "profit": -1269.938688260001,
+          "profit_rate": -0.05204685424465646
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 500
+    },
+    {
+      "stock_code": "sh.600019",
+      "stock_name": "宝钢股份",
+      "metrics": {
+        "final_value": 95901.42978354405,
+        "total_return": -0.04098570216455948,
+        "annual_return": -0.006950614478778094,
+        "max_drawdown": 0.14068449774243835,
+        "win_rate": 0.14285714285714285,
+        "trade_count": 7,
+        "win_count": 1,
+        "loss_count": 6
+      },
+      "accuracy": {
+        "buy_accuracy": 0.14285714285714285,
+        "sell_accuracy": 0.14285714285714285,
+        "overall_accuracy": 0.14285714285714285,
+        "buy_signal_count": 7,
+        "sell_signal_count": 7,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2018/12/19",
+          "type": "buy",
+          "price": 4.40996745,
+          "volume": 5600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/08/07",
+          "type": "sell",
+          "price": 4.188728,
+          "volume": 5600,
+          "reason": "止损",
+          "profit": -1287.0936145199921,
+          "profit_rate": -0.05111692909582412
+        },
+        {
+          "time": "2019/08/30",
+          "type": "buy",
+          "price": 4.152988,
+          "volume": 5900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/11/11",
+          "type": "sell",
+          "price": 3.917104,
+          "volume": 5900,
+          "reason": "止损",
+          "profit": -1439.3291427999975,
+          "profit_rate": -0.05774088218150159
+        },
+        {
+          "time": "2019/12/03",
+          "type": "buy",
+          "price": 3.852772,
+          "volume": 6300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/02/03",
+          "type": "sell",
+          "price": 3.495372,
+          "volume": 6300,
+          "reason": "止损",
+          "profit": -2297.913307199997,
+          "profit_rate": -0.09367070777089315
+        },
+        {
+          "time": "2021/06/07",
+          "type": "buy",
+          "price": 5.86028306,
+          "volume": 4000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/06/17",
+          "type": "sell",
+          "price": 5.5721967,
+          "volume": 4000,
+          "reason": "止损",
+          "profit": -1198.0753590399981,
+          "profit_rate": -0.05010901129917947
+        },
+        {
+          "time": "2021/07/09",
+          "type": "buy",
+          "price": 6.0859414,
+          "volume": 3800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/07/28",
+          "type": "sell",
+          "price": 5.66703894,
+          "volume": 3800,
+          "reason": "止损",
+          "profit": -1636.490673291999,
+          "profit_rate": -0.069761407423745
+        },
+        {
+          "time": "2022/08/26",
+          "type": "buy",
+          "price": 4.58264872,
+          "volume": 5000,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/10/31",
+          "type": "sell",
+          "price": 4.28238629,
+          "volume": 5000,
+          "reason": "止损",
+          "profit": -1545.6373250499964,
+          "profit_rate": -0.06645513474613823
+        },
+        {
+          "time": "2022/11/16",
+          "type": "buy",
+          "price": 4.76315315,
+          "volume": 4700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/02/21",
+          "type": "sell",
+          "price": 5.90274867,
+          "volume": 4700,
+          "reason": "止盈",
+          "profit": 5305.969205445999,
+          "profit_rate": 0.23801432212647175
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 150
+    },
+    {
+      "stock_code": "sh.601899",
+      "stock_name": "紫金矿业",
+      "metrics": {
+        "final_value": 105200.694124462,
+        "total_return": 0.05200694124461996,
+        "annual_return": 0.00848575368711213,
+        "max_drawdown": 0.008402182951188194,
+        "win_rate": 1.0,
+        "trade_count": 1,
+        "win_count": 1,
+        "loss_count": 0
+      },
+      "accuracy": {
+        "buy_accuracy": 1.0,
+        "sell_accuracy": 1.0,
+        "overall_accuracy": 1.0,
+        "buy_signal_count": 1,
+        "sell_signal_count": 1,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2022/01/28",
+          "type": "buy",
+          "price": 9.00201888,
+          "volume": 2700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/03",
+          "type": "sell",
+          "price": 10.94815206,
+          "volume": 2700,
+          "reason": "止盈",
+          "profit": 5200.694124462003,
+          "profit_rate": 0.21497355103912505
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 300
+    },
+    {
+      "stock_code": "sh.601390",
+      "stock_name": "中国中铁",
+      "metrics": {
+        "final_value": 100400.77616226504,
+        "total_return": 0.004007761622650432,
+        "annual_return": 0.000666847567293738,
+        "max_drawdown": 0.10045681582320733,
+        "win_rate": 0.2857142857142857,
+        "trade_count": 7,
+        "win_count": 2,
+        "loss_count": 5
+      },
+      "accuracy": {
+        "buy_accuracy": 0.2857142857142857,
+        "sell_accuracy": 0.2857142857142857,
+        "overall_accuracy": 0.2857142857142857,
+        "buy_signal_count": 7,
+        "sell_signal_count": 7,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2019/01/17",
+          "type": "buy",
+          "price": 5.60201616,
+          "volume": 4400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/05/09",
+          "type": "sell",
+          "price": 5.28281296,
+          "volume": 4400,
+          "reason": "止损",
+          "profit": -1452.387328127992,
+          "profit_rate": -0.05792213484521157
+        },
+        {
+          "time": "2019/06/28",
+          "type": "buy",
+          "price": 5.20301216,
+          "volume": 4700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/08/06",
+          "type": "sell",
+          "price": 4.7728235,
+          "volume": 4700,
+          "reason": "止损",
+          "profit": -2068.7731296019956,
+          "profit_rate": -0.083597097617499
+        },
+        {
+          "time": "2019/08/23",
+          "type": "buy",
+          "price": 4.88685,
+          "volume": 4900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/11/11",
+          "type": "sell",
+          "price": 4.60178375,
+          "volume": 4900,
+          "reason": "止损",
+          "profit": -1443.3189303749969,
+          "profit_rate": -0.0592740592740591
+        },
+        {
+          "time": "2019/12/09",
+          "type": "buy",
+          "price": 4.6425075,
+          "volume": 5100,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/02/03",
+          "type": "sell",
+          "price": 4.072375,
+          "volume": 5100,
+          "reason": "止损",
+          "profit": -2952.1216507499958,
+          "profit_rate": -0.12368333420964991
+        },
+        {
+          "time": "2021/08/06",
+          "type": "buy",
+          "price": 4.607767,
+          "volume": 4900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/09/07",
+          "type": "sell",
+          "price": 5.5467082,
+          "volume": 4900,
+          "reason": "止盈",
+          "profit": 4551.054951520004,
+          "profit_rate": 0.20257101389176882
+        },
+        {
+          "time": "2022/10/26",
+          "type": "buy",
+          "price": 4.75418648,
+          "volume": 5000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/10/31",
+          "type": "sell",
+          "price": 4.48457288,
+          "volume": 5000,
+          "reason": "止损",
+          "profit": -1394.2617968000013,
+          "profit_rate": -0.05765312192533365
+        },
+        {
+          "time": "2022/11/21",
+          "type": "buy",
+          "price": 4.6733024,
+          "volume": 5000,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/12/05",
+          "type": "sell",
+          "price": 5.71580832,
+          "volume": 5000,
+          "reason": "止盈",
+          "profit": 5160.584046400003,
+          "profit_rate": 0.22185506800891425
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 180
+    },
+    {
+      "stock_code": "sh.601186",
+      "stock_name": "中国铁建",
+      "metrics": {
+        "final_value": 110248.464634102,
+        "total_return": 0.10248464634101997,
+        "annual_return": 0.016393997707732755,
+        "max_drawdown": 0.031025213039271266,
+        "win_rate": 0.6666666666666666,
+        "trade_count": 3,
+        "win_count": 2,
+        "loss_count": 1
+      },
+      "accuracy": {
+        "buy_accuracy": 0.6666666666666666,
+        "sell_accuracy": 0.6666666666666666,
+        "overall_accuracy": 0.6666666666666666,
+        "buy_signal_count": 3,
+        "sell_signal_count": 3,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2020/07/16",
+          "type": "buy",
+          "price": 7.42919216,
+          "volume": 3300,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/09/29",
+          "type": "sell",
+          "price": 7.0647847,
+          "volume": 3300,
+          "reason": "止损",
+          "profit": -1250.3747416379993,
+          "profit_rate": -0.05000075095285014
+        },
+        {
+          "time": "2022/10/24",
+          "type": "buy",
+          "price": 6.32931624,
+          "volume": 3900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/12/05",
+          "type": "sell",
+          "price": 7.8440244,
+          "volume": 3900,
+          "reason": "止盈",
+          "profit": 5852.085795504005,
+          "profit_rate": 0.2380781611550844
+        },
+        {
+          "time": "2022/12/23",
+          "type": "buy",
+          "price": 7.0325736,
+          "volume": 3700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/03/15",
+          "type": "sell",
+          "price": 8.57433012,
+          "volume": 3700,
+          "reason": "止盈",
+          "profit": 5646.7535802360035,
+          "profit_rate": 0.2180127564742952
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 160
+    },
+    {
+      "stock_code": "sh.600115",
+      "stock_name": "中国东航",
+      "metrics": {
+        "final_value": 104145.06774840402,
+        "total_return": 0.04145067748404021,
+        "annual_return": 0.0067920660665041765,
+        "max_drawdown": 0.0500279432949815,
+        "win_rate": 0.6,
+        "trade_count": 5,
+        "win_count": 3,
+        "loss_count": 2
+      },
+      "accuracy": {
+        "buy_accuracy": 0.4,
+        "sell_accuracy": 0.4,
+        "overall_accuracy": 0.4,
+        "buy_signal_count": 5,
+        "sell_signal_count": 5,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2018/11/05",
+          "type": "buy",
+          "price": 5.36004396,
+          "volume": 4600,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/12/17",
+          "type": "sell",
+          "price": 5.05347318,
+          "volume": 4600,
+          "reason": "止损",
+          "profit": -1458.127766843998,
+          "profit_rate": -0.05813743452119821
+        },
+        {
+          "time": "2020/04/13",
+          "type": "buy",
+          "price": 4.13376084,
+          "volume": 5900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/04/30",
+          "type": "sell",
+          "price": 4.33154844,
+          "volume": 5900,
+          "reason": "1",
+          "profit": 1117.0015152480046,
+          "profit_rate": 0.046800089862290936
+        },
+        {
+          "time": "2021/02/18",
+          "type": "buy",
+          "price": 4.84,
+          "volume": 5100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/03/11",
+          "type": "sell",
+          "price": 5.02,
+          "volume": 5100,
+          "reason": "1p",
+          "profit": 867.7139999999999,
+          "profit_rate": 0.036153928715912186
+        },
+        {
+          "time": "2021/08/20",
+          "type": "buy",
+          "price": 4.63,
+          "volume": 5400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/01/21",
+          "type": "sell",
+          "price": 5.57,
+          "volume": 5400,
+          "reason": "止盈",
+          "profit": 5020.920000000002,
+          "profit_rate": 0.20182193616318903
+        },
+        {
+          "time": "2022/11/21",
+          "type": "buy",
+          "price": 4.98,
+          "volume": 5200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/05/25",
+          "type": "sell",
+          "price": 4.72,
+          "volume": 5200,
+          "reason": "止损",
+          "profit": -1402.4400000000023,
+          "profit_rate": -0.05315567966170384
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 120
+    },
+    {
+      "stock_code": "sh.600009",
+      "stock_name": "上海机场",
+      "metrics": {
+        "final_value": 101360.559471735,
+        "total_return": 0.013605594717350032,
+        "annual_return": 0.0022548499691061874,
+        "max_drawdown": 0.02993672493061549,
+        "win_rate": 0.3333333333333333,
+        "trade_count": 3,
+        "win_count": 1,
+        "loss_count": 2
+      },
+      "accuracy": {
+        "buy_accuracy": 0.3333333333333333,
+        "sell_accuracy": 0.3333333333333333,
+        "overall_accuracy": 0.3333333333333333,
+        "buy_signal_count": 3,
+        "sell_signal_count": 3,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2021/05/28",
+          "type": "buy",
+          "price": 48.27324545,
+          "volume": 500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/07/02",
+          "type": "sell",
+          "price": 44.9976657,
+          "volume": 500,
+          "reason": "止损",
+          "profit": -1684.425330574999,
+          "profit_rate": -0.06878618646898974
+        },
+        {
+          "time": "2021/08/23",
+          "type": "buy",
+          "price": 38.04561435,
+          "volume": 600,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/10/08",
+          "type": "sell",
+          "price": 45.955895,
+          "volume": 600,
+          "reason": "止盈",
+          "profit": 4695.767484390002,
+          "profit_rate": 0.20670899391022754
+        },
+        {
+          "time": "2023/11/10",
+          "type": "buy",
+          "price": 36.26604565,
+          "volume": 700,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/12/05",
+          "type": "sell",
+          "price": 33.97802875,
+          "volume": 700,
+          "reason": "止损",
+          "profit": -1650.7826820799964,
+          "profit_rate": -0.06402575585643792
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 110
+    },
+    {
+      "stock_code": "sh.601919",
+      "stock_name": "中远海控",
+      "metrics": {
+        "final_value": 102978.069949815,
+        "total_return": 0.02978069949815006,
+        "annual_return": 0.004902958099523014,
+        "max_drawdown": 0.056296659319376795,
+        "win_rate": 0.25,
+        "trade_count": 8,
+        "win_count": 2,
+        "loss_count": 6
+      },
+      "accuracy": {
+        "buy_accuracy": 0.25,
+        "sell_accuracy": 0.25,
+        "overall_accuracy": 0.25,
+        "buy_signal_count": 8,
+        "sell_signal_count": 8,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2018/10/11",
+          "type": "buy",
+          "price": 1.5904437,
+          "volume": 15700,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/10/18",
+          "type": "sell",
+          "price": 1.48586658,
+          "volume": 15700,
+          "reason": "止损",
+          "profit": -1690.1588553960028,
+          "profit_rate": -0.06668673791961459
+        },
+        {
+          "time": "2018/11/06",
+          "type": "buy",
+          "price": 1.75166676,
+          "volume": 14000,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/02/25",
+          "type": "sell",
+          "price": 2.1569031,
+          "volume": 14000,
+          "reason": "止盈",
+          "profit": 5618.588781960007,
+          "profit_rate": 0.23011317041167811
+        },
+        {
+          "time": "2019/09/04",
+          "type": "buy",
+          "price": 2.18740476,
+          "volume": 11800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/09/30",
+          "type": "sell",
+          "price": 2.07411288,
+          "volume": 11800,
+          "reason": "止损",
+          "profit": -1387.130092152005,
+          "profit_rate": -0.05274008859666236
+        },
+        {
+          "time": "2020/05/08",
+          "type": "buy",
+          "price": 1.55558466,
+          "volume": 16400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/05/14",
+          "type": "sell",
+          "price": 1.4597223,
+          "volume": 16400,
+          "reason": "止损",
+          "profit": -1621.593738143998,
+          "profit_rate": -0.06256208777217173
+        },
+        {
+          "time": "2020/06/11",
+          "type": "buy",
+          "price": 1.49458134,
+          "volume": 16800,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/07/06",
+          "type": "sell",
+          "price": 1.90417506,
+          "volume": 16800,
+          "reason": "止盈",
+          "profit": 6824.075388480003,
+          "profit_rate": 0.27277969843567523
+        },
+        {
+          "time": "2021/11/03",
+          "type": "buy",
+          "price": 9.27443987,
+          "volume": 2900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/11/10",
+          "type": "sell",
+          "price": 8.7248854,
+          "volume": 2900,
+          "reason": "止损",
+          "profit": -1645.9060062829994,
+          "profit_rate": -0.060194539730275824
+        },
+        {
+          "time": "2021/12/02",
+          "type": "buy",
+          "price": 9.93163903,
+          "volume": 2600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/01/24",
+          "type": "sell",
+          "price": 9.41607762,
+          "volume": 2600,
+          "reason": "止损",
+          "profit": -1390.7637292899963,
+          "profit_rate": -0.052858151546114916
+        },
+        {
+          "time": "2022/05/17",
+          "type": "buy",
+          "price": 8.07901726,
+          "volume": 3200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/09/16",
+          "type": "sell",
+          "price": 7.55432504,
+          "volume": 3200,
+          "reason": "止损",
+          "profit": -1729.0417993599985,
+          "profit_rate": -0.06587917578749386
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 280
+    },
+    {
+      "stock_code": "sh.600050",
+      "stock_name": "中国联通",
+      "metrics": {
+        "final_value": 97796.76448716302,
+        "total_return": -0.022032355128369818,
+        "annual_return": -0.0037062303193152735,
+        "max_drawdown": 0.0962951509363404,
+        "win_rate": 0.2222222222222222,
+        "trade_count": 9,
+        "win_count": 2,
+        "loss_count": 7
+      },
+      "accuracy": {
+        "buy_accuracy": 0.16666666666666666,
+        "sell_accuracy": 0.1875,
+        "overall_accuracy": 0.17647058823529413,
+        "buy_signal_count": 9,
+        "sell_signal_count": 8,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2019/09/05",
+          "type": "buy",
+          "price": 5.14457289,
+          "volume": 4800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/11/28",
+          "type": "sell",
+          "price": 4.88862399,
+          "volume": 4800,
+          "reason": "止损",
+          "profit": -1276.7140650239962,
+          "profit_rate": -0.05070054323785648
+        },
+        {
+          "time": "2020/07/10",
+          "type": "buy",
+          "price": 4.4821359,
+          "volume": 5500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/09/24",
+          "type": "sell",
+          "price": 4.2489612,
+          "volume": 5500,
+          "reason": "止损",
+          "profit": -1330.4818840499938,
+          "profit_rate": -0.05297015123604704
+        },
+        {
+          "time": "2020/11/23",
+          "type": "buy",
+          "price": 4.2144168,
+          "volume": 5700,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/12/15",
+          "type": "sell",
+          "price": 4.0071504,
+          "volume": 5700,
+          "reason": "止损",
+          "profit": -1228.2814130399966,
+          "profit_rate": -0.05013019767118128
+        },
+        {
+          "time": "2021/01/28",
+          "type": "buy",
+          "price": 3.6617064,
+          "volume": 6500,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/02/04",
+          "type": "sell",
+          "price": 3.4803483,
+          "volume": 6500,
+          "reason": "止损",
+          "profit": -1225.2510055499952,
+          "profit_rate": -0.05047782406272953
+        },
+        {
+          "time": "2021/12/29",
+          "type": "buy",
+          "price": 3.48302584,
+          "volume": 6800,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/01/27",
+          "type": "sell",
+          "price": 3.29643517,
+          "volume": 6800,
+          "reason": "止损",
+          "profit": -1314.9168908679967,
+          "profit_rate": -0.05451691165976862
+        },
+        {
+          "time": "2022/05/24",
+          "type": "buy",
+          "price": 3.08318869,
+          "volume": 7500,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/11/22",
+          "type": "sell",
+          "price": 3.7411968,
+          "volume": 7500,
+          "reason": "止盈",
+          "profit": 4883.877933824999,
+          "profit_rate": 0.21220584156311914
+        },
+        {
+          "time": "2022/12/14",
+          "type": "buy",
+          "price": 4.3738992,
+          "volume": 5600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/12/20",
+          "type": "sell",
+          "price": 4.1446592,
+          "volume": 5600,
+          "reason": "止损",
+          "profit": -1331.4479270399934,
+          "profit_rate": -0.053357543923581434
+        },
+        {
+          "time": "2023/08/02",
+          "type": "buy",
+          "price": 4.715715,
+          "volume": 5100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/08/24",
+          "type": "sell",
+          "price": 4.863659,
+          "volume": 5100,
+          "reason": "1",
+          "profit": 705.6595926000009,
+          "profit_rate": 0.030342206812795085
+        },
+        {
+          "time": "2023/11/20",
+          "type": "buy",
+          "price": 4.1331855,
+          "volume": 5900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/12/29",
+          "type": "sell",
+          "price": 4.1269236,
+          "volume": 5900,
+          "reason": "强制平仓",
+          "profit": -85.67985368999871,
+          "profit_rate": -0.00251251747573408
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 180
+    },
+    {
+      "stock_code": "sh.600104",
+      "stock_name": "上汽集团",
+      "metrics": {
+        "final_value": 100631.22611307402,
+        "total_return": 0.0063122611307402255,
+        "annual_return": 0.001049287159006873,
+        "max_drawdown": 0.0595084557910191,
+        "win_rate": 0.25,
+        "trade_count": 4,
+        "win_count": 1,
+        "loss_count": 3
+      },
+      "accuracy": {
+        "buy_accuracy": 0.25,
+        "sell_accuracy": 0.3333333333333333,
+        "overall_accuracy": 0.2857142857142857,
+        "buy_signal_count": 4,
+        "sell_signal_count": 3,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2019/06/14",
+          "type": "buy",
+          "price": 19.3186701,
+          "volume": 1200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/02/03",
+          "type": "sell",
+          "price": 17.14374,
+          "volume": 1200,
+          "reason": "止损",
+          "profit": -2653.6710121199976,
+          "profit_rate": -0.11346830304776569
+        },
+        {
+          "time": "2021/08/19",
+          "type": "buy",
+          "price": 17.0314125,
+          "volume": 1400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/11/05",
+          "type": "sell",
+          "price": 20.64661366,
+          "volume": 1400,
+          "reason": "止盈",
+          "profit": 5008.532387376003,
+          "profit_rate": 0.2110556110556112
+        },
+        {
+          "time": "2022/10/28",
+          "type": "buy",
+          "price": 13.27445496,
+          "volume": 1900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/05/25",
+          "type": "sell",
+          "price": 12.49916628,
+          "volume": 1900,
+          "reason": "止损",
+          "profit": -1522.0183723559967,
+          "profit_rate": -0.05934521319136681
+        },
+        {
+          "time": "2023/06/13",
+          "type": "buy",
+          "price": 13.17045282,
+          "volume": 1900,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/12/29",
+          "type": "sell",
+          "price": 13.09059972,
+          "volume": 1900,
+          "reason": "强制平仓",
+          "profit": -201.61688982599662,
+          "profit_rate": -0.007055992946323049
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 220
+    },
+    {
+      "stock_code": "sz.000625",
+      "stock_name": "长安汽车",
+      "metrics": {
+        "final_value": 100839.39177353002,
+        "total_return": 0.008393917735300202,
+        "annual_return": 0.001394118333081673,
+        "max_drawdown": 0.05404750656213753,
+        "win_rate": 0.25,
+        "trade_count": 4,
+        "win_count": 1,
+        "loss_count": 3
+      },
+      "accuracy": {
+        "buy_accuracy": 0.25,
+        "sell_accuracy": 0.25,
+        "overall_accuracy": 0.25,
+        "buy_signal_count": 4,
+        "sell_signal_count": 4,
+        "buy_correct": 1,
+        "sell_correct": 1
+      },
+      "trades": [
+        {
+          "time": "2018/05/25",
+          "type": "buy",
+          "price": 4.8573054,
+          "volume": 5100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2018/06/14",
+          "type": "sell",
+          "price": 4.614678,
+          "volume": 5100,
+          "reason": "止损",
+          "profit": -1285.7068553400059,
+          "profit_rate": -0.05090012827525084
+        },
+        {
+          "time": "2022/02/18",
+          "type": "buy",
+          "price": 9.29960561,
+          "volume": 2600,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/07",
+          "type": "sell",
+          "price": 8.67346537,
+          "volume": 2600,
+          "reason": "止损",
+          "profit": -1674.6946085479976,
+          "profit_rate": -0.06826150131429376
+        },
+        {
+          "time": "2022/03/31",
+          "type": "buy",
+          "price": 8.06155559,
+          "volume": 3000,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/04/11",
+          "type": "sell",
+          "price": 7.30022598,
+          "volume": 3000,
+          "reason": "止损",
+          "profit": -2330.0741747099964,
+          "profit_rate": -0.09534419684463796
+        },
+        {
+          "time": "2022/05/18",
+          "type": "buy",
+          "price": 9.51306251,
+          "volume": 2400,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/06/13",
+          "type": "sell",
+          "price": 12.08877577,
+          "volume": 2400,
+          "reason": "止盈",
+          "profit": 6129.8674121280055,
+          "profit_rate": 0.26948593665123227
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 160
+    },
+    {
+      "stock_code": "sh.601238",
+      "stock_name": "广汽集团",
+      "metrics": {
+        "final_value": 109062.52554964801,
+        "total_return": 0.0906252554964801,
+        "annual_return": 0.014563556860360816,
+        "max_drawdown": 0.049129076279556295,
+        "win_rate": 0.6666666666666666,
+        "trade_count": 3,
+        "win_count": 2,
+        "loss_count": 1
+      },
+      "accuracy": {
+        "buy_accuracy": 0.6666666666666666,
+        "sell_accuracy": 0.6666666666666666,
+        "overall_accuracy": 0.6666666666666666,
+        "buy_signal_count": 3,
+        "sell_signal_count": 3,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2020/07/16",
+          "type": "buy",
+          "price": 8.5978174,
+          "volume": 2900,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/10/21",
+          "type": "sell",
+          "price": 10.660637,
+          "volume": 2900,
+          "reason": "止盈",
+          "profit": 5926.327322240002,
+          "profit_rate": 0.23868494962303038
+        },
+        {
+          "time": "2022/04/01",
+          "type": "buy",
+          "price": 10.644075,
+          "volume": 2400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/05/13",
+          "type": "sell",
+          "price": 12.8391198,
+          "volume": 2400,
+          "reason": "止盈",
+          "profit": 5211.747852480003,
+          "profit_rate": 0.20501720501720516
+        },
+        {
+          "time": "2022/06/06",
+          "type": "buy",
+          "price": 15.0057804,
+          "volume": 1800,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/07/25",
+          "type": "sell",
+          "price": 13.88158464,
+          "volume": 1800,
+          "reason": "止损",
+          "profit": -2075.5496250720025,
+          "profit_rate": -0.07584167211477233
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 140
+    },
+    {
+      "stock_code": "sh.601888",
+      "stock_name": "中国中免",
+      "metrics": {
+        "final_value": 98496.25538426105,
+        "total_return": -0.015037446157389495,
+        "annual_return": -0.0025220899959594867,
+        "max_drawdown": 0.109386201631107,
+        "win_rate": 0.2222222222222222,
+        "trade_count": 9,
+        "win_count": 2,
+        "loss_count": 7
+      },
+      "accuracy": {
+        "buy_accuracy": 0.2222222222222222,
+        "sell_accuracy": 0.2222222222222222,
+        "overall_accuracy": 0.2222222222222222,
+        "buy_signal_count": 9,
+        "sell_signal_count": 9,
+        "buy_correct": 2,
+        "sell_correct": 2
+      },
+      "trades": [
+        {
+          "time": "2018/11/16",
+          "type": "buy",
+          "price": 51.31474124,
+          "volume": 400,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2019/03/28",
+          "type": "sell",
+          "price": 63.06429131,
+          "volume": 400,
+          "reason": "止盈",
+          "profit": 4654.068414980004,
+          "profit_rate": 0.22774252578458556
+        },
+        {
+          "time": "2020/12/08",
+          "type": "buy",
+          "price": 195.52677291,
+          "volume": 100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2020/12/24",
+          "type": "sell",
+          "price": 237.0420234,
+          "volume": 100,
+          "reason": "止盈",
+          "profit": 4108.268169369003,
+          "profit_rate": 0.2111140313803393
+        },
+        {
+          "time": "2021/08/17",
+          "type": "buy",
+          "price": 231.07542516,
+          "volume": 100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/08/20",
+          "type": "sell",
+          "price": 215.31385134,
+          "volume": 100,
+          "reason": "止损",
+          "profit": -1620.7963096499989,
+          "profit_rate": -0.06914050925806979
+        },
+        {
+          "time": "2021/09/16",
+          "type": "buy",
+          "price": 227.66088912,
+          "volume": 100,
+          "reason": "1p",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/11/02",
+          "type": "sell",
+          "price": 210.22977696,
+          "volume": 100,
+          "reason": "止损",
+          "profit": -1786.9002826079995,
+          "profit_rate": -0.07748863665336977
+        },
+        {
+          "time": "2021/11/22",
+          "type": "buy",
+          "price": 210.87118152,
+          "volume": 100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2021/11/25",
+          "type": "sell",
+          "price": 199.7786556,
+          "volume": 100,
+          "reason": "止损",
+          "profit": -1150.3175757119934,
+          "profit_rate": -0.05354977818745911
+        },
+        {
+          "time": "2021/12/17",
+          "type": "buy",
+          "price": 204.94762176,
+          "volume": 100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/01/11",
+          "type": "sell",
+          "price": 189.78972282,
+          "volume": 100,
+          "reason": "止损",
+          "profit": -1555.263628457993,
+          "profit_rate": -0.07488498246966567
+        },
+        {
+          "time": "2022/02/09",
+          "type": "buy",
+          "price": 200.5332492,
+          "volume": 100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/03/03",
+          "type": "sell",
+          "price": 187.01659134,
+          "volume": 100,
+          "reason": "止损",
+          "profit": -1390.4207700539991,
+          "profit_rate": -0.068335239548786
+        },
+        {
+          "time": "2022/04/28",
+          "type": "buy",
+          "price": 171.27388236,
+          "volume": 100,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2022/05/06",
+          "type": "sell",
+          "price": 154.39928298,
+          "volume": 100,
+          "reason": "止损",
+          "profit": -1720.027254533994,
+          "profit_rate": -0.09942464188526502
+        },
+        {
+          "time": "2023/11/15",
+          "type": "buy",
+          "price": 91.99718535,
+          "volume": 200,
+          "reason": "1",
+          "profit": 0,
+          "profit_rate": 0
+        },
+        {
+          "time": "2023/11/27",
+          "type": "sell",
+          "price": 86.96437001,
+          "volume": 200,
+          "reason": "止损",
+          "profit": -1042.3553790719961,
+          "profit_rate": -0.05565053770982003
+        }
+      ],
+      "success": true,
+      "config_name": "T1+确认10K",
+      "bsp_filter_config": {
+        "only_t1": true,
+        "need_confirm": 10
+      },
+      "market_cap": 350
+    }
+  ],
+  "last_update": "2026-01-26 23:57:41"
+}

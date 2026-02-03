@@ -1,0 +1,722 @@
+[
+  {
+    "stock_code": "sz.000333",
+    "stock_name": "美的集团",
+    "config_name": "T1+周笔趋势+确认3K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 3,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": false
+    },
+    "metrics": {
+      "final_value": 99732.57979926403,
+      "total_return": -0.002674202007359709,
+      "annual_return": -0.000446197769667811,
+      "max_drawdown": 0.032744704554855245,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sz.000333",
+    "stock_name": "美的集团",
+    "config_name": "T1+周笔趋势+确认10K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 10,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": false
+    },
+    "metrics": {
+      "final_value": 101707.87589735202,
+      "total_return": 0.017078758973520163,
+      "annual_return": 0.0028264128810606692,
+      "max_drawdown": 0.012969558342188462,
+      "win_rate": 0.5,
+      "trade_count": 2,
+      "win_count": 1,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 2,
+      "sell_signal_count": 2,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000333",
+    "stock_name": "美的集团",
+    "config_name": "T1+周共振+确认3K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 3,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": true
+    },
+    "metrics": {
+      "final_value": 99732.57979926403,
+      "total_return": -0.002674202007359709,
+      "annual_return": -0.000446197769667811,
+      "max_drawdown": 0.032744704554855245,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sz.000333",
+    "stock_name": "美的集团",
+    "config_name": "T1+周共振+确认10K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 10,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": true
+    },
+    "metrics": {
+      "final_value": 101707.87589735202,
+      "total_return": 0.017078758973520163,
+      "annual_return": 0.0028264128810606692,
+      "max_drawdown": 0.012969558342188462,
+      "win_rate": 0.5,
+      "trade_count": 2,
+      "win_count": 1,
+      "loss_count": 1
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 2,
+      "sell_signal_count": 2,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sh.600030",
+    "stock_name": "中信证券",
+    "config_name": "T1+周笔趋势+确认3K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 3,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": false
+    },
+    "metrics": {
+      "final_value": 103942.06877613402,
+      "total_return": 0.03942068776134023,
+      "annual_return": 0.006464727887443011,
+      "max_drawdown": 0.06356964418302807,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.600030",
+    "stock_name": "中信证券",
+    "config_name": "T1+周笔趋势+确认5K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 5,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": false
+    },
+    "metrics": {
+      "final_value": 104210.61338368602,
+      "total_return": 0.042106133836860245,
+      "annual_return": 0.0068976456015634735,
+      "max_drawdown": 0.06414719198985999,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.600030",
+    "stock_name": "中信证券",
+    "config_name": "T1+周笔趋势+确认10K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 10,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": false
+    },
+    "metrics": {
+      "final_value": 106820.78306945902,
+      "total_return": 0.06820783069459023,
+      "annual_return": 0.01105774312865826,
+      "max_drawdown": 0.040203486751057706,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.600030",
+    "stock_name": "中信证券",
+    "config_name": "T1+周共振+确认3K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 3,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": true
+    },
+    "metrics": {
+      "final_value": 103942.06877613402,
+      "total_return": 0.03942068776134023,
+      "annual_return": 0.006464727887443011,
+      "max_drawdown": 0.06356964418302807,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.600030",
+    "stock_name": "中信证券",
+    "config_name": "T1+周共振+确认5K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 5,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": true
+    },
+    "metrics": {
+      "final_value": 104210.61338368602,
+      "total_return": 0.042106133836860245,
+      "annual_return": 0.0068976456015634735,
+      "max_drawdown": 0.06414719198985999,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.600030",
+    "stock_name": "中信证券",
+    "config_name": "T1+周共振+确认10K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 10,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": true
+    },
+    "metrics": {
+      "final_value": 106820.78306945902,
+      "total_return": 0.06820783069459023,
+      "annual_return": 0.01105774312865826,
+      "max_drawdown": 0.040203486751057706,
+      "win_rate": 0.5,
+      "trade_count": 4,
+      "win_count": 2,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.5,
+      "sell_accuracy": 0.5,
+      "overall_accuracy": 0.5,
+      "buy_signal_count": 4,
+      "sell_signal_count": 4,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.601318",
+    "stock_name": "中国平安",
+    "config_name": "T1+周笔趋势+确认10K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 10,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": false
+    },
+    "metrics": {
+      "final_value": 104349.10706855301,
+      "total_return": 0.04349107068553014,
+      "annual_return": 0.007120546457061394,
+      "max_drawdown": 0.05371786028626944,
+      "win_rate": 0.5,
+      "trade_count": 6,
+      "win_count": 3,
+      "loss_count": 3
+    },
+    "accuracy": {
+      "buy_accuracy": 0.4166666666666667,
+      "sell_accuracy": 0.4166666666666667,
+      "overall_accuracy": 0.4166666666666667,
+      "buy_signal_count": 6,
+      "sell_signal_count": 6,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sh.601318",
+    "stock_name": "中国平安",
+    "config_name": "T1+周共振+确认10K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 10,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": true
+    },
+    "metrics": {
+      "final_value": 104349.10706855301,
+      "total_return": 0.04349107068553014,
+      "annual_return": 0.007120546457061394,
+      "max_drawdown": 0.05371786028626944,
+      "win_rate": 0.5,
+      "trade_count": 6,
+      "win_count": 3,
+      "loss_count": 3
+    },
+    "accuracy": {
+      "buy_accuracy": 0.4166666666666667,
+      "sell_accuracy": 0.4166666666666667,
+      "overall_accuracy": 0.4166666666666667,
+      "buy_signal_count": 6,
+      "sell_signal_count": 6,
+      "buy_correct": 2,
+      "sell_correct": 2
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "config_name": "T1+周笔趋势+确认10K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 10,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": false
+    },
+    "metrics": {
+      "final_value": 101904.56200251999,
+      "total_return": 0.019045620025199897,
+      "annual_return": 0.0031493693165343117,
+      "max_drawdown": 0.037085548311281774,
+      "win_rate": 0.3333333333333333,
+      "trade_count": 3,
+      "win_count": 1,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.3333333333333333,
+      "sell_accuracy": 0.3333333333333333,
+      "overall_accuracy": 0.3333333333333333,
+      "buy_signal_count": 3,
+      "sell_signal_count": 3,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "config_name": "T1+周共振+确认10K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 10,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": true
+    },
+    "metrics": {
+      "final_value": 101904.56200251999,
+      "total_return": 0.019045620025199897,
+      "annual_return": 0.0031493693165343117,
+      "max_drawdown": 0.037085548311281774,
+      "win_rate": 0.3333333333333333,
+      "trade_count": 3,
+      "win_count": 1,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.3333333333333333,
+      "sell_accuracy": 0.3333333333333333,
+      "overall_accuracy": 0.3333333333333333,
+      "buy_signal_count": 3,
+      "sell_signal_count": 3,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000333",
+    "stock_name": "美的集团",
+    "config_name": "T1+周笔趋势+确认5K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 5,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": false
+    },
+    "metrics": {
+      "final_value": 99195.60628718199,
+      "total_return": -0.008043937128180113,
+      "annual_return": -0.0013451718005734747,
+      "max_drawdown": 0.03130165238727057,
+      "win_rate": 0.3333333333333333,
+      "trade_count": 3,
+      "win_count": 1,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.3333333333333333,
+      "sell_accuracy": 0.3333333333333333,
+      "overall_accuracy": 0.3333333333333333,
+      "buy_signal_count": 3,
+      "sell_signal_count": 3,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000333",
+    "stock_name": "美的集团",
+    "config_name": "T1+周共振+确认5K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 5,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": true
+    },
+    "metrics": {
+      "final_value": 99195.60628718199,
+      "total_return": -0.008043937128180113,
+      "annual_return": -0.0013451718005734747,
+      "max_drawdown": 0.03130165238727057,
+      "win_rate": 0.3333333333333333,
+      "trade_count": 3,
+      "win_count": 1,
+      "loss_count": 2
+    },
+    "accuracy": {
+      "buy_accuracy": 0.3333333333333333,
+      "sell_accuracy": 0.3333333333333333,
+      "overall_accuracy": 0.3333333333333333,
+      "buy_signal_count": 3,
+      "sell_signal_count": 3,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sh.601318",
+    "stock_name": "中国平安",
+    "config_name": "T1+周笔趋势+确认5K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 5,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": false
+    },
+    "metrics": {
+      "final_value": 99788.53545960099,
+      "total_return": -0.0021146454039901435,
+      "annual_return": -0.000352751839039378,
+      "max_drawdown": 0.07749399394126284,
+      "win_rate": 0.2727272727272727,
+      "trade_count": 11,
+      "win_count": 3,
+      "loss_count": 8
+    },
+    "accuracy": {
+      "buy_accuracy": 0.2727272727272727,
+      "sell_accuracy": 0.3,
+      "overall_accuracy": 0.2857142857142857,
+      "buy_signal_count": 11,
+      "sell_signal_count": 10,
+      "buy_correct": 3,
+      "sell_correct": 3
+    }
+  },
+  {
+    "stock_code": "sh.601318",
+    "stock_name": "中国平安",
+    "config_name": "T1+周共振+确认5K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 5,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": true
+    },
+    "metrics": {
+      "final_value": 99788.53545960099,
+      "total_return": -0.0021146454039901435,
+      "annual_return": -0.000352751839039378,
+      "max_drawdown": 0.07749399394126284,
+      "win_rate": 0.2727272727272727,
+      "trade_count": 11,
+      "win_count": 3,
+      "loss_count": 8
+    },
+    "accuracy": {
+      "buy_accuracy": 0.2727272727272727,
+      "sell_accuracy": 0.3,
+      "overall_accuracy": 0.2857142857142857,
+      "buy_signal_count": 11,
+      "sell_signal_count": 10,
+      "buy_correct": 3,
+      "sell_correct": 3
+    }
+  },
+  {
+    "stock_code": "sh.601318",
+    "stock_name": "中国平安",
+    "config_name": "T1+周笔趋势+确认3K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 3,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": false
+    },
+    "metrics": {
+      "final_value": 98516.149534952,
+      "total_return": -0.014838504650480026,
+      "annual_return": -0.0024885145976603074,
+      "max_drawdown": 0.08806305345136267,
+      "win_rate": 0.3076923076923077,
+      "trade_count": 13,
+      "win_count": 4,
+      "loss_count": 9
+    },
+    "accuracy": {
+      "buy_accuracy": 0.2692307692307692,
+      "sell_accuracy": 0.25,
+      "overall_accuracy": 0.26,
+      "buy_signal_count": 13,
+      "sell_signal_count": 12,
+      "buy_correct": 3,
+      "sell_correct": 3
+    }
+  },
+  {
+    "stock_code": "sh.601318",
+    "stock_name": "中国平安",
+    "config_name": "T1+周共振+确认3K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 3,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": true
+    },
+    "metrics": {
+      "final_value": 98516.149534952,
+      "total_return": -0.014838504650480026,
+      "annual_return": -0.0024885145976603074,
+      "max_drawdown": 0.08806305345136267,
+      "win_rate": 0.3076923076923077,
+      "trade_count": 13,
+      "win_count": 4,
+      "loss_count": 9
+    },
+    "accuracy": {
+      "buy_accuracy": 0.2692307692307692,
+      "sell_accuracy": 0.25,
+      "overall_accuracy": 0.26,
+      "buy_signal_count": 13,
+      "sell_signal_count": 12,
+      "buy_correct": 3,
+      "sell_correct": 3
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "config_name": "T1+周笔趋势+确认5K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 5,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": false
+    },
+    "metrics": {
+      "final_value": 98204.34569726,
+      "total_return": -0.01795654302740004,
+      "annual_return": -0.0030153975405897704,
+      "max_drawdown": 0.049283598113698694,
+      "win_rate": 0.16666666666666666,
+      "trade_count": 6,
+      "win_count": 1,
+      "loss_count": 5
+    },
+    "accuracy": {
+      "buy_accuracy": 0.16666666666666666,
+      "sell_accuracy": 0.2,
+      "overall_accuracy": 0.18181818181818182,
+      "buy_signal_count": 6,
+      "sell_signal_count": 5,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "config_name": "T1+周共振+确认5K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 5,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": true
+    },
+    "metrics": {
+      "final_value": 98204.34569726,
+      "total_return": -0.01795654302740004,
+      "annual_return": -0.0030153975405897704,
+      "max_drawdown": 0.049283598113698694,
+      "win_rate": 0.16666666666666666,
+      "trade_count": 6,
+      "win_count": 1,
+      "loss_count": 5
+    },
+    "accuracy": {
+      "buy_accuracy": 0.16666666666666666,
+      "sell_accuracy": 0.2,
+      "overall_accuracy": 0.18181818181818182,
+      "buy_signal_count": 6,
+      "sell_signal_count": 5,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "config_name": "T1+周笔趋势+确认3K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 3,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": false
+    },
+    "metrics": {
+      "final_value": 96553.21531430104,
+      "total_return": -0.034467846856989635,
+      "annual_return": -0.005828924780087008,
+      "max_drawdown": 0.07892511301276525,
+      "win_rate": 0.25,
+      "trade_count": 8,
+      "win_count": 2,
+      "loss_count": 6
+    },
+    "accuracy": {
+      "buy_accuracy": 0.1875,
+      "sell_accuracy": 0.14285714285714285,
+      "overall_accuracy": 0.16666666666666666,
+      "buy_signal_count": 8,
+      "sell_signal_count": 7,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "config_name": "T1+周共振+确认3K",
+    "ml_config": {
+      "only_t1": true,
+      "need_confirm": 3,
+      "use_weekly_trend": true,
+      "use_weekly_bsp_resonance": true
+    },
+    "metrics": {
+      "final_value": 96553.21531430104,
+      "total_return": -0.034467846856989635,
+      "annual_return": -0.005828924780087008,
+      "max_drawdown": 0.07892511301276525,
+      "win_rate": 0.25,
+      "trade_count": 8,
+      "win_count": 2,
+      "loss_count": 6
+    },
+    "accuracy": {
+      "buy_accuracy": 0.1875,
+      "sell_accuracy": 0.14285714285714285,
+      "overall_accuracy": 0.16666666666666666,
+      "buy_signal_count": 8,
+      "sell_signal_count": 7,
+      "buy_correct": 1,
+      "sell_correct": 1
+    }
+  }
+]

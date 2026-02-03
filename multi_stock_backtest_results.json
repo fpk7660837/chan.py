@@ -1,0 +1,494 @@
+[
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "配置1-标准参数",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.3,
+      "stop_loss": -0.08,
+      "take_profit": 0.25,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 94065.23214110805,
+      "total_return": -0.05934767858891952,
+      "annual_return": -0.012161777538754803,
+      "max_drawdown": 0.09281787790428943,
+      "win_rate": 0.16666666666666666,
+      "profit_loss_ratio": 2.7672291199954007,
+      "trade_count": 7,
+      "win_count": 1,
+      "loss_count": 5
+    },
+    "sample_trades": [
+      {
+        "time": "2022/01/05",
+        "type": "buy",
+        "price": 14.262626,
+        "volume": 2100,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2022/02/28",
+        "type": "sell",
+        "price": 13.09833,
+        "volume": 2100,
+        "reason": "止损",
+        "profit": -2502.479607599995,
+        "profit_rate": -0.08255010295826605
+      },
+      {
+        "time": "2022/03/10",
+        "type": "buy",
+        "price": 12.1169948,
+        "volume": 2400,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2022/07/14",
+        "type": "sell",
+        "price": 11.1190268,
+        "volume": 2400,
+        "reason": "止损",
+        "profit": -2450.8896518399997,
+        "profit_rate": -0.08327773804781352
+      },
+      {
+        "time": "2022/09/28",
+        "type": "buy",
+        "price": 10.25241077,
+        "volume": 2700,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2022/10/21",
+        "type": "sell",
+        "price": 9.38887163,
+        "volume": 2700,
+        "reason": "止损",
+        "profit": -2384.587140479991,
+        "profit_rate": -0.0851427680494565
+      },
+      {
+        "time": "2022/10/27",
+        "type": "buy",
+        "price": 9.04176276,
+        "volume": 3000,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2022/12/05",
+        "type": "sell",
+        "price": 11.45459271,
+        "volume": 3000,
+        "reason": "止盈",
+        "profit": 7177.000783590007,
+        "profit_rate": 0.26558834424002986
+      },
+      {
+        "time": "2023/05/26",
+        "type": "buy",
+        "price": 10.2439447,
+        "volume": 2900,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/10/19",
+        "type": "sell",
+        "price": 9.1927228,
+        "volume": 2900,
+        "reason": "止损",
+        "profit": -3104.9098457499967,
+        "profit_rate": -0.10351534202061226
+      },
+      {
+        "time": "2023/11/15",
+        "type": "buy",
+        "price": 8.99325806,
+        "volume": 3200,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/12/05",
+        "type": "sell",
+        "price": 8.22141624,
+        "volume": 3200,
+        "reason": "止损",
+        "profit": -2524.9807817599976,
+        "profit_rate": -0.08673775597594297
+      },
+      {
+        "time": "2023/12/12",
+        "type": "buy",
+        "price": 8.16938196,
+        "volume": 3400,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/12/29",
+        "type": "sell",
+        "price": 8.14336482,
+        "volume": 3400,
+        "reason": "强制平仓",
+        "profit": -143.92161505199329,
+        "profit_rate": -0.004180532842953082
+      }
+    ]
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "配置4-平衡参数",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.25,
+      "stop_loss": -0.07,
+      "take_profit": 0.22,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>]"
+    },
+    "metrics": {
+      "final_value": 93776.56206807002,
+      "total_return": -0.06223437931929977,
+      "annual_return": -0.012768824400366419,
+      "max_drawdown": 0.08812887609529191,
+      "win_rate": 0.14285714285714285,
+      "profit_loss_ratio": 2.7226499731036164,
+      "trade_count": 8,
+      "win_count": 1,
+      "loss_count": 6
+    },
+    "sample_trades": [
+      {
+        "time": "2022/01/05",
+        "type": "buy",
+        "price": 14.262626,
+        "volume": 1700,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2022/01/28",
+        "type": "sell",
+        "price": 13.1648612,
+        "volume": 1700,
+        "reason": "止损",
+        "profit": -1912.8268882399934,
+        "profit_rate": -0.07789003998916517
+      },
+      {
+        "time": "2022/02/08",
+        "type": "buy",
+        "price": 13.9965012,
+        "volume": 1700,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2022/03/04",
+        "type": "sell",
+        "price": 12.7490412,
+        "volume": 1700,
+        "reason": "止损",
+        "profit": -2166.149422079994,
+        "profit_rate": -0.09003652319160327
+      },
+      {
+        "time": "2022/03/10",
+        "type": "buy",
+        "price": 12.1169948,
+        "volume": 1900,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2022/07/14",
+        "type": "sell",
+        "price": 11.1190268,
+        "volume": 1900,
+        "reason": "止损",
+        "profit": -1940.2876410400022,
+        "profit_rate": -0.08327773804781352
+      },
+      {
+        "time": "2022/09/28",
+        "type": "buy",
+        "price": 10.25241077,
+        "volume": 2200,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2022/10/20",
+        "type": "sell",
+        "price": 9.4819984,
+        "volume": 2200,
+        "reason": "止损",
+        "profit": -1738.322914173994,
+        "profit_rate": -0.07606844023028975
+      },
+      {
+        "time": "2022/10/27",
+        "type": "buy",
+        "price": 9.04176276,
+        "volume": 2500,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2022/12/01",
+        "type": "sell",
+        "price": 11.0905517,
+        "volume": 2500,
+        "reason": "止盈",
+        "profit": 5071.641563850004,
+        "profit_rate": 0.22536639390572005
+      },
+      {
+        "time": "2023/05/26",
+        "type": "buy",
+        "price": 10.2439447,
+        "volume": 2300,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/10/11",
+        "type": "sell",
+        "price": 9.52227324,
+        "volume": 2300,
+        "reason": "止损",
+        "profit": -1705.3066592619944,
+        "profit_rate": -0.07137721277229457
+      },
+      {
+        "time": "2023/11/15",
+        "type": "buy",
+        "price": 8.99325806,
+        "volume": 2600,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/12/04",
+        "type": "sell",
+        "price": 8.35150194,
+        "volume": 2600,
+        "reason": "止损",
+        "profit": -1713.662287999996,
+        "profit_rate": -0.07228740401353695
+      },
+      {
+        "time": "2023/12/12",
+        "type": "buy",
+        "price": 8.16938196,
+        "volume": 2800,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/12/29",
+        "type": "sell",
+        "price": 8.14336482,
+        "volume": 2800,
+        "reason": "强制平仓",
+        "profit": -118.52368298399233,
+        "profit_rate": -0.004180532842953082
+      }
+    ]
+  },
+  {
+    "stock_code": "sz.000001",
+    "stock_name": "平安银行",
+    "industry": "银行",
+    "config_name": "配置2-宽松参数",
+    "chan_config": {},
+    "strategy_params": {
+      "buy_percent": 0.25,
+      "stop_loss": -0.1,
+      "take_profit": 0.3,
+      "bsp_types": "[<BSP_TYPE.T1: '1'>, <BSP_TYPE.T1P: '1p'>, <BSP_TYPE.T2: '2'>, <BSP_TYPE.T2S: '2s'>]"
+    },
+    "metrics": {
+      "final_value": 91889.565110686,
+      "total_return": -0.08110434889313997,
+      "annual_return": -0.01677426057871023,
+      "max_drawdown": 0.09355045328820734,
+      "win_rate": 0.14285714285714285,
+      "profit_loss_ratio": 2.934661295007065,
+      "trade_count": 8,
+      "win_count": 1,
+      "loss_count": 6
+    },
+    "sample_trades": [
+      {
+        "time": "2022/01/05",
+        "type": "buy",
+        "price": 14.262626,
+        "volume": 1700,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2022/03/04",
+        "type": "sell",
+        "price": 12.7490412,
+        "volume": 1700,
+        "reason": "止损",
+        "profit": -2619.0139942399946,
+        "profit_rate": -0.10701543354604563
+      },
+      {
+        "time": "2022/03/10",
+        "type": "buy",
+        "price": 12.1169948,
+        "volume": 2000,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2022/07/21",
+        "type": "sell",
+        "price": 10.8196364,
+        "volume": 2000,
+        "reason": "止损",
+        "profit": -2640.5900623999987,
+        "profit_rate": -0.10796135916245729
+      },
+      {
+        "time": "2022/09/28",
+        "type": "buy",
+        "price": 10.25241077,
+        "volume": 2300,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2022/10/24",
+        "type": "sell",
+        "price": 8.99096634,
+        "volume": 2300,
+        "reason": "止损",
+        "profit": -2945.581956352995,
+        "profit_rate": -0.12391489600407833
+      },
+      {
+        "time": "2022/10/27",
+        "type": "buy",
+        "price": 9.04176276,
+        "volume": 2500,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/01/04",
+        "type": "sell",
+        "price": 12.12341224,
+        "volume": 2500,
+        "reason": "止盈",
+        "profit": 7651.210762500006,
+        "profit_rate": 0.3394844855519016
+      },
+      {
+        "time": "2023/02/14",
+        "type": "buy",
+        "price": 11.81863372,
+        "volume": 2100,
+        "reason": "2s买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/03/20",
+        "type": "sell",
+        "price": 10.64184999,
+        "volume": 2100,
+        "reason": "止损",
+        "profit": -2518.4128487909948,
+        "profit_rate": -0.10046973084222349
+      },
+      {
+        "time": "2023/05/26",
+        "type": "buy",
+        "price": 10.2439447,
+        "volume": 2300,
+        "reason": "1买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/10/19",
+        "type": "sell",
+        "price": 9.1927228,
+        "volume": 2300,
+        "reason": "止损",
+        "profit": -2462.514705249996,
+        "profit_rate": -0.10351534202061226
+      },
+      {
+        "time": "2023/11/15",
+        "type": "buy",
+        "price": 8.99325806,
+        "volume": 2600,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/12/08",
+        "type": "sell",
+        "price": 8.0653134,
+        "volume": 2600,
+        "reason": "止损",
+        "profit": -2457.0084017959925,
+        "profit_rate": -0.10407817833083002
+      },
+      {
+        "time": "2023/12/12",
+        "type": "buy",
+        "price": 8.16938196,
+        "volume": 2800,
+        "reason": "1p买点",
+        "profit": 0,
+        "profit_rate": 0
+      },
+      {
+        "time": "2023/12/29",
+        "type": "sell",
+        "price": 8.14336482,
+        "volume": 2800,
+        "reason": "强制平仓",
+        "profit": -118.52368298399233,
+        "profit_rate": -0.004180532842953082
+      }
+    ]
+  }
+]
