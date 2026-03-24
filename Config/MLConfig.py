@@ -24,11 +24,15 @@ class MLConfig:
 
     # 标签构建配置（基于未来收益率策略）
     label_config: Dict[str, Any] = field(default_factory=lambda: {
-        'label_strategy': 'future_return',  # 标签策略：未来收益率
-        'lookforward_bars': 20,             # 未来N根K线
-        'threshold_pct': 0.05,              # 收益率阈值（5%）
-        'use_highest_for_buy': True,        # 买点使用最高价
-        'use_lowest_for_sell': True,        # 卖点使用最低价
+        'label_strategy': 'forward_return',  # 标签策略：固定持有期未来收益率
+        'lookforward_bars': 20,              # 未来N根K线
+        'min_future_bars': 20,               # 至少需要多少根未来K线
+        'threshold_pct': 0.05,               # 收益率阈值（5%）
+        'entry_price': 'next_open',          # signal_close/next_open/next_close
+        'exit_price': 'close',               # close/open/high/low
+        'allow_partial_window': False,       # 是否允许不足完整窗口时仍然打标签
+        'use_highest_for_buy': False,        # 兼容旧策略，仅legacy模式使用
+        'use_lowest_for_sell': False,        # 兼容旧策略，仅legacy模式使用
     })
 
     # 模型配置
@@ -69,11 +73,13 @@ class MLConfig:
 
     # 训练配置
     training_config: Dict[str, Any] = field(default_factory=lambda: {
-        'test_size': 0.2,           # 测试集比例
-        'cv_folds': 5,              # 交叉验证折数
-        'use_time_series_split': True,  # 使用时间序列分割
-        'early_stopping_rounds': 50,    # 早停轮数
-        'verbose_eval': 10,         # 训练日志频率
+        'test_size': 0.2,                 # 测试集比例
+        'cv_folds': 5,                    # 交叉验证折数
+        'use_time_series_split': True,    # 使用时间序列分割
+        'time_series_splits': 5,          # walk-forward 切分数
+        'signal_direction': 'buy',        # buy/sell/all
+        'early_stopping_rounds': 50,      # 早停轮数
+        'verbose_eval': 10,               # 训练日志频率
     })
 
     # 预测配置
@@ -85,12 +91,38 @@ class MLConfig:
 
     # 回测配置
     backtest_config: Dict[str, Any] = field(default_factory=lambda: {
-        'score_threshold': 0.7,     # 交易信号阈值
-        'holding_period': 20,       # 持仓周期（根K线）
-        'initial_capital': 100000,  # 初始资金
-        'commission_rate': 0.0003,  # 手续费率
-        'slippage': 0.001,          # 滑点
-        'max_position': 1.0,        # 最大仓位
+        'score_threshold': 0.7,          # 交易信号阈值
+        'holding_period': 20,            # 持仓周期（根K线）
+        'trade_direction': 'buy',        # buy/sell/all
+        'entry_price': 'next_open',      # signal_close/next_open/next_close
+        'exit_price': 'close',           # close/open/high/low
+        'allow_overlap_positions': False,
+        'use_extreme_price_exit': False,  # 是否使用窗口最高/最低价出场
+        'allow_partial_window': False,
+        'initial_capital': 100000,       # 初始资金
+        'commission_rate': 0.0003,       # 手续费率
+        'slippage': 0.001,               # 滑点
+        'max_position': 1.0,             # 最大仓位
+        'periods_per_year': 252,         # 年化频率
+    })
+
+    # 组合级横截面回测配置
+    portfolio_backtest_config: Dict[str, Any] = field(default_factory=lambda: {
+        'top_k': 5,                      # 每期持有股票数
+        'score_threshold': 0.6,          # 最低入选分数
+        'rebalance_bars': 5,             # 每N根K线调仓
+        'signal_lookback_bars': 20,      # 信号有效回看窗口
+        'holding_period': None,          # None表示持有到下一次调仓
+        'min_positions': 1,              # 最少持仓数
+        'direction': 'buy',              # 仅做多股票池
+        'entry_price': 'next_open',      # signal_close/next_open/next_close
+        'exit_price': 'close',           # close/open/high/low
+        'allow_partial_window': False,
+        'initial_capital': 100000,
+        'commission_rate': 0.0003,
+        'slippage': 0.001,
+        'weighting': 'equal',
+        'periods_per_year': 52,          # 周频调仓近似年化
     })
 
     # 评估指标配置（基于用户需求）
@@ -125,6 +157,7 @@ class MLConfig:
             'training_config': self.training_config,
             'prediction_config': self.prediction_config,
             'backtest_config': self.backtest_config,
+            'portfolio_backtest_config': self.portfolio_backtest_config,
             'evaluation_config': self.evaluation_config,
             'model_io_config': self.model_io_config,
         }

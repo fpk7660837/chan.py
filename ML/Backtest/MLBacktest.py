@@ -1,213 +1,196 @@
 """
-机器学习回测引擎
+机器学习单信号回测引擎
 
-基于ML预测分数进行回测，评估模型在实际交易中的表现
+默认使用更接近真实交易的规则：
+信号生成后下一根K线入场，固定持有期后按配置价格出场，并可禁止同一标的重叠持仓。
 """
 
-from typing import Dict, Any, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple
+
 import numpy as np
+
 from Chan import CChan
-from ..Prediction.Predictor import Predictor
 from ..Evaluation.Metrics import Metrics
+from ..Prediction.Predictor import Predictor
 
 
 class MLBacktest:
-    """机器学习回测引擎"""
+    """机器学习单信号回测引擎"""
 
     def __init__(self, predictor: Predictor, config: Dict[str, Any] = None):
-        """
-        初始化回测引擎
-
-        Args:
-            predictor: 预测器
-            config: 回测配置字典，包含：
-                - score_threshold: 交易信号阈值
-                - holding_period: 持仓周期
-                - initial_capital: 初始资金
-                - commission_rate: 手续费率
-                - slippage: 滑点
-                - max_position: 最大仓位
-        """
         self.predictor = predictor
         self.config = config or {}
 
-        self.score_threshold = self.config.get('score_threshold', 0.7)
-        self.holding_period = self.config.get('holding_period', 20)
-        self.initial_capital = self.config.get('initial_capital', 100000)
-        self.commission_rate = self.config.get('commission_rate', 0.0003)
-        self.slippage = self.config.get('slippage', 0.001)
-        self.max_position = self.config.get('max_position', 1.0)
+        self.score_threshold = float(self.config.get('score_threshold', 0.7))
+        self.holding_period = int(self.config.get('holding_period', 20))
+        self.trade_direction = self.config.get('trade_direction', 'buy')
+        self.entry_price = self.config.get('entry_price', 'next_open')
+        self.exit_price = self.config.get('exit_price', 'close')
+        self.allow_overlap_positions = bool(self.config.get('allow_overlap_positions', False))
+        self.use_extreme_price_exit = bool(self.config.get('use_extreme_price_exit', False))
+        self.allow_partial_window = bool(self.config.get('allow_partial_window', False))
+        self.initial_capital = float(self.config.get('initial_capital', 100000))
+        self.commission_rate = float(self.config.get('commission_rate', 0.0003))
+        self.slippage = float(self.config.get('slippage', 0.001))
+        self.max_position = float(self.config.get('max_position', 1.0))
+        self.periods_per_year = int(self.config.get('periods_per_year', 252))
 
     def run(self, chan_list: List[CChan]) -> Dict[str, Any]:
-        """
-        运行回测
-
-        Args:
-            chan_list: CChan实例列表（测试数据）
-
-        Returns:
-            回测结果字典
-        """
         print("Starting backtest...")
 
-        # 收集所有交易信号
         all_trades = []
         all_returns = []
 
         for i, chan in enumerate(chan_list):
-            print(f"Processing CChan {i+1}/{len(chan_list)}...")
-
-            # 获取买卖点并预测
+            print(f"Processing {chan.code} ({i + 1}/{len(chan_list)})...")
             bsp_signals = self.predictor.filter_bsp_by_threshold(
                 chan,
                 threshold=self.score_threshold,
-                direction='all'
+                direction=self.trade_direction,
             )
-
-            # 模拟交易
-            trades = self._simulate_trades(bsp_signals, chan)
+            trades = self._simulate_trades(chan, bsp_signals)
             all_trades.extend(trades)
+            all_returns.extend(trade['return'] for trade in trades)
 
-            # 计算收益
-            for trade in trades:
-                all_returns.append(trade['return'])
+        metrics = Metrics.calculate_trading_metrics(
+            np.array(all_returns, dtype=float),
+            all_trades,
+            periods_per_year=self.periods_per_year,
+        )
+        metrics['total_signals'] = float(len(all_trades))
 
-        # 计算指标
-        returns_array = np.array(all_returns) if len(all_returns) > 0 else np.array([0])
-
-        metrics = Metrics.calculate_trading_metrics(returns_array, all_trades)
-
-        # 添加额外信息
-        metrics['total_signals'] = len(all_trades)
-
-        print(f"\nBacktest completed!")
-        print(f"Total signals: {metrics['total_signals']}")
-
-        # 打印结果
+        print("\nBacktest completed!")
+        print(f"Total signals: {int(metrics['total_signals'])}")
         Metrics.print_metrics(metrics, title="Backtest Results")
-
         return metrics
 
-    def _simulate_trades(self, bsp_signals: List[Tuple], chan: CChan) -> List[Dict[str, Any]]:
-        """
-        模拟交易
-
-        Args:
-            bsp_signals: [(买卖点, 分数), ...]
-            chan: CChan实例
-
-        Returns:
-            交易记录列表
-        """
+    def _simulate_trades(self, chan: CChan, bsp_signals: List[Tuple]) -> List[Dict[str, Any]]:
         trades = []
+        next_available_entry_idx = -1
 
-        for bsp, score in bsp_signals:
-            trade = self._execute_trade(bsp, score)
-            if trade is not None:
-                trades.append(trade)
+        ordered_signals = sorted(bsp_signals, key=lambda item: item[0].klu.idx if item[0].klu is not None else -1)
+        for bsp, score in ordered_signals:
+            trade = self._execute_trade(chan.code, bsp, score)
+            if trade is None:
+                continue
+            if not self.allow_overlap_positions and trade['entry_idx'] <= next_available_entry_idx:
+                continue
+            trades.append(trade)
+            if not self.allow_overlap_positions:
+                next_available_entry_idx = trade['exit_idx']
 
         return trades
 
-    def _execute_trade(self, bsp, score: float) -> Dict[str, Any]:
-        """
-        执行单笔交易
-
-        Args:
-            bsp: 买卖点
-            score: 预测分数
-
-        Returns:
-            交易记录字典
-        """
+    def _execute_trade(self, code: str, bsp, score: float) -> Optional[Dict[str, Any]]:
         if bsp.klu is None:
             return None
 
-        # 入场价格（加上滑点）
-        entry_price = bsp.klu.close * (1 + self.slippage if bsp.is_buy else 1 - self.slippage)
-
-        # 获取未来价格（持仓周期）
-        future_prices = self._get_future_prices(bsp.klu, self.holding_period)
-
-        if len(future_prices) == 0:
+        entry_klu = self._get_entry_klu(bsp.klu)
+        if entry_klu is None:
             return None
 
-        # 出场价格
-        if bsp.is_buy:
-            # 买点：持仓期间的最高价
-            exit_price = max(future_prices) * (1 - self.slippage)
-        else:
-            # 卖点（做空）：持仓期间的最低价
-            exit_price = min(future_prices) * (1 + self.slippage)
+        exit_klu, forward_window = self._get_exit_klu(entry_klu)
+        if exit_klu is None:
+            return None
 
-        # 计算收益率
+        if not self.allow_partial_window and len(forward_window) < self.holding_period:
+            return None
+
+        entry_price = self._get_entry_value(entry_klu, bsp.is_buy)
+        exit_price = self._get_exit_value(exit_klu, forward_window, bsp.is_buy)
+        if entry_price is None or exit_price is None or entry_price == 0:
+            return None
+
         if bsp.is_buy:
             gross_return = (exit_price - entry_price) / entry_price
         else:
-            # 做空收益
             gross_return = (entry_price - exit_price) / entry_price
 
-        # 扣除手续费（买入和卖出各一次）
         net_return = gross_return - 2 * self.commission_rate
-
-        # 计算盈亏
         position_size = self.initial_capital * self.max_position
         profit = position_size * net_return
 
-        # 记录交易
-        trade = {
-            'entry_time': bsp.klu.time if hasattr(bsp.klu, 'time') else None,
+        return {
+            'code': code,
+            'signal_time': bsp.klu.time if hasattr(bsp.klu, 'time') else None,
+            'entry_time': entry_klu.time if hasattr(entry_klu, 'time') else None,
+            'exit_time': exit_klu.time if hasattr(exit_klu, 'time') else None,
+            'signal_idx': bsp.klu.idx,
+            'entry_idx': entry_klu.idx,
+            'exit_idx': exit_klu.idx,
             'entry_price': entry_price,
             'exit_price': exit_price,
             'direction': 'buy' if bsp.is_buy else 'sell',
-            'score': score,
-            'return': net_return,
-            'profit': profit,
-            'holding_period': len(future_prices),
+            'score': float(score),
+            'return': float(net_return),
+            'profit': float(profit),
+            'holding_period': int(len(forward_window)),
         }
 
-        return trade
+    def _get_entry_klu(self, signal_klu):
+        if self.entry_price == 'signal_close':
+            return signal_klu
+        if self.entry_price in {'next_open', 'next_close'}:
+            return getattr(signal_klu, 'next', None)
+        raise ValueError(f"Unsupported entry_price: {self.entry_price}")
 
-    def _get_future_prices(self, klu, periods: int) -> List[float]:
-        """
-        获取未来N个周期的价格
+    def _get_exit_klu(self, entry_klu) -> Tuple[Optional[Any], List[Any]]:
+        if self.holding_period <= 0:
+            return entry_klu, [entry_klu]
 
-        Args:
-            klu: 当前K线
-            periods: 周期数
-
-        Returns:
-            价格列表
-        """
-        prices = []
-        current = klu
-
-        for _ in range(periods):
-            if hasattr(current, 'next') and current.next is not None:
-                current = current.next
-                prices.append(current.close)
-            else:
+        forward_window = [entry_klu]
+        current = entry_klu
+        for _ in range(self.holding_period - 1):
+            nxt = getattr(current, 'next', None)
+            if nxt is None:
                 break
+            current = nxt
+            forward_window.append(current)
 
-        return prices
+        if len(forward_window) < self.holding_period and not self.allow_partial_window:
+            return None, forward_window
+        return forward_window[-1], forward_window
+
+    def _get_entry_value(self, entry_klu, is_buy: bool) -> Optional[float]:
+        if self.entry_price == 'signal_close':
+            base_price = getattr(entry_klu, 'close', None)
+        elif self.entry_price == 'next_close':
+            base_price = getattr(entry_klu, 'close', None)
+        else:
+            base_price = getattr(entry_klu, 'open', None)
+
+        if base_price is None:
+            return None
+        slippage_factor = 1 + self.slippage if is_buy else 1 - self.slippage
+        return float(base_price) * slippage_factor
+
+    def _get_exit_value(self, exit_klu, forward_window: List[Any], is_buy: bool) -> Optional[float]:
+        if self.use_extreme_price_exit and forward_window:
+            if is_buy:
+                base_price = max(float(klu.high) for klu in forward_window)
+            else:
+                base_price = min(float(klu.low) for klu in forward_window)
+        elif self.exit_price == 'open':
+            base_price = getattr(exit_klu, 'open', None)
+        elif self.exit_price == 'high':
+            base_price = getattr(exit_klu, 'high', None)
+        elif self.exit_price == 'low':
+            base_price = getattr(exit_klu, 'low', None)
+        else:
+            base_price = getattr(exit_klu, 'close', None)
+
+        if base_price is None:
+            return None
+
+        if is_buy:
+            return float(base_price) * (1 - self.slippage)
+        return float(base_price) * (1 + self.slippage)
 
     def run_with_validation(self, train_chan_list: List[CChan], test_chan_list: List[CChan]) -> Dict[str, Any]:
-        """
-        运行带验证的回测（分别在训练集和测试集上回测）
-
-        Args:
-            train_chan_list: 训练集CChan列表
-            test_chan_list: 测试集CChan列表
-
-        Returns:
-            包含训练集和测试集指标的字典
-        """
         print("Running backtest on training set...")
         train_metrics = self.run(train_chan_list)
 
         print("\nRunning backtest on test set...")
         test_metrics = self.run(test_chan_list)
 
-        return {
-            'train': train_metrics,
-            'test': test_metrics,
-        }
+        return {'train': train_metrics, 'test': test_metrics}

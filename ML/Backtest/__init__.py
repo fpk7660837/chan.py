@@ -5,5 +5,6 @@
 """
 
 from .MLBacktest import MLBacktest
+from .CrossSectionBacktest import CrossSectionBacktest
 
-__all__ = ['MLBacktest']
+__all__ = ['MLBacktest', 'CrossSectionBacktest']

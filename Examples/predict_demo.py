@@ -81,10 +81,7 @@ def predict_bsp_quality(model, chan, metadata):
     predictor = Predictor(model, feature_extractor)
 
     # 获取所有买卖点数量
-    total_bsp = 0
-    if hasattr(chan, 'bs_point_lst'):
-        for bsp_dict in chan.bs_point_lst.values():
-            total_bsp += len(bsp_dict)
+    total_bsp = len(predictor.collect_bsp(chan, direction='all'))
 
     print(f"\nTotal buy/sell points: {total_bsp}")
 
@@ -98,7 +95,7 @@ def predict_bsp_quality(model, chan, metadata):
     for i, (bsp, score) in enumerate(top_buy_points, 1):
         print(f"\n{i}. Buy Point:")
         print(f"   Time: {bsp.klu.time if hasattr(bsp.klu, 'time') else 'N/A'}")
-        print(f"   Type: {bsp.type.value}")
+        print(f"   Type: {bsp.type2str()}")
         print(f"   Price: {bsp.klu.close:.2f}")
         print(f"   Quality Score: {score:.4f} ({score*100:.2f}%)")
 
@@ -112,7 +109,7 @@ def predict_bsp_quality(model, chan, metadata):
     for i, (bsp, score) in enumerate(top_sell_points, 1):
         print(f"\n{i}. Sell Point:")
         print(f"   Time: {bsp.klu.time if hasattr(bsp.klu, 'time') else 'N/A'}")
-        print(f"   Type: {bsp.type.value}")
+        print(f"   Type: {bsp.type2str()}")
         print(f"   Price: {bsp.klu.close:.2f}")
         print(f"   Quality Score: {score:.4f} ({score*100:.2f}%)")
 

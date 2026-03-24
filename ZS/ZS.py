@@ -202,13 +202,15 @@ class CZS(Generic[LINE_TYPE]):
         assert len(self.bi_lst) > 0
         if self.bi_out is None:
             return False, None
+        out_end_val = self.bi_out.get_end_val()
+        denom = abs(out_end_val) if abs(out_end_val) > 1e-7 else 1e-7
         peak_rate = float("inf")
         for bi in self.bi_lst:
             if bi.idx > end_bi_idx:
                 break
             if (self.bi_out.is_down() and bi._low() < self.bi_out._low()) or (self.bi_out.is_up() and bi._high() > self.bi_out._high()):
                 return False, None
-            r = abs(bi.get_end_val()-self.bi_out.get_end_val())/self.bi_out.get_end_val()
+            r = abs(bi.get_end_val() - out_end_val) / denom
             if r < peak_rate:
                 peak_rate = r
         return True, peak_rate

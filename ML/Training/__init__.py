@@ -5,7 +5,10 @@
 """
 
 from .LabelBuilder import LabelBuilder
-from .Trainer import Trainer
+try:
+    from .Trainer import Trainer
+except ModuleNotFoundError:
+    Trainer = None
 
 __all__ = [
     'LabelBuilder',

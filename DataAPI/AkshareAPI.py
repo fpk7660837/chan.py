@@ -1,3 +1,6 @@
+import os
+from contextlib import contextmanager
+
 import akshare as ak
 import pandas as pd
 
@@ -7,6 +10,33 @@ from Common.func_util import str2float
 from KLine.KLine_Unit import CKLine_Unit
 
 from .CommonStockAPI import CCommonStockApi
+
+
+@contextmanager
+def _akshare_proxy_guard():
+    """
+    requests/urllib 在 macOS 上会继承系统代理配置。
+    当本机代理端口不可用时，akshare 会被透明带到失效代理上。
+    默认对 akshare 请求禁用代理；如确实需要代理，可设置 CHAN_AKSHARE_ALLOW_PROXY=1。
+    """
+    if os.environ.get("CHAN_AKSHARE_ALLOW_PROXY") == "1":
+        yield
+        return
+
+    original = {
+        "NO_PROXY": os.environ.get("NO_PROXY"),
+        "no_proxy": os.environ.get("no_proxy"),
+    }
+    os.environ["NO_PROXY"] = "*"
+    os.environ["no_proxy"] = "*"
+    try:
+        yield
+    finally:
+        for key, value in original.items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
 
 
 def create_item_dict(row, autype):
@@ -72,33 +102,34 @@ class CAkshare(CCommonStockApi):
         end_date = self.end_date.replace("-", "") if self.end_date else "20991231"
 
         # 获取数据
-        if self.is_stock:
-            # 个股数据
-            df = ak.stock_zh_a_hist(
-                symbol=self.code,
-                period=period,
-                start_date=start_date,
-                end_date=end_date,
-                adjust=adjust
-            )
-        else:
-            # 指数数据
-            df = ak.stock_zh_index_daily(symbol=self.code)
-            # 筛选日期范围
-            df['日期'] = df['date'].astype(str)
-            df = df.rename(columns={
-                'date': '日期',
-                'open': '开盘',
-                'high': '最高',
-                'low': '最低',
-                'close': '收盘',
-                'volume': '成交量'
-            })
-            if 'amount' in df.columns:
-                df['成交额'] = df['amount']
+        with _akshare_proxy_guard():
+            if self.is_stock:
+                # 个股数据
+                df = ak.stock_zh_a_hist(
+                    symbol=self.code,
+                    period=period,
+                    start_date=start_date,
+                    end_date=end_date,
+                    adjust=adjust
+                )
             else:
-                df['成交额'] = 0
-            df = df[(df['日期'] >= start_date) & (df['日期'] <= end_date)]
+                # 指数数据
+                df = ak.stock_zh_index_daily(symbol=self.code)
+                # 筛选日期范围
+                df['日期'] = df['date'].astype(str)
+                df = df.rename(columns={
+                    'date': '日期',
+                    'open': '开盘',
+                    'high': '最高',
+                    'low': '最低',
+                    'close': '收盘',
+                    'volume': '成交量'
+                })
+                if 'amount' in df.columns:
+                    df['成交额'] = df['amount']
+                else:
+                    df['成交额'] = 0
+                df = df[(df['日期'] >= start_date) & (df['日期'] <= end_date)]
 
         # 遍历每一行生成K线单元
         for _, row in df.iterrows():

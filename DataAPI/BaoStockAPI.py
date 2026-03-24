@@ -54,10 +54,19 @@ def GetColumnNameFromFieldList(fileds: str):
     return [_dict[x] for x in fileds.split(",")]
 
 
+def _normalize_baostock_code(code: str) -> str:
+    if "." in code:
+        return code
+    if code.startswith(("5", "6", "9")):
+        return f"sh.{code}"
+    return f"sz.{code}"
+
+
 class CBaoStock(CCommonStockApi):
     is_connect = None
 
     def __init__(self, code, k_type=KL_TYPE.K_DAY, begin_date=None, end_date=None, autype=AUTYPE.QFQ):
+        code = _normalize_baostock_code(code)
         super(CBaoStock, self).__init__(code, k_type, begin_date, end_date, autype)
 
     def get_kl_data(self):
