@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import datetime
+from pathlib import Path
 from statistics import mean
 from types import SimpleNamespace
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from .Spec import ExperimentSpec
 
@@ -61,7 +62,7 @@ def _build_backtest_summary(predictor: Any, metadata: Dict[str, Any], chan_list:
     }
 
 
-def run_selection_experiment(spec: ExperimentSpec) -> SelectionRunResult:
+def run_selection_experiment(spec: ExperimentSpec, model_dir: Optional[Path] = None) -> SelectionRunResult:
     from App.generate_stock_recommendations import (
         build_output_rows,
         load_chan_pool,
@@ -73,7 +74,7 @@ def run_selection_experiment(spec: ExperimentSpec) -> SelectionRunResult:
     from ML.Prediction.Predictor import Predictor
 
     runtime_args = _make_runtime_args(spec)
-    model, metadata = load_model(spec.selection.model_version)
+    model, metadata = load_model(spec.selection.model_version, model_dir=model_dir)
     runtime = resolve_runtime_config(metadata, runtime_args)
     predictor = Predictor(model, BSPFeatureExtractor(runtime["feature_config"]))
 

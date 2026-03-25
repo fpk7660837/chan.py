@@ -49,8 +49,8 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_model(version: Optional[str]):
-    model_io = ModelIO("./models")
+def load_model(version: Optional[str], model_dir: Optional[Path] = None):
+    model_io = ModelIO(str(model_dir or "./models"))
     model = model_io.load(version=version)
     metadata = model_io.load_metadata(version=version)
     return model, metadata

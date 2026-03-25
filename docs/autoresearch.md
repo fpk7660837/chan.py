@@ -50,7 +50,8 @@ tests/test_autoresearch.py
 3. Train through `ML.Training.Trainer`
 4. Save the model and metadata into `AutoResearch/results/.../runs/<id>/models/`
 5. Optionally publish/promote the chosen artifact into the shared global `./models` directory
-6. Persist:
+6. If `benchmark_selection` is configured, run a fixed downstream selection benchmark against the trained model context
+7. Persist:
    - `spec.json`
    - `summary.json`
    - `manifest.json`
@@ -116,6 +117,15 @@ python3.11 App/run_autoresearch_pipeline.py \
 
 - Default behavior: training artifacts stay inside the run directory under `AutoResearch/results/experiments/<experiment>/runs/<run_id>/models/`
 - Optional publish/promote behavior: enable `storage.publish_model.enabled` in the spec, or pass `--publish-model`, to also copy the chosen model artifact into the global `./models` directory
+- Optional benchmark behavior: set `benchmark_selection` in a training spec to either:
+  - an inline selection config object with `as_of`, universe settings, and optional training-spec `portfolio_backtest` overrides
+  - a path to an existing selection spec JSON file, such as `./baseline_daily_selection.json`
+- When a benchmark is configured, the training run executes that selection benchmark immediately after training:
+  - it uses the run-local model artifacts by default
+  - it uses the published model directory when publish/promote is enabled
+  - `summary.json` stores the full downstream selection summary under `downstream_benchmark`
+  - `manifest.json` stores the downstream benchmark summary under `downstream_benchmark_summary`
+  - top-level manifest leaderboard fields (`as_of`, `leaderboard_metric`, `leaderboard_value`, `top_score`, `avg_score`, `recommendation_count`) reflect the downstream benchmark so training runs can be ranked on a fixed post-training selection check
 - The run-local artifact is always written first; publishing is a second step, not the primary storage location
 
 ## Next Extensions
@@ -123,4 +133,4 @@ python3.11 App/run_autoresearch_pipeline.py \
 - Add more experiment specs for top-k, threshold, and universe ablations
 - Plug in `Research/SignalEvaluator` summaries before ranking to filter weak signal regimes
 - Add model-version sweeps once multiple saved models are available
-- Add post-training evaluation metrics so training runs can rank on validation quality instead of artifact-only bookkeeping
+- Add richer post-training benchmark suites once a single fixed downstream selection benchmark is no longer enough

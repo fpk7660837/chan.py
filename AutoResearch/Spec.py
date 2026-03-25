@@ -46,6 +46,13 @@ class PortfolioBacktestSpec:
 
 
 @dataclass(frozen=True)
+class BenchmarkSelectionSpec:
+    selection: SelectionSpec
+    portfolio_backtest: PortfolioBacktestSpec = field(default_factory=PortfolioBacktestSpec)
+    reference_path: Optional[str] = None
+
+
+@dataclass(frozen=True)
 class TrainingSpec:
     begin_time: str
     end_time: str
@@ -79,6 +86,7 @@ class ExperimentSpec:
     mode: str = "selection"
     selection: Optional[SelectionSpec] = None
     training: Optional[TrainingSpec] = None
+    benchmark_selection: Optional[BenchmarkSelectionSpec] = None
     description: str = ""
     tags: List[str] = field(default_factory=list)
     portfolio_backtest: PortfolioBacktestSpec = field(default_factory=PortfolioBacktestSpec)
@@ -88,11 +96,10 @@ class ExperimentSpec:
         return asdict(self)
 
 
-def _load_selection_spec(payload: Dict[str, Any], spec_path: Path) -> SelectionSpec:
-    if "selection" not in payload or "as_of" not in payload["selection"]:
+def _load_selection_spec_from_payload(selection_payload: Dict[str, Any], spec_path: Path) -> SelectionSpec:
+    if "as_of" not in selection_payload:
         raise ValueError(f"Experiment spec must define selection.as_of: {spec_path}")
 
-    selection_payload = dict(payload.get("selection", {}))
     return SelectionSpec(
         as_of=str(selection_payload["as_of"]),
         direction=str(selection_payload.get("direction", "buy")),
@@ -106,6 +113,14 @@ def _load_selection_spec(payload: Dict[str, Any], spec_path: Path) -> SelectionS
         codes_file=selection_payload.get("codes_file"),
         limit=int(selection_payload["limit"]) if selection_payload.get("limit") is not None else None,
     )
+
+
+def _load_selection_spec(payload: Dict[str, Any], spec_path: Path) -> SelectionSpec:
+    if "selection" not in payload:
+        raise ValueError(f"Experiment spec must define selection.as_of: {spec_path}")
+
+    selection_payload = dict(payload.get("selection", {}))
+    return _load_selection_spec_from_payload(selection_payload, spec_path)
 
 
 def _load_training_spec(payload: Dict[str, Any], spec_path: Path) -> TrainingSpec:
@@ -131,25 +146,9 @@ def _load_training_spec(payload: Dict[str, Any], spec_path: Path) -> TrainingSpe
     )
 
 
-def load_experiment_spec(path: Path) -> ExperimentSpec:
-    spec_path = Path(path)
-    payload = json.loads(spec_path.read_text(encoding="utf-8"))
-
-    if "name" not in payload:
-        raise ValueError(f"Experiment spec is missing required field 'name': {spec_path}")
-
-    mode = str(payload.get("mode", "selection"))
-    if mode == "selection":
-        selection = _load_selection_spec(payload, spec_path)
-        training = None
-    elif mode == "training":
-        selection = None
-        training = _load_training_spec(payload, spec_path)
-    else:
-        raise ValueError(f"Unsupported experiment mode '{mode}': {spec_path}")
-
-    portfolio_payload = dict(payload.get("portfolio_backtest", {}))
-    portfolio_backtest = PortfolioBacktestSpec(
+def _load_portfolio_backtest_spec(payload: Dict[str, Any]) -> PortfolioBacktestSpec:
+    portfolio_payload = dict(payload)
+    return PortfolioBacktestSpec(
         enabled=bool(portfolio_payload.get("enabled", True)),
         top_k=int(portfolio_payload["top_k"]) if portfolio_payload.get("top_k") is not None else None,
         score_threshold=float(portfolio_payload["score_threshold"]) if portfolio_payload.get("score_threshold") is not None else None,
@@ -162,6 +161,73 @@ def load_experiment_spec(path: Path) -> ExperimentSpec:
         holding_period=int(portfolio_payload["holding_period"]) if portfolio_payload.get("holding_period") is not None else None,
         min_positions=int(portfolio_payload["min_positions"]) if portfolio_payload.get("min_positions") is not None else None,
     )
+
+
+def _load_benchmark_selection_spec(
+    payload: Dict[str, Any],
+    spec_path: Path,
+    default_portfolio_backtest: PortfolioBacktestSpec,
+) -> Optional[BenchmarkSelectionSpec]:
+    raw_benchmark = payload.get("benchmark_selection")
+    if raw_benchmark is None:
+        return None
+
+    benchmark_payload: Dict[str, Any]
+    benchmark_spec_path = spec_path
+    reference_path: Optional[str] = None
+
+    if isinstance(raw_benchmark, str):
+        reference_path = raw_benchmark
+        benchmark_spec_path = Path(raw_benchmark)
+        if not benchmark_spec_path.is_absolute():
+            benchmark_spec_path = (spec_path.parent / benchmark_spec_path).resolve()
+        benchmark_payload = json.loads(benchmark_spec_path.read_text(encoding="utf-8"))
+    elif isinstance(raw_benchmark, dict):
+        benchmark_payload = dict(raw_benchmark)
+    else:
+        raise ValueError(f"benchmark_selection must be an object or a relative/absolute JSON path: {spec_path}")
+
+    if "selection" in benchmark_payload:
+        selection_payload = dict(benchmark_payload.get("selection", {}))
+        portfolio_payload = benchmark_payload.get("portfolio_backtest")
+    else:
+        selection_payload = benchmark_payload
+        portfolio_payload = None
+
+    selection = _load_selection_spec_from_payload(selection_payload, benchmark_spec_path)
+    portfolio_backtest = (
+        _load_portfolio_backtest_spec(portfolio_payload)
+        if isinstance(portfolio_payload, dict)
+        else default_portfolio_backtest
+    )
+
+    return BenchmarkSelectionSpec(
+        selection=selection,
+        portfolio_backtest=portfolio_backtest,
+        reference_path=reference_path,
+    )
+
+
+def load_experiment_spec(path: Path) -> ExperimentSpec:
+    spec_path = Path(path)
+    payload = json.loads(spec_path.read_text(encoding="utf-8"))
+
+    if "name" not in payload:
+        raise ValueError(f"Experiment spec is missing required field 'name': {spec_path}")
+
+    portfolio_backtest = _load_portfolio_backtest_spec(payload.get("portfolio_backtest", {}))
+
+    mode = str(payload.get("mode", "selection"))
+    if mode == "selection":
+        selection = _load_selection_spec(payload, spec_path)
+        training = None
+        benchmark_selection = None
+    elif mode == "training":
+        selection = None
+        training = _load_training_spec(payload, spec_path)
+        benchmark_selection = _load_benchmark_selection_spec(payload, spec_path, portfolio_backtest)
+    else:
+        raise ValueError(f"Unsupported experiment mode '{mode}': {spec_path}")
 
     storage_payload = dict(payload.get("storage", {}))
     publish_payload = storage_payload.get("publish_model", {})
@@ -187,6 +253,7 @@ def load_experiment_spec(path: Path) -> ExperimentSpec:
         tags=[str(tag) for tag in payload.get("tags", [])],
         selection=selection,
         training=training,
+        benchmark_selection=benchmark_selection,
         portfolio_backtest=portfolio_backtest,
         storage=storage,
     )

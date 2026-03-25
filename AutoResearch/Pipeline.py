@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional
@@ -25,7 +25,7 @@ class AutoResearchPipeline:
     def __init__(
         self,
         results_root: Optional[Path] = None,
-        selection_runner: Callable[[ExperimentSpec], SelectionRunResult] = run_selection_experiment,
+        selection_runner: Callable[[ExperimentSpec, Optional[Path]], SelectionRunResult] = run_selection_experiment,
         training_runner: Callable[[ExperimentSpec, RunPaths], TrainingRunResult] = run_training_experiment,
         publish_model: Optional[bool] = None,
         global_model_dir: Optional[Path] = None,
@@ -65,8 +65,15 @@ class AutoResearchPipeline:
                         if published_model_artifacts.metadata_path is not None
                         else None
                     )
+                status = self._run_training_benchmark(
+                    spec,
+                    summary,
+                    training_result,
+                    published_model_artifacts=published_model_artifacts,
+                    current_status=status,
+                )
             else:
-                selection_result = self.selection_runner(spec)
+                selection_result = self.selection_runner(spec, None)
                 recommendations = selection_result.recommendations
                 summary = selection_result.summary
         except Exception as exc:
@@ -109,6 +116,52 @@ class AutoResearchPipeline:
         if self.publish_model is not None:
             return self.publish_model
         return spec.storage.publish_model.enabled
+
+    def _run_training_benchmark(
+        self,
+        spec: ExperimentSpec,
+        summary: Dict[str, object],
+        training_result: TrainingRunResult,
+        *,
+        published_model_artifacts: Optional[PublishedModelArtifacts],
+        current_status: str,
+    ) -> str:
+        if spec.benchmark_selection is None:
+            return current_status
+
+        benchmark_spec = self._build_benchmark_spec(spec, training_result.model_version)
+        model_dir = (
+            published_model_artifacts.model_path.parent
+            if published_model_artifacts is not None
+            else training_result.model_path.parent
+        )
+
+        try:
+            benchmark_result = self.selection_runner(benchmark_spec, model_dir)
+        except Exception as exc:
+            summary["downstream_benchmark_error"] = str(exc)
+            return "failed"
+
+        summary["downstream_benchmark"] = benchmark_result.summary
+        return current_status
+
+    @staticmethod
+    def _build_benchmark_spec(spec: ExperimentSpec, model_version: str) -> ExperimentSpec:
+        benchmark = spec.benchmark_selection
+        if benchmark is None:
+            raise ValueError("Training benchmark requires spec.benchmark_selection.")
+
+        return ExperimentSpec(
+            name=spec.name,
+            mode="selection",
+            selection=replace(benchmark.selection, model_version=model_version),
+            training=None,
+            benchmark_selection=None,
+            description=spec.description,
+            tags=spec.tags,
+            portfolio_backtest=benchmark.portfolio_backtest,
+            storage=spec.storage,
+        )
 
     @staticmethod
     def _relative_to_root(run_paths: RunPaths, path: Optional[Path]) -> Optional[str]:
@@ -179,13 +232,7 @@ class AutoResearchPipeline:
         *,
         status: str,
     ) -> Dict[str, object]:
-        portfolio_summary = summary.get("portfolio_backtest", {})
-        if isinstance(portfolio_summary, dict) and "sharpe_ratio" in portfolio_summary:
-            leaderboard_metric = "portfolio_sharpe"
-            leaderboard_value = float(portfolio_summary["sharpe_ratio"])
-        else:
-            leaderboard_metric = "top_score"
-            leaderboard_value = float(summary.get("top_score", 0.0) or 0.0)
+        leaderboard_metric, leaderboard_value = AutoResearchPipeline._resolve_selection_leaderboard(summary)
 
         selection = spec.selection
         return {
@@ -212,6 +259,13 @@ class AutoResearchPipeline:
             "spec_snapshot_path": str(run_paths.spec_snapshot_json.relative_to(run_paths.root_dir)),
         }
 
+    @staticmethod
+    def _resolve_selection_leaderboard(summary: Dict[str, object]) -> tuple[str, float]:
+        portfolio_summary = summary.get("portfolio_backtest", {})
+        if isinstance(portfolio_summary, dict) and "sharpe_ratio" in portfolio_summary:
+            return "portfolio_sharpe", float(portfolio_summary["sharpe_ratio"])
+        return "top_score", float(summary.get("top_score", 0.0) or 0.0)
+
     @classmethod
     def _build_training_manifest(
         cls,
@@ -224,7 +278,23 @@ class AutoResearchPipeline:
         published_model_artifacts: Optional[PublishedModelArtifacts],
     ) -> Dict[str, object]:
         training = spec.training
-        leaderboard_value = summary.get("leaderboard_value")
+        benchmark_summary = summary.get("downstream_benchmark", {})
+        has_benchmark_summary = isinstance(benchmark_summary, dict)
+        if has_benchmark_summary:
+            leaderboard_metric, leaderboard_value = cls._resolve_selection_leaderboard(benchmark_summary)
+            as_of = str(benchmark_summary.get("as_of", "") or "")
+            top_score = float(benchmark_summary.get("top_score", 0.0) or 0.0)
+            avg_score = float(benchmark_summary.get("avg_score", 0.0) or 0.0)
+            recommendation_count = int(benchmark_summary.get("recommendation_count", 0) or 0)
+            skipped_count = int(benchmark_summary.get("skipped_count", 0) or 0)
+        else:
+            leaderboard_metric = str(summary.get("leaderboard_metric", "trained_model"))
+            leaderboard_value = summary.get("leaderboard_value")
+            as_of = ""
+            top_score = 0.0
+            avg_score = 0.0
+            recommendation_count = 0
+            skipped_count = int(summary.get("skipped_count", 0) or 0)
         return {
             "status": status,
             "workflow": "training",
@@ -233,21 +303,22 @@ class AutoResearchPipeline:
             "tags": spec.tags,
             "run_id": run_paths.run_dir.name,
             "created_at": datetime.utcnow().isoformat() + "Z",
-            "as_of": "",
+            "as_of": as_of,
             "model_version": summary.get(
                 "model_version",
                 training.model_version if training is not None and training.model_version is not None else run_paths.run_dir.name,
             ),
-            "leaderboard_metric": str(summary.get("leaderboard_metric", "trained_model")),
+            "leaderboard_metric": leaderboard_metric,
             "leaderboard_value": float(leaderboard_value) if leaderboard_value is not None else None,
-            "top_score": 0.0,
-            "avg_score": 0.0,
-            "recommendation_count": 0,
-            "skipped_count": int(summary.get("skipped_count", 0) or 0),
+            "top_score": top_score,
+            "avg_score": avg_score,
+            "recommendation_count": recommendation_count,
+            "skipped_count": skipped_count,
             "training_begin": training.begin_time if training is not None else "",
             "training_end": training.end_time if training is not None else "",
             "summary_path": str(run_paths.summary_json.relative_to(run_paths.root_dir)),
             "spec_snapshot_path": str(run_paths.spec_snapshot_json.relative_to(run_paths.root_dir)),
+            "training_skipped_count": int(summary.get("skipped_count", 0) or 0),
             "model_artifact_path": cls._relative_to_root(run_paths, training_result.model_path if training_result else None),
             "metadata_artifact_path": cls._relative_to_root(
                 run_paths,
@@ -261,4 +332,6 @@ class AutoResearchPipeline:
                 if published_model_artifacts is not None and published_model_artifacts.metadata_path is not None
                 else None
             ),
+            "downstream_benchmark_summary": benchmark_summary if has_benchmark_summary else None,
+            "downstream_benchmark_error": summary.get("downstream_benchmark_error"),
         }

@@ -67,6 +67,90 @@ class AutoResearchSpecTests(unittest.TestCase):
             self.assertFalse(spec.storage.publish_model.enabled)
             self.assertEqual(spec.storage.publish_model.target_dir, "./models")
 
+    def test_load_training_experiment_spec_supports_inline_benchmark_selection(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            spec_path = Path(tmp_dir) / "training.json"
+            spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "benchmark-model-training",
+                        "mode": "training",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                        },
+                        "benchmark_selection": {
+                            "as_of": "2024-12-31",
+                            "codes": ["600519", "000333"],
+                            "top_k": 2,
+                        },
+                        "portfolio_backtest": {
+                            "enabled": True,
+                            "top_k": 3,
+                            "score_threshold": 0.55,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            spec = load_experiment_spec(spec_path)
+
+            self.assertIsNotNone(spec.benchmark_selection)
+            self.assertEqual(spec.benchmark_selection.selection.as_of, "2024-12-31")
+            self.assertEqual(spec.benchmark_selection.selection.top_k, 2)
+            self.assertEqual(spec.benchmark_selection.portfolio_backtest.top_k, 3)
+            self.assertIsNone(spec.benchmark_selection.reference_path)
+
+    def test_load_training_experiment_spec_supports_benchmark_selection_reference(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            benchmark_spec_path = tmp_path / "baseline_daily_selection.json"
+            benchmark_spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "baseline-daily-selection",
+                        "selection": {
+                            "as_of": "2025-01-15",
+                            "codes": ["600519", "000333"],
+                            "top_k": 4,
+                        },
+                        "portfolio_backtest": {
+                            "enabled": True,
+                            "top_k": 2,
+                            "score_threshold": 0.61,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            training_spec_path = tmp_path / "training.json"
+            training_spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "benchmark-model-training",
+                        "mode": "training",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                        },
+                        "benchmark_selection": "./baseline_daily_selection.json",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            spec = load_experiment_spec(training_spec_path)
+
+            self.assertIsNotNone(spec.benchmark_selection)
+            self.assertEqual(spec.benchmark_selection.reference_path, "./baseline_daily_selection.json")
+            self.assertEqual(spec.benchmark_selection.selection.as_of, "2025-01-15")
+            self.assertEqual(spec.benchmark_selection.selection.top_k, 4)
+            self.assertEqual(spec.benchmark_selection.portfolio_backtest.top_k, 2)
+
 
 class RunStorageTests(unittest.TestCase):
     def test_run_storage_writes_expected_artifacts(self):
@@ -165,7 +249,7 @@ class PipelineTests(unittest.TestCase):
                 encoding="utf-8",
             )
 
-            def fake_selection_runner(spec):
+            def fake_selection_runner(spec, model_dir=None):
                 return SelectionRunResult(
                     recommendations=[
                         {
@@ -205,6 +289,110 @@ class PipelineTests(unittest.TestCase):
             manifest = json.loads(result.run_paths.manifest_json.read_text(encoding="utf-8"))
             self.assertEqual(manifest["experiment"], "baseline-daily-selection")
             self.assertEqual(manifest["leaderboard_value"], 0.9123)
+
+    def test_training_pipeline_runs_downstream_benchmark_with_run_local_model_context(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            spec_path = tmp_path / "training.json"
+            spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "benchmark-model-training",
+                        "mode": "training",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                            "model_type": "randomforest",
+                            "model_version": "demo-v1",
+                        },
+                        "benchmark_selection": {
+                            "as_of": "2025-01-15",
+                            "codes": ["600519", "000333"],
+                            "top_k": 2,
+                        },
+                        "portfolio_backtest": {
+                            "enabled": True,
+                            "top_k": 2,
+                            "score_threshold": 0.6,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            def fake_training_runner(spec, run_paths):
+                run_paths.model_artifacts_dir.mkdir(parents=True, exist_ok=True)
+                model_path = run_paths.model_artifacts_dir / "model_demo-v1.pkl"
+                metadata_path = run_paths.model_artifacts_dir / "metadata_demo-v1.json"
+                model_path.write_text("demo-model", encoding="utf-8")
+                metadata_path.write_text(json.dumps({"version": "demo-v1"}), encoding="utf-8")
+                return TrainingRunResult(
+                    summary={
+                        "model_version": "demo-v1",
+                        "model_type": spec.training.model_type,
+                        "loaded_chan_count": 2,
+                        "skipped_count": 0,
+                    },
+                    model_version="demo-v1",
+                    model_path=model_path,
+                    metadata_path=metadata_path,
+                )
+
+            selection_calls = []
+
+            def fake_selection_runner(spec, model_dir=None):
+                selection_calls.append(
+                    {
+                        "as_of": spec.selection.as_of,
+                        "model_version": spec.selection.model_version,
+                        "model_dir": str(model_dir) if model_dir is not None else None,
+                        "portfolio_top_k": spec.portfolio_backtest.top_k,
+                    }
+                )
+                return SelectionRunResult(
+                    recommendations=[],
+                    summary={
+                        "as_of": spec.selection.as_of,
+                        "model_version": spec.selection.model_version,
+                        "top_score": 0.88,
+                        "avg_score": 0.81,
+                        "recommendation_count": 2,
+                        "skipped_count": 1,
+                        "portfolio_backtest": {
+                            "sharpe_ratio": 1.34,
+                            "total_return": 0.12,
+                        },
+                    },
+                )
+
+            pipeline = AutoResearchPipeline(
+                results_root=tmp_path / "results",
+                selection_runner=fake_selection_runner,
+                training_runner=fake_training_runner,
+            )
+
+            result = pipeline.run(spec_path)
+
+            self.assertEqual(len(selection_calls), 1)
+            self.assertEqual(selection_calls[0]["as_of"], "2025-01-15")
+            self.assertEqual(selection_calls[0]["model_version"], "demo-v1")
+            self.assertEqual(selection_calls[0]["model_dir"], str(result.run_paths.model_artifacts_dir))
+            self.assertEqual(selection_calls[0]["portfolio_top_k"], 2)
+
+            summary = json.loads(result.run_paths.summary_json.read_text(encoding="utf-8"))
+            self.assertIn("downstream_benchmark", summary)
+            self.assertEqual(summary["downstream_benchmark"]["top_score"], 0.88)
+
+            manifest = json.loads(result.run_paths.manifest_json.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["workflow"], "training")
+            self.assertEqual(manifest["as_of"], "2025-01-15")
+            self.assertEqual(manifest["leaderboard_metric"], "portfolio_sharpe")
+            self.assertEqual(manifest["leaderboard_value"], 1.34)
+            self.assertEqual(manifest["top_score"], 0.88)
+            self.assertEqual(manifest["avg_score"], 0.81)
+            self.assertEqual(manifest["recommendation_count"], 2)
+            self.assertEqual(manifest["downstream_benchmark_summary"]["portfolio_backtest"]["sharpe_ratio"], 1.34)
 
     def test_training_pipeline_keeps_model_artifacts_inside_run_directory_by_default(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
@@ -324,6 +512,80 @@ class PipelineTests(unittest.TestCase):
             self.assertTrue(published_metadata_path.exists())
             self.assertEqual(result.manifest["published_model_path"], str(published_model_path))
             self.assertEqual(result.manifest["published_metadata_path"], str(published_metadata_path))
+
+    def test_training_pipeline_runs_downstream_benchmark_with_published_model_context(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            spec_path = tmp_path / "training.json"
+            spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "benchmark-model-training",
+                        "mode": "training",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                            "model_type": "randomforest",
+                            "model_version": "demo-v1",
+                        },
+                        "benchmark_selection": {
+                            "as_of": "2025-02-01",
+                            "codes": ["600519", "000333"],
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            def fake_training_runner(spec, run_paths):
+                run_paths.model_artifacts_dir.mkdir(parents=True, exist_ok=True)
+                model_path = run_paths.model_artifacts_dir / "model_demo-v1.pkl"
+                metadata_path = run_paths.model_artifacts_dir / "metadata_demo-v1.json"
+                model_path.write_text("demo-model", encoding="utf-8")
+                metadata_path.write_text(json.dumps({"version": "demo-v1"}), encoding="utf-8")
+                return TrainingRunResult(
+                    summary={
+                        "model_version": "demo-v1",
+                        "model_type": spec.training.model_type,
+                        "loaded_chan_count": 2,
+                        "skipped_count": 0,
+                    },
+                    model_version="demo-v1",
+                    model_path=model_path,
+                    metadata_path=metadata_path,
+                )
+
+            selection_calls = []
+
+            def fake_selection_runner(spec, model_dir=None):
+                selection_calls.append(str(model_dir) if model_dir is not None else None)
+                return SelectionRunResult(
+                    recommendations=[],
+                    summary={
+                        "as_of": spec.selection.as_of,
+                        "model_version": spec.selection.model_version,
+                        "top_score": 0.71,
+                        "avg_score": 0.69,
+                        "recommendation_count": 1,
+                        "skipped_count": 0,
+                    },
+                )
+
+            pipeline = AutoResearchPipeline(
+                results_root=tmp_path / "results",
+                selection_runner=fake_selection_runner,
+                training_runner=fake_training_runner,
+                publish_model=True,
+                global_model_dir=tmp_path / "global-models",
+            )
+
+            result = pipeline.run(spec_path)
+
+            self.assertEqual(selection_calls, [str(tmp_path / "global-models")])
+            self.assertTrue((tmp_path / "global-models" / "model_demo-v1.pkl").exists())
+            self.assertEqual(result.manifest["model_version"], "demo-v1")
+            self.assertEqual(result.manifest["recommendation_count"], 1)
 
 
 if __name__ == "__main__":
