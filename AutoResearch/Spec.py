@@ -47,6 +47,7 @@ class PortfolioBacktestSpec:
 
 @dataclass(frozen=True)
 class BenchmarkSelectionSpec:
+    name: str
     selection: SelectionSpec
     portfolio_backtest: PortfolioBacktestSpec = field(default_factory=PortfolioBacktestSpec)
     reference_path: Optional[str] = None
@@ -86,7 +87,7 @@ class ExperimentSpec:
     mode: str = "selection"
     selection: Optional[SelectionSpec] = None
     training: Optional[TrainingSpec] = None
-    benchmark_selection: Optional[BenchmarkSelectionSpec] = None
+    benchmark_selections: List[BenchmarkSelectionSpec] = field(default_factory=list)
     description: str = ""
     tags: List[str] = field(default_factory=list)
     portfolio_backtest: PortfolioBacktestSpec = field(default_factory=PortfolioBacktestSpec)
@@ -94,6 +95,10 @@ class ExperimentSpec:
 
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
+
+    @property
+    def benchmark_selection(self) -> Optional[BenchmarkSelectionSpec]:
+        return self.benchmark_selections[0] if self.benchmark_selections else None
 
 
 def _load_selection_spec_from_payload(selection_payload: Dict[str, Any], spec_path: Path) -> SelectionSpec:
@@ -163,29 +168,60 @@ def _load_portfolio_backtest_spec(payload: Dict[str, Any]) -> PortfolioBacktestS
     )
 
 
-def _load_benchmark_selection_spec(
-    payload: Dict[str, Any],
+def _resolve_benchmark_reference_path(reference_path: str, spec_path: Path) -> Path:
+    benchmark_spec_path = Path(reference_path)
+    if not benchmark_spec_path.is_absolute():
+        benchmark_spec_path = (spec_path.parent / benchmark_spec_path).resolve()
+    return benchmark_spec_path
+
+
+def _resolve_benchmark_name(
+    benchmark_payload: Dict[str, Any],
+    *,
+    reference_path: Optional[str],
+    benchmark_spec_path: Path,
+    index: int,
+) -> str:
+    raw_name = benchmark_payload.get("name")
+    if raw_name is not None and str(raw_name).strip():
+        return str(raw_name).strip()
+
+    if reference_path:
+        referenced_name = benchmark_payload.get("name")
+        if referenced_name is not None and str(referenced_name).strip():
+            return str(referenced_name).strip()
+        return benchmark_spec_path.stem
+
+    return f"benchmark-{index}"
+
+
+def _load_single_benchmark_selection_spec(
+    raw_benchmark: Any,
     spec_path: Path,
     default_portfolio_backtest: PortfolioBacktestSpec,
-) -> Optional[BenchmarkSelectionSpec]:
-    raw_benchmark = payload.get("benchmark_selection")
-    if raw_benchmark is None:
-        return None
-
+    index: int,
+) -> BenchmarkSelectionSpec:
     benchmark_payload: Dict[str, Any]
-    benchmark_spec_path = spec_path
     reference_path: Optional[str] = None
 
     if isinstance(raw_benchmark, str):
         reference_path = raw_benchmark
-        benchmark_spec_path = Path(raw_benchmark)
-        if not benchmark_spec_path.is_absolute():
-            benchmark_spec_path = (spec_path.parent / benchmark_spec_path).resolve()
+        benchmark_spec_path = _resolve_benchmark_reference_path(raw_benchmark, spec_path)
         benchmark_payload = json.loads(benchmark_spec_path.read_text(encoding="utf-8"))
     elif isinstance(raw_benchmark, dict):
         benchmark_payload = dict(raw_benchmark)
+        benchmark_spec_path = spec_path
     else:
         raise ValueError(f"benchmark_selection must be an object or a relative/absolute JSON path: {spec_path}")
+
+    name = _resolve_benchmark_name(
+        benchmark_payload,
+        reference_path=reference_path,
+        benchmark_spec_path=benchmark_spec_path,
+        index=index,
+    )
+    benchmark_payload = dict(benchmark_payload)
+    benchmark_payload.pop("name", None)
 
     if "selection" in benchmark_payload:
         selection_payload = dict(benchmark_payload.get("selection", {}))
@@ -202,10 +238,41 @@ def _load_benchmark_selection_spec(
     )
 
     return BenchmarkSelectionSpec(
+        name=name,
         selection=selection,
         portfolio_backtest=portfolio_backtest,
         reference_path=reference_path,
     )
+
+
+def _load_benchmark_selection_specs(
+    payload: Dict[str, Any],
+    spec_path: Path,
+    default_portfolio_backtest: PortfolioBacktestSpec,
+) -> List[BenchmarkSelectionSpec]:
+    has_single = payload.get("benchmark_selection") is not None
+    has_multi = payload.get("benchmark_selections") is not None
+    if has_single and has_multi:
+        raise ValueError(f"Use only one of benchmark_selection or benchmark_selections: {spec_path}")
+
+    raw_benchmarks: Any
+    if has_multi:
+        raw_benchmarks = payload.get("benchmark_selections")
+    else:
+        raw_benchmarks = payload.get("benchmark_selection")
+
+    if raw_benchmarks is None:
+        return []
+
+    if isinstance(raw_benchmarks, list):
+        benchmark_items = raw_benchmarks
+    else:
+        benchmark_items = [raw_benchmarks]
+
+    return [
+        _load_single_benchmark_selection_spec(item, spec_path, default_portfolio_backtest, index + 1)
+        for index, item in enumerate(benchmark_items)
+    ]
 
 
 def load_experiment_spec(path: Path) -> ExperimentSpec:
@@ -221,11 +288,11 @@ def load_experiment_spec(path: Path) -> ExperimentSpec:
     if mode == "selection":
         selection = _load_selection_spec(payload, spec_path)
         training = None
-        benchmark_selection = None
+        benchmark_selections: List[BenchmarkSelectionSpec] = []
     elif mode == "training":
         selection = None
         training = _load_training_spec(payload, spec_path)
-        benchmark_selection = _load_benchmark_selection_spec(payload, spec_path, portfolio_backtest)
+        benchmark_selections = _load_benchmark_selection_specs(payload, spec_path, portfolio_backtest)
     else:
         raise ValueError(f"Unsupported experiment mode '{mode}': {spec_path}")
 
@@ -253,7 +320,7 @@ def load_experiment_spec(path: Path) -> ExperimentSpec:
         tags=[str(tag) for tag in payload.get("tags", [])],
         selection=selection,
         training=training,
-        benchmark_selection=benchmark_selection,
+        benchmark_selections=benchmark_selections,
         portfolio_backtest=portfolio_backtest,
         storage=storage,
     )

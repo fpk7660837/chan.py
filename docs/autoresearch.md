@@ -50,7 +50,7 @@ tests/test_autoresearch.py
 3. Train through `ML.Training.Trainer`
 4. Save the model and metadata into `AutoResearch/results/.../runs/<id>/models/`
 5. Optionally publish/promote the chosen artifact into the shared global `./models` directory
-6. If `benchmark_selection` is configured, run a fixed downstream selection benchmark against the trained model context
+6. If downstream benchmark selections are configured, run each fixed downstream selection benchmark against the trained model context
 7. Persist:
    - `spec.json`
    - `summary.json`
@@ -117,15 +117,20 @@ python3.11 App/run_autoresearch_pipeline.py \
 
 - Default behavior: training artifacts stay inside the run directory under `AutoResearch/results/experiments/<experiment>/runs/<run_id>/models/`
 - Optional publish/promote behavior: enable `storage.publish_model.enabled` in the spec, or pass `--publish-model`, to also copy the chosen model artifact into the global `./models` directory
-- Optional benchmark behavior: set `benchmark_selection` in a training spec to either:
-  - an inline selection config object with `as_of`, universe settings, and optional training-spec `portfolio_backtest` overrides
-  - a path to an existing selection spec JSON file, such as `./baseline_daily_selection.json`
-- When a benchmark is configured, the training run executes that selection benchmark immediately after training:
+- Optional benchmark behavior:
+  - preferred: set `benchmark_selections` in a training spec to a list of inline selection configs and/or paths to existing selection spec JSON files
+  - backward compatible: `benchmark_selection` still works for a single downstream benchmark
+  - each inline benchmark may define an optional `name`; referenced JSON specs default to their spec `name` field, or their filename stem when no name is present
+- When downstream benchmarks are configured, the training run executes every configured benchmark immediately after training:
   - it uses the run-local model artifacts by default
   - it uses the published model directory when publish/promote is enabled
-  - `summary.json` stores the full downstream selection summary under `downstream_benchmark`
-  - `manifest.json` stores the downstream benchmark summary under `downstream_benchmark_summary`
-  - top-level manifest leaderboard fields (`as_of`, `leaderboard_metric`, `leaderboard_value`, `top_score`, `avg_score`, `recommendation_count`) reflect the downstream benchmark so training runs can be ranked on a fixed post-training selection check
+  - `summary.json` stores the full benchmark run list under `downstream_benchmark_results`
+  - `summary.json` stores aggregate cross-benchmark metrics under `downstream_benchmark_aggregate`
+  - `manifest.json` stores the full benchmark run list under `downstream_benchmark_results`
+  - `manifest.json` stores the aggregate benchmark view under `downstream_benchmark_aggregate`
+  - legacy single-benchmark fields (`downstream_benchmark` in `summary.json`, `downstream_benchmark_summary` in `manifest.json`) remain populated when only one benchmark is configured
+  - top-level manifest leaderboard fields (`as_of`, `leaderboard_metric`, `leaderboard_value`, `top_score`, `avg_score`, `recommendation_count`) reflect the aggregate downstream benchmark view so training runs can be ranked across multiple post-training checks
+  - when every benchmark resolves to the same leaderboard metric, the manifest uses the mean of that metric (for example `avg_portfolio_sharpe`); otherwise it falls back to `avg_top_score`
 - The run-local artifact is always written first; publishing is a second step, not the primary storage location
 
 ## Next Extensions
@@ -133,4 +138,4 @@ python3.11 App/run_autoresearch_pipeline.py \
 - Add more experiment specs for top-k, threshold, and universe ablations
 - Plug in `Research/SignalEvaluator` summaries before ranking to filter weak signal regimes
 - Add model-version sweeps once multiple saved models are available
-- Add richer post-training benchmark suites once a single fixed downstream selection benchmark is no longer enough
+- Extend aggregate benchmark scoring beyond the current mean-based leaderboard rollup if benchmark suites become more heterogeneous

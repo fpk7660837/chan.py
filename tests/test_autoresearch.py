@@ -98,6 +98,7 @@ class AutoResearchSpecTests(unittest.TestCase):
             spec = load_experiment_spec(spec_path)
 
             self.assertIsNotNone(spec.benchmark_selection)
+            self.assertEqual(len(spec.benchmark_selections), 1)
             self.assertEqual(spec.benchmark_selection.selection.as_of, "2024-12-31")
             self.assertEqual(spec.benchmark_selection.selection.top_k, 2)
             self.assertEqual(spec.benchmark_selection.portfolio_backtest.top_k, 3)
@@ -146,10 +147,78 @@ class AutoResearchSpecTests(unittest.TestCase):
             spec = load_experiment_spec(training_spec_path)
 
             self.assertIsNotNone(spec.benchmark_selection)
+            self.assertEqual(len(spec.benchmark_selections), 1)
             self.assertEqual(spec.benchmark_selection.reference_path, "./baseline_daily_selection.json")
+            self.assertEqual(spec.benchmark_selection.name, "baseline-daily-selection")
             self.assertEqual(spec.benchmark_selection.selection.as_of, "2025-01-15")
             self.assertEqual(spec.benchmark_selection.selection.top_k, 4)
             self.assertEqual(spec.benchmark_selection.portfolio_backtest.top_k, 2)
+
+    def test_load_training_experiment_spec_supports_multiple_benchmark_selections(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            benchmark_spec_path = tmp_path / "baseline_daily_selection.json"
+            benchmark_spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "baseline-daily-selection",
+                        "selection": {
+                            "as_of": "2025-01-15",
+                            "codes": ["600519", "000333"],
+                            "top_k": 4,
+                        },
+                        "portfolio_backtest": {
+                            "enabled": True,
+                            "top_k": 2,
+                            "score_threshold": 0.61,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            training_spec_path = tmp_path / "training.json"
+            training_spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "benchmark-model-training",
+                        "mode": "training",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                        },
+                        "benchmark_selections": [
+                            "./baseline_daily_selection.json",
+                            {
+                                "name": "high-confidence-check",
+                                "selection": {
+                                    "as_of": "2025-02-01",
+                                    "codes": ["600519", "000333"],
+                                    "top_k": 2,
+                                    "min_score": 0.7,
+                                },
+                            },
+                        ],
+                        "portfolio_backtest": {
+                            "enabled": True,
+                            "top_k": 3,
+                            "score_threshold": 0.55,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            spec = load_experiment_spec(training_spec_path)
+
+            self.assertEqual(len(spec.benchmark_selections), 2)
+            self.assertEqual(spec.benchmark_selection.name, "baseline-daily-selection")
+            self.assertEqual(spec.benchmark_selections[0].selection.as_of, "2025-01-15")
+            self.assertEqual(spec.benchmark_selections[0].portfolio_backtest.top_k, 2)
+            self.assertEqual(spec.benchmark_selections[1].name, "high-confidence-check")
+            self.assertEqual(spec.benchmark_selections[1].selection.as_of, "2025-02-01")
+            self.assertEqual(spec.benchmark_selections[1].portfolio_backtest.top_k, 3)
 
 
 class RunStorageTests(unittest.TestCase):
@@ -586,6 +655,249 @@ class PipelineTests(unittest.TestCase):
             self.assertTrue((tmp_path / "global-models" / "model_demo-v1.pkl").exists())
             self.assertEqual(result.manifest["model_version"], "demo-v1")
             self.assertEqual(result.manifest["recommendation_count"], 1)
+
+    def test_training_pipeline_runs_multiple_downstream_benchmarks_and_aggregates_manifest_metrics(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            benchmark_spec_path = tmp_path / "baseline_daily_selection.json"
+            benchmark_spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "baseline-daily-selection",
+                        "selection": {
+                            "as_of": "2025-01-15",
+                            "codes": ["600519", "000333"],
+                            "top_k": 2,
+                        },
+                        "portfolio_backtest": {
+                            "enabled": True,
+                            "top_k": 2,
+                            "score_threshold": 0.6,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            spec_path = tmp_path / "training.json"
+            spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "benchmark-model-training",
+                        "mode": "training",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                            "model_type": "randomforest",
+                            "model_version": "demo-v1",
+                        },
+                        "benchmark_selections": [
+                            "./baseline_daily_selection.json",
+                            {
+                                "name": "high-confidence-check",
+                                "selection": {
+                                    "as_of": "2025-02-01",
+                                    "codes": ["600519", "000333"],
+                                    "top_k": 1,
+                                },
+                            },
+                        ],
+                        "portfolio_backtest": {
+                            "enabled": True,
+                            "top_k": 2,
+                            "score_threshold": 0.6,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            def fake_training_runner(spec, run_paths):
+                run_paths.model_artifacts_dir.mkdir(parents=True, exist_ok=True)
+                model_path = run_paths.model_artifacts_dir / "model_demo-v1.pkl"
+                metadata_path = run_paths.model_artifacts_dir / "metadata_demo-v1.json"
+                model_path.write_text("demo-model", encoding="utf-8")
+                metadata_path.write_text(json.dumps({"version": "demo-v1"}), encoding="utf-8")
+                return TrainingRunResult(
+                    summary={
+                        "model_version": "demo-v1",
+                        "model_type": spec.training.model_type,
+                        "loaded_chan_count": 2,
+                        "skipped_count": 0,
+                    },
+                    model_version="demo-v1",
+                    model_path=model_path,
+                    metadata_path=metadata_path,
+                )
+
+            selection_calls = []
+            benchmark_summaries = {
+                "2025-01-15": {
+                    "top_score": 0.88,
+                    "avg_score": 0.81,
+                    "recommendation_count": 2,
+                    "skipped_count": 1,
+                    "portfolio_backtest": {
+                        "sharpe_ratio": 1.34,
+                        "total_return": 0.12,
+                    },
+                },
+                "2025-02-01": {
+                    "top_score": 0.73,
+                    "avg_score": 0.69,
+                    "recommendation_count": 1,
+                    "skipped_count": 0,
+                    "portfolio_backtest": {
+                        "sharpe_ratio": 0.91,
+                        "total_return": 0.07,
+                    },
+                },
+            }
+
+            def fake_selection_runner(spec, model_dir=None):
+                selection_calls.append(
+                    {
+                        "name": spec.name,
+                        "as_of": spec.selection.as_of,
+                        "model_version": spec.selection.model_version,
+                        "model_dir": str(model_dir) if model_dir is not None else None,
+                        "portfolio_top_k": spec.portfolio_backtest.top_k,
+                    }
+                )
+                benchmark_summary = benchmark_summaries[spec.selection.as_of]
+                return SelectionRunResult(
+                    recommendations=[],
+                    summary={
+                        "as_of": spec.selection.as_of,
+                        "model_version": spec.selection.model_version,
+                        **benchmark_summary,
+                    },
+                )
+
+            pipeline = AutoResearchPipeline(
+                results_root=tmp_path / "results",
+                selection_runner=fake_selection_runner,
+                training_runner=fake_training_runner,
+            )
+
+            result = pipeline.run(spec_path)
+
+            self.assertEqual(len(selection_calls), 2)
+            self.assertEqual(selection_calls[0]["as_of"], "2025-01-15")
+            self.assertEqual(selection_calls[1]["as_of"], "2025-02-01")
+            self.assertEqual(selection_calls[0]["model_version"], "demo-v1")
+            self.assertEqual(selection_calls[1]["model_dir"], str(result.run_paths.model_artifacts_dir))
+
+            summary = json.loads(result.run_paths.summary_json.read_text(encoding="utf-8"))
+            self.assertEqual(len(summary["downstream_benchmark_results"]), 2)
+            self.assertEqual(summary["downstream_benchmark_results"][0]["name"], "baseline-daily-selection")
+            self.assertEqual(summary["downstream_benchmark_results"][1]["name"], "high-confidence-check")
+            self.assertEqual(summary["downstream_benchmark_aggregate"]["leaderboard_metric"], "avg_portfolio_sharpe")
+            self.assertAlmostEqual(summary["downstream_benchmark_aggregate"]["leaderboard_value"], 1.125)
+
+            manifest = json.loads(result.run_paths.manifest_json.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["workflow"], "training")
+            self.assertEqual(manifest["as_of"], "2025-01-15..2025-02-01")
+            self.assertEqual(manifest["leaderboard_metric"], "avg_portfolio_sharpe")
+            self.assertAlmostEqual(manifest["leaderboard_value"], 1.125)
+            self.assertAlmostEqual(manifest["top_score"], 0.805)
+            self.assertAlmostEqual(manifest["avg_score"], 0.75)
+            self.assertEqual(manifest["recommendation_count"], 3)
+            self.assertEqual(len(manifest["downstream_benchmark_results"]), 2)
+            self.assertEqual(manifest["downstream_benchmark_summary"], None)
+
+    def test_training_pipeline_continues_running_all_downstream_benchmarks_after_a_failure(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            spec_path = tmp_path / "training.json"
+            spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "benchmark-model-training",
+                        "mode": "training",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                            "model_type": "randomforest",
+                            "model_version": "demo-v1",
+                        },
+                        "benchmark_selections": [
+                            {
+                                "name": "first-check",
+                                "selection": {
+                                    "as_of": "2025-01-15",
+                                    "codes": ["600519", "000333"],
+                                },
+                            },
+                            {
+                                "name": "second-check",
+                                "selection": {
+                                    "as_of": "2025-02-01",
+                                    "codes": ["600519", "000333"],
+                                },
+                            },
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            def fake_training_runner(spec, run_paths):
+                run_paths.model_artifacts_dir.mkdir(parents=True, exist_ok=True)
+                model_path = run_paths.model_artifacts_dir / "model_demo-v1.pkl"
+                metadata_path = run_paths.model_artifacts_dir / "metadata_demo-v1.json"
+                model_path.write_text("demo-model", encoding="utf-8")
+                metadata_path.write_text(json.dumps({"version": "demo-v1"}), encoding="utf-8")
+                return TrainingRunResult(
+                    summary={
+                        "model_version": "demo-v1",
+                        "model_type": spec.training.model_type,
+                        "loaded_chan_count": 2,
+                        "skipped_count": 0,
+                    },
+                    model_version="demo-v1",
+                    model_path=model_path,
+                    metadata_path=metadata_path,
+                )
+
+            selection_calls = []
+
+            def fake_selection_runner(spec, model_dir=None):
+                selection_calls.append(spec.selection.as_of)
+                if spec.selection.as_of == "2025-01-15":
+                    raise RuntimeError("benchmark failed")
+                return SelectionRunResult(
+                    recommendations=[],
+                    summary={
+                        "as_of": spec.selection.as_of,
+                        "model_version": spec.selection.model_version,
+                        "top_score": 0.73,
+                        "avg_score": 0.69,
+                        "recommendation_count": 1,
+                        "skipped_count": 0,
+                    },
+                )
+
+            pipeline = AutoResearchPipeline(
+                results_root=tmp_path / "results",
+                selection_runner=fake_selection_runner,
+                training_runner=fake_training_runner,
+            )
+
+            result = pipeline.run(spec_path)
+
+            self.assertEqual(selection_calls, ["2025-01-15", "2025-02-01"])
+
+            summary = json.loads(result.run_paths.summary_json.read_text(encoding="utf-8"))
+            self.assertEqual(summary["downstream_benchmark_results"][0]["error"], "benchmark failed")
+            self.assertEqual(summary["downstream_benchmark_results"][1]["summary"]["top_score"], 0.73)
+            self.assertEqual(summary["downstream_benchmark_aggregate"]["successful_benchmark_count"], 1)
+
+            manifest = json.loads(result.run_paths.manifest_json.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["status"], "failed")
+            self.assertEqual(manifest["downstream_benchmark_error"], "benchmark failed")
 
 
 if __name__ == "__main__":

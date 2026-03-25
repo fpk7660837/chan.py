@@ -3,11 +3,12 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path
+from statistics import mean
 from typing import Callable, Dict, Iterable, List, Optional
 
 from .Leaderboard import write_leaderboard
 from .Selection import SelectionRunResult, run_selection_experiment
-from .Spec import ExperimentSpec, load_experiment_spec
+from .Spec import BenchmarkSelectionSpec, ExperimentSpec, load_experiment_spec
 from .Storage import PublishedModelArtifacts, RunPaths, RunStorage
 from .Training import TrainingRunResult, run_training_experiment
 
@@ -126,37 +127,68 @@ class AutoResearchPipeline:
         published_model_artifacts: Optional[PublishedModelArtifacts],
         current_status: str,
     ) -> str:
-        if spec.benchmark_selection is None:
+        if not spec.benchmark_selections:
             return current_status
 
-        benchmark_spec = self._build_benchmark_spec(spec, training_result.model_version)
         model_dir = (
             published_model_artifacts.model_path.parent
             if published_model_artifacts is not None
             else training_result.model_path.parent
         )
 
-        try:
-            benchmark_result = self.selection_runner(benchmark_spec, model_dir)
-        except Exception as exc:
-            summary["downstream_benchmark_error"] = str(exc)
+        benchmark_results: List[Dict[str, object]] = []
+        benchmark_errors: List[str] = []
+        for benchmark in spec.benchmark_selections:
+            benchmark_spec = self._build_benchmark_spec(spec, benchmark, training_result.model_version)
+            benchmark_entry: Dict[str, object] = {
+                "name": benchmark.name,
+                "reference_path": benchmark.reference_path,
+            }
+            try:
+                benchmark_result = self.selection_runner(benchmark_spec, model_dir)
+            except Exception as exc:
+                benchmark_entry["error"] = str(exc)
+                benchmark_errors.append(str(exc))
+                benchmark_results.append(benchmark_entry)
+                continue
+
+            leaderboard_metric, leaderboard_value = self._resolve_selection_leaderboard(benchmark_result.summary)
+            benchmark_entry["leaderboard_metric"] = leaderboard_metric
+            benchmark_entry["leaderboard_value"] = leaderboard_value
+            benchmark_entry["summary"] = benchmark_result.summary
+            benchmark_results.append(benchmark_entry)
+
+        summary["downstream_benchmark_results"] = benchmark_results
+        aggregate = self._build_downstream_benchmark_aggregate(benchmark_results)
+        if aggregate is not None:
+            summary["downstream_benchmark_aggregate"] = aggregate
+
+        if len(benchmark_results) == 1:
+            only_result = benchmark_results[0]
+            if "summary" in only_result:
+                summary["downstream_benchmark"] = only_result["summary"]
+            if "error" in only_result:
+                summary["downstream_benchmark_error"] = only_result["error"]
+
+        if benchmark_errors:
+            summary["downstream_benchmark_error"] = benchmark_errors[0]
+            summary["downstream_benchmark_errors"] = benchmark_errors
             return "failed"
 
-        summary["downstream_benchmark"] = benchmark_result.summary
         return current_status
 
     @staticmethod
-    def _build_benchmark_spec(spec: ExperimentSpec, model_version: str) -> ExperimentSpec:
-        benchmark = spec.benchmark_selection
-        if benchmark is None:
-            raise ValueError("Training benchmark requires spec.benchmark_selection.")
-
+    def _build_benchmark_spec(
+        spec: ExperimentSpec,
+        benchmark: BenchmarkSelectionSpec,
+        model_version: str,
+    ) -> ExperimentSpec:
         return ExperimentSpec(
-            name=spec.name,
+            name=benchmark.name,
             mode="selection",
             selection=replace(benchmark.selection, model_version=model_version),
             training=None,
-            benchmark_selection=None,
+            benchmark_selections=[],
             description=spec.description,
             tags=spec.tags,
             portfolio_backtest=benchmark.portfolio_backtest,
@@ -266,6 +298,83 @@ class AutoResearchPipeline:
             return "portfolio_sharpe", float(portfolio_summary["sharpe_ratio"])
         return "top_score", float(summary.get("top_score", 0.0) or 0.0)
 
+    @staticmethod
+    def _summarize_benchmark_as_of(as_of_values: List[str]) -> str:
+        unique_values = sorted({value for value in as_of_values if value})
+        if not unique_values:
+            return ""
+        if len(unique_values) == 1:
+            return unique_values[0]
+        return f"{unique_values[0]}..{unique_values[-1]}"
+
+    @classmethod
+    def _build_downstream_benchmark_aggregate(
+        cls,
+        benchmark_results: List[Dict[str, object]],
+    ) -> Optional[Dict[str, object]]:
+        successful_results = [
+            result
+            for result in benchmark_results
+            if isinstance(result.get("summary"), dict)
+        ]
+        if not successful_results:
+            return None
+
+        component_metrics: List[Dict[str, object]] = []
+        metric_names: List[str] = []
+        metric_values: List[float] = []
+        top_scores: List[float] = []
+        avg_scores: List[float] = []
+        recommendation_counts: List[int] = []
+        skipped_counts: List[int] = []
+        as_of_values: List[str] = []
+
+        for result in successful_results:
+            benchmark_summary = result["summary"]
+            if not isinstance(benchmark_summary, dict):
+                continue
+            leaderboard_metric = str(result.get("leaderboard_metric", "") or "")
+            leaderboard_value = float(result.get("leaderboard_value", 0.0) or 0.0)
+            as_of = str(benchmark_summary.get("as_of", "") or "")
+            metric_names.append(leaderboard_metric)
+            metric_values.append(leaderboard_value)
+            top_scores.append(float(benchmark_summary.get("top_score", 0.0) or 0.0))
+            avg_scores.append(float(benchmark_summary.get("avg_score", 0.0) or 0.0))
+            recommendation_counts.append(int(benchmark_summary.get("recommendation_count", 0) or 0))
+            skipped_counts.append(int(benchmark_summary.get("skipped_count", 0) or 0))
+            if as_of:
+                as_of_values.append(as_of)
+            component_metrics.append(
+                {
+                    "name": str(result.get("name", "")),
+                    "as_of": as_of,
+                    "metric": leaderboard_metric,
+                    "value": leaderboard_value,
+                }
+            )
+
+        if len(set(metric_names)) == 1:
+            leaderboard_metric = f"avg_{metric_names[0]}"
+            leaderboard_value = mean(metric_values)
+        else:
+            leaderboard_metric = "avg_top_score"
+            leaderboard_value = mean(top_scores)
+
+        return {
+            "benchmark_count": len(benchmark_results),
+            "successful_benchmark_count": len(successful_results),
+            "failed_benchmark_count": len(benchmark_results) - len(successful_results),
+            "as_of": cls._summarize_benchmark_as_of(as_of_values),
+            "as_of_values": sorted({value for value in as_of_values if value}),
+            "leaderboard_metric": leaderboard_metric,
+            "leaderboard_value": leaderboard_value,
+            "top_score": mean(top_scores),
+            "avg_score": mean(avg_scores),
+            "recommendation_count": sum(recommendation_counts),
+            "skipped_count": sum(skipped_counts),
+            "component_metrics": component_metrics,
+        }
+
     @classmethod
     def _build_training_manifest(
         cls,
@@ -279,8 +388,21 @@ class AutoResearchPipeline:
     ) -> Dict[str, object]:
         training = spec.training
         benchmark_summary = summary.get("downstream_benchmark", {})
-        has_benchmark_summary = isinstance(benchmark_summary, dict)
-        if has_benchmark_summary:
+        benchmark_results = summary.get("downstream_benchmark_results", [])
+        benchmark_aggregate = summary.get("downstream_benchmark_aggregate", {})
+        has_benchmark_summary = isinstance(benchmark_summary, dict) and bool(benchmark_summary)
+        has_benchmark_results = isinstance(benchmark_results, list) and len(benchmark_results) > 0
+        has_benchmark_aggregate = isinstance(benchmark_aggregate, dict) and bool(benchmark_aggregate)
+
+        if has_benchmark_results and has_benchmark_aggregate and len(benchmark_results) > 1:
+            leaderboard_metric = str(benchmark_aggregate.get("leaderboard_metric", "avg_top_score"))
+            leaderboard_value = float(benchmark_aggregate.get("leaderboard_value", 0.0) or 0.0)
+            as_of = str(benchmark_aggregate.get("as_of", "") or "")
+            top_score = float(benchmark_aggregate.get("top_score", 0.0) or 0.0)
+            avg_score = float(benchmark_aggregate.get("avg_score", 0.0) or 0.0)
+            recommendation_count = int(benchmark_aggregate.get("recommendation_count", 0) or 0)
+            skipped_count = int(benchmark_aggregate.get("skipped_count", 0) or 0)
+        elif has_benchmark_summary:
             leaderboard_metric, leaderboard_value = cls._resolve_selection_leaderboard(benchmark_summary)
             as_of = str(benchmark_summary.get("as_of", "") or "")
             top_score = float(benchmark_summary.get("top_score", 0.0) or 0.0)
@@ -333,5 +455,7 @@ class AutoResearchPipeline:
                 else None
             ),
             "downstream_benchmark_summary": benchmark_summary if has_benchmark_summary else None,
+            "downstream_benchmark_results": benchmark_results if has_benchmark_results else None,
+            "downstream_benchmark_aggregate": benchmark_aggregate if has_benchmark_aggregate else None,
             "downstream_benchmark_error": summary.get("downstream_benchmark_error"),
         }
