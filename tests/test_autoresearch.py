@@ -220,6 +220,67 @@ class AutoResearchSpecTests(unittest.TestCase):
             self.assertEqual(spec.benchmark_selections[1].selection.as_of, "2025-02-01")
             self.assertEqual(spec.benchmark_selections[1].portfolio_backtest.top_k, 3)
 
+    def test_load_training_experiment_spec_supports_suite_scoring_and_weighted_benchmark_references(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            benchmark_spec_path = tmp_path / "baseline_daily_selection.json"
+            benchmark_spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "baseline-daily-selection",
+                        "selection": {
+                            "as_of": "2025-01-15",
+                            "codes": ["600519", "000333"],
+                            "top_k": 4,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            training_spec_path = tmp_path / "training.json"
+            training_spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "benchmark-model-training",
+                        "mode": "training",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                        },
+                        "benchmark_suite_scoring": {
+                            "dispersion_penalty": 0.5,
+                            "failure_penalty": 0.6,
+                        },
+                        "benchmark_selections": [
+                            {
+                                "reference_path": "./baseline_daily_selection.json",
+                                "weight": 2.0,
+                            },
+                            {
+                                "name": "high-confidence-check",
+                                "weight": 0.5,
+                                "selection": {
+                                    "as_of": "2025-02-01",
+                                    "codes": ["600519", "000333"],
+                                    "top_k": 2,
+                                },
+                            },
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            spec = load_experiment_spec(training_spec_path)
+
+            self.assertEqual(spec.benchmark_suite_scoring.dispersion_penalty, 0.5)
+            self.assertEqual(spec.benchmark_suite_scoring.failure_penalty, 0.6)
+            self.assertEqual(spec.benchmark_selections[0].reference_path, "./baseline_daily_selection.json")
+            self.assertEqual(spec.benchmark_selections[0].weight, 2.0)
+            self.assertEqual(spec.benchmark_selections[1].weight, 0.5)
+
 
 class RunStorageTests(unittest.TestCase):
     def test_run_storage_writes_expected_artifacts(self):
@@ -296,6 +357,37 @@ class LeaderboardTests(unittest.TestCase):
         markdown = render_leaderboard_markdown(rows)
         self.assertIn("AutoResearch Leaderboard", markdown)
         self.assertIn("portfolio_sharpe", markdown)
+
+    def test_leaderboard_rows_rank_training_suite_runs_by_suite_score(self):
+        rows = build_leaderboard_rows(
+            [
+                {
+                    "workflow": "training",
+                    "experiment": "suite-b",
+                    "run_id": "run-2",
+                    "leaderboard_metric": "benchmark_suite_score_v2",
+                    "leaderboard_value": 0.94,
+                    "top_score": 0.91,
+                    "avg_score": 0.85,
+                    "recommendation_count": 4,
+                    "model_version": "v2",
+                },
+                {
+                    "workflow": "training",
+                    "experiment": "suite-a",
+                    "run_id": "run-1",
+                    "leaderboard_metric": "benchmark_suite_score_v2",
+                    "leaderboard_value": 1.12,
+                    "top_score": 0.87,
+                    "avg_score": 0.8,
+                    "recommendation_count": 3,
+                    "model_version": "v1",
+                },
+            ]
+        )
+
+        self.assertEqual(rows[0]["experiment"], "suite-a")
+        self.assertEqual(rows[0]["metric"], "benchmark_suite_score_v2")
 
 
 class PipelineTests(unittest.TestCase):
@@ -693,9 +785,13 @@ class PipelineTests(unittest.TestCase):
                             "model_version": "demo-v1",
                         },
                         "benchmark_selections": [
-                            "./baseline_daily_selection.json",
+                            {
+                                "reference_path": "./baseline_daily_selection.json",
+                                "weight": 2.0,
+                            },
                             {
                                 "name": "high-confidence-check",
+                                "weight": 1.0,
                                 "selection": {
                                     "as_of": "2025-02-01",
                                     "codes": ["600519", "000333"],
@@ -703,6 +799,10 @@ class PipelineTests(unittest.TestCase):
                                 },
                             },
                         ],
+                        "benchmark_suite_scoring": {
+                            "dispersion_penalty": 0.5,
+                            "failure_penalty": 0.6,
+                        },
                         "portfolio_backtest": {
                             "enabled": True,
                             "top_k": 2,
@@ -793,16 +893,22 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(len(summary["downstream_benchmark_results"]), 2)
             self.assertEqual(summary["downstream_benchmark_results"][0]["name"], "baseline-daily-selection")
             self.assertEqual(summary["downstream_benchmark_results"][1]["name"], "high-confidence-check")
-            self.assertEqual(summary["downstream_benchmark_aggregate"]["leaderboard_metric"], "avg_portfolio_sharpe")
-            self.assertAlmostEqual(summary["downstream_benchmark_aggregate"]["leaderboard_value"], 1.125)
+            self.assertEqual(summary["downstream_benchmark_results"][0]["weight"], 2.0)
+            self.assertEqual(summary["downstream_benchmark_results"][1]["weight"], 1.0)
+            self.assertEqual(summary["downstream_benchmark_aggregate"]["leaderboard_metric"], "benchmark_suite_score_v2")
+            self.assertAlmostEqual(summary["downstream_benchmark_aggregate"]["weighted_score_mean"], 1.1966666666666668)
+            self.assertAlmostEqual(summary["downstream_benchmark_aggregate"]["score_dispersion"], 0.20270394394014365)
+            self.assertAlmostEqual(summary["downstream_benchmark_aggregate"]["dispersion_penalty_value"], 0.10135197197007182)
+            self.assertAlmostEqual(summary["downstream_benchmark_aggregate"]["failure_penalty_value"], 0.0)
+            self.assertAlmostEqual(summary["downstream_benchmark_aggregate"]["leaderboard_value"], 1.095314694696595)
 
             manifest = json.loads(result.run_paths.manifest_json.read_text(encoding="utf-8"))
             self.assertEqual(manifest["workflow"], "training")
             self.assertEqual(manifest["as_of"], "2025-01-15..2025-02-01")
-            self.assertEqual(manifest["leaderboard_metric"], "avg_portfolio_sharpe")
-            self.assertAlmostEqual(manifest["leaderboard_value"], 1.125)
-            self.assertAlmostEqual(manifest["top_score"], 0.805)
-            self.assertAlmostEqual(manifest["avg_score"], 0.75)
+            self.assertEqual(manifest["leaderboard_metric"], "benchmark_suite_score_v2")
+            self.assertAlmostEqual(manifest["leaderboard_value"], 1.095314694696595)
+            self.assertAlmostEqual(manifest["top_score"], 0.83)
+            self.assertAlmostEqual(manifest["avg_score"], 0.77)
             self.assertEqual(manifest["recommendation_count"], 3)
             self.assertEqual(len(manifest["downstream_benchmark_results"]), 2)
             self.assertEqual(manifest["downstream_benchmark_summary"], None)
@@ -826,6 +932,7 @@ class PipelineTests(unittest.TestCase):
                         "benchmark_selections": [
                             {
                                 "name": "first-check",
+                                "weight": 3.0,
                                 "selection": {
                                     "as_of": "2025-01-15",
                                     "codes": ["600519", "000333"],
@@ -833,12 +940,17 @@ class PipelineTests(unittest.TestCase):
                             },
                             {
                                 "name": "second-check",
+                                "weight": 1.0,
                                 "selection": {
                                     "as_of": "2025-02-01",
                                     "codes": ["600519", "000333"],
                                 },
                             },
                         ],
+                        "benchmark_suite_scoring": {
+                            "dispersion_penalty": 0.5,
+                            "failure_penalty": 0.6,
+                        },
                     }
                 ),
                 encoding="utf-8",
@@ -894,10 +1006,16 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(summary["downstream_benchmark_results"][0]["error"], "benchmark failed")
             self.assertEqual(summary["downstream_benchmark_results"][1]["summary"]["top_score"], 0.73)
             self.assertEqual(summary["downstream_benchmark_aggregate"]["successful_benchmark_count"], 1)
+            self.assertAlmostEqual(summary["downstream_benchmark_aggregate"]["failure_weight_ratio"], 0.75)
+            self.assertAlmostEqual(summary["downstream_benchmark_aggregate"]["failure_penalty_value"], 0.45)
+            self.assertEqual(summary["downstream_benchmark_aggregate"]["leaderboard_metric"], "benchmark_suite_score_v2")
+            self.assertAlmostEqual(summary["downstream_benchmark_aggregate"]["leaderboard_value"], 0.28)
 
             manifest = json.loads(result.run_paths.manifest_json.read_text(encoding="utf-8"))
             self.assertEqual(manifest["status"], "failed")
             self.assertEqual(manifest["downstream_benchmark_error"], "benchmark failed")
+            self.assertEqual(manifest["leaderboard_metric"], "benchmark_suite_score_v2")
+            self.assertAlmostEqual(manifest["leaderboard_value"], 0.28)
 
 
 if __name__ == "__main__":

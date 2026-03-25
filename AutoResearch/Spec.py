@@ -51,6 +51,13 @@ class BenchmarkSelectionSpec:
     selection: SelectionSpec
     portfolio_backtest: PortfolioBacktestSpec = field(default_factory=PortfolioBacktestSpec)
     reference_path: Optional[str] = None
+    weight: float = 1.0
+
+
+@dataclass(frozen=True)
+class BenchmarkSuiteScoringSpec:
+    dispersion_penalty: float = 0.15
+    failure_penalty: float = 0.25
 
 
 @dataclass(frozen=True)
@@ -88,6 +95,7 @@ class ExperimentSpec:
     selection: Optional[SelectionSpec] = None
     training: Optional[TrainingSpec] = None
     benchmark_selections: List[BenchmarkSelectionSpec] = field(default_factory=list)
+    benchmark_suite_scoring: BenchmarkSuiteScoringSpec = field(default_factory=BenchmarkSuiteScoringSpec)
     description: str = ""
     tags: List[str] = field(default_factory=list)
     portfolio_backtest: PortfolioBacktestSpec = field(default_factory=PortfolioBacktestSpec)
@@ -175,6 +183,21 @@ def _resolve_benchmark_reference_path(reference_path: str, spec_path: Path) -> P
     return benchmark_spec_path
 
 
+def _load_benchmark_suite_scoring_spec(payload: Dict[str, Any]) -> BenchmarkSuiteScoringSpec:
+    suite_payload = dict(payload.get("benchmark_suite_scoring", {}))
+    return BenchmarkSuiteScoringSpec(
+        dispersion_penalty=float(suite_payload.get("dispersion_penalty", 0.15)),
+        failure_penalty=float(suite_payload.get("failure_penalty", 0.25)),
+    )
+
+
+def _resolve_benchmark_weight(raw_weight: Any, spec_path: Path) -> float:
+    weight = float(raw_weight if raw_weight is not None else 1.0)
+    if weight <= 0.0:
+        raise ValueError(f"benchmark_selection weight must be > 0: {spec_path}")
+    return weight
+
+
 def _resolve_benchmark_name(
     benchmark_payload: Dict[str, Any],
     *,
@@ -203,16 +226,32 @@ def _load_single_benchmark_selection_spec(
 ) -> BenchmarkSelectionSpec:
     benchmark_payload: Dict[str, Any]
     reference_path: Optional[str] = None
+    weight: float = 1.0
 
     if isinstance(raw_benchmark, str):
         reference_path = raw_benchmark
         benchmark_spec_path = _resolve_benchmark_reference_path(raw_benchmark, spec_path)
         benchmark_payload = json.loads(benchmark_spec_path.read_text(encoding="utf-8"))
     elif isinstance(raw_benchmark, dict):
-        benchmark_payload = dict(raw_benchmark)
-        benchmark_spec_path = spec_path
+        raw_payload = dict(raw_benchmark)
+        weight = _resolve_benchmark_weight(raw_payload.pop("weight", 1.0), spec_path)
+
+        reference_override = raw_payload.pop("reference_path", None)
+        if reference_override is not None:
+            reference_path = str(reference_override)
+            benchmark_spec_path = _resolve_benchmark_reference_path(reference_path, spec_path)
+            benchmark_payload = json.loads(benchmark_spec_path.read_text(encoding="utf-8"))
+            for key in ("name", "selection", "portfolio_backtest"):
+                if key in raw_payload:
+                    benchmark_payload[key] = raw_payload[key]
+        else:
+            benchmark_payload = raw_payload
+            benchmark_spec_path = spec_path
     else:
         raise ValueError(f"benchmark_selection must be an object or a relative/absolute JSON path: {spec_path}")
+
+    if not isinstance(raw_benchmark, dict):
+        weight = _resolve_benchmark_weight(weight, spec_path)
 
     name = _resolve_benchmark_name(
         benchmark_payload,
@@ -242,6 +281,7 @@ def _load_single_benchmark_selection_spec(
         selection=selection,
         portfolio_backtest=portfolio_backtest,
         reference_path=reference_path,
+        weight=weight,
     )
 
 
@@ -283,6 +323,7 @@ def load_experiment_spec(path: Path) -> ExperimentSpec:
         raise ValueError(f"Experiment spec is missing required field 'name': {spec_path}")
 
     portfolio_backtest = _load_portfolio_backtest_spec(payload.get("portfolio_backtest", {}))
+    benchmark_suite_scoring = _load_benchmark_suite_scoring_spec(payload)
 
     mode = str(payload.get("mode", "selection"))
     if mode == "selection":
@@ -321,6 +362,7 @@ def load_experiment_spec(path: Path) -> ExperimentSpec:
         selection=selection,
         training=training,
         benchmark_selections=benchmark_selections,
+        benchmark_suite_scoring=benchmark_suite_scoring,
         portfolio_backtest=portfolio_backtest,
         storage=storage,
     )

@@ -20,9 +20,13 @@
     }
   },
   "benchmark_selections": [
-    "./baseline_daily_selection.json",
+    {
+      "reference_path": "./baseline_daily_selection.json",
+      "weight": 2.0
+    },
     {
       "name": "high-confidence-daily-selection",
+      "weight": 1.0,
       "selection": {
         "as_of": "2025-01-31",
         "direction": "buy",
@@ -35,6 +39,10 @@
       }
     }
   ],
+  "benchmark_suite_scoring": {
+    "dispersion_penalty": 0.5,
+    "failure_penalty": 0.6
+  },
   "portfolio_backtest": {
     "enabled": true,
     "top_k": 3,

@@ -121,6 +121,11 @@ python3.11 App/run_autoresearch_pipeline.py \
   - preferred: set `benchmark_selections` in a training spec to a list of inline selection configs and/or paths to existing selection spec JSON files
   - backward compatible: `benchmark_selection` still works for a single downstream benchmark
   - each inline benchmark may define an optional `name`; referenced JSON specs default to their spec `name` field, or their filename stem when no name is present
+  - each benchmark may define an optional `weight` (default `1.0`)
+  - referenced benchmark specs may also be expressed as objects with `reference_path` so weight and future suite-local overrides can live next to the reference
+  - a training spec may define `benchmark_suite_scoring` with:
+    - `dispersion_penalty` to subtract `dispersion_penalty * weighted_stddev(component_score)`
+    - `failure_penalty` to subtract `failure_penalty * failed_weight_ratio`
 - When downstream benchmarks are configured, the training run executes every configured benchmark immediately after training:
   - it uses the run-local model artifacts by default
   - it uses the published model directory when publish/promote is enabled
@@ -130,7 +135,11 @@ python3.11 App/run_autoresearch_pipeline.py \
   - `manifest.json` stores the aggregate benchmark view under `downstream_benchmark_aggregate`
   - legacy single-benchmark fields (`downstream_benchmark` in `summary.json`, `downstream_benchmark_summary` in `manifest.json`) remain populated when only one benchmark is configured
   - top-level manifest leaderboard fields (`as_of`, `leaderboard_metric`, `leaderboard_value`, `top_score`, `avg_score`, `recommendation_count`) reflect the aggregate downstream benchmark view so training runs can be ranked across multiple post-training checks
-  - when every benchmark resolves to the same leaderboard metric, the manifest uses the mean of that metric (for example `avg_portfolio_sharpe`); otherwise it falls back to `avg_top_score`
+  - when multiple downstream benchmarks are configured, the manifest uses `benchmark_suite_score_v2` for leaderboard ranking instead of a simple mean
+  - the suite score is `weighted_mean(component_score) - dispersion_penalty * weighted_stddev(component_score) - failure_penalty * failed_weight_ratio`
+  - `component_score` is each benchmark's resolved leaderboard value (`portfolio_sharpe` when a portfolio backtest produces Sharpe, otherwise `top_score`)
+  - `top_score` and `avg_score` in the aggregate view are weight-aware means across successful benchmarks; recommendation and skipped counts remain summed
+  - `downstream_benchmark_results` records each benchmark's `weight`, and `downstream_benchmark_aggregate` records the weighted mean, dispersion, penalty factors, and penalty contributions used to produce the suite score
 - The run-local artifact is always written first; publishing is a second step, not the primary storage location
 
 ## Next Extensions
@@ -138,4 +147,4 @@ python3.11 App/run_autoresearch_pipeline.py \
 - Add more experiment specs for top-k, threshold, and universe ablations
 - Plug in `Research/SignalEvaluator` summaries before ranking to filter weak signal regimes
 - Add model-version sweeps once multiple saved models are available
-- Extend aggregate benchmark scoring beyond the current mean-based leaderboard rollup if benchmark suites become more heterogeneous
+- Add optional metric normalization if benchmark suites start mixing materially different score scales

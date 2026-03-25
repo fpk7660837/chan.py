@@ -2,13 +2,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, replace
 from datetime import datetime
+import math
 from pathlib import Path
-from statistics import mean
 from typing import Callable, Dict, Iterable, List, Optional
 
 from .Leaderboard import write_leaderboard
 from .Selection import SelectionRunResult, run_selection_experiment
-from .Spec import BenchmarkSelectionSpec, ExperimentSpec, load_experiment_spec
+from .Spec import BenchmarkSelectionSpec, BenchmarkSuiteScoringSpec, ExperimentSpec, load_experiment_spec
 from .Storage import PublishedModelArtifacts, RunPaths, RunStorage
 from .Training import TrainingRunResult, run_training_experiment
 
@@ -143,6 +143,7 @@ class AutoResearchPipeline:
             benchmark_entry: Dict[str, object] = {
                 "name": benchmark.name,
                 "reference_path": benchmark.reference_path,
+                "weight": benchmark.weight,
             }
             try:
                 benchmark_result = self.selection_runner(benchmark_spec, model_dir)
@@ -159,7 +160,7 @@ class AutoResearchPipeline:
             benchmark_results.append(benchmark_entry)
 
         summary["downstream_benchmark_results"] = benchmark_results
-        aggregate = self._build_downstream_benchmark_aggregate(benchmark_results)
+        aggregate = self._build_downstream_benchmark_aggregate(benchmark_results, spec.benchmark_suite_scoring)
         if aggregate is not None:
             summary["downstream_benchmark_aggregate"] = aggregate
 
@@ -307,10 +308,27 @@ class AutoResearchPipeline:
             return unique_values[0]
         return f"{unique_values[0]}..{unique_values[-1]}"
 
+    @staticmethod
+    def _weighted_average(values: List[float], weights: List[float]) -> float:
+        total_weight = sum(weights)
+        if total_weight <= 0.0:
+            return 0.0
+        return sum(value * weight for value, weight in zip(values, weights)) / total_weight
+
+    @classmethod
+    def _weighted_stddev(cls, values: List[float], weights: List[float]) -> float:
+        total_weight = sum(weights)
+        if total_weight <= 0.0:
+            return 0.0
+        weighted_mean = cls._weighted_average(values, weights)
+        variance = sum(weight * ((value - weighted_mean) ** 2) for value, weight in zip(values, weights)) / total_weight
+        return math.sqrt(variance)
+
     @classmethod
     def _build_downstream_benchmark_aggregate(
         cls,
         benchmark_results: List[Dict[str, object]],
+        suite_scoring: BenchmarkSuiteScoringSpec,
     ) -> Optional[Dict[str, object]]:
         successful_results = [
             result
@@ -321,23 +339,30 @@ class AutoResearchPipeline:
             return None
 
         component_metrics: List[Dict[str, object]] = []
-        metric_names: List[str] = []
         metric_values: List[float] = []
+        successful_weights: List[float] = []
         top_scores: List[float] = []
         avg_scores: List[float] = []
         recommendation_counts: List[int] = []
         skipped_counts: List[int] = []
         as_of_values: List[str] = []
+        total_weight = 0.0
+        successful_weight = 0.0
+
+        for result in benchmark_results:
+            total_weight += float(result.get("weight", 1.0) or 1.0)
 
         for result in successful_results:
             benchmark_summary = result["summary"]
             if not isinstance(benchmark_summary, dict):
                 continue
+            weight = float(result.get("weight", 1.0) or 1.0)
             leaderboard_metric = str(result.get("leaderboard_metric", "") or "")
             leaderboard_value = float(result.get("leaderboard_value", 0.0) or 0.0)
             as_of = str(benchmark_summary.get("as_of", "") or "")
-            metric_names.append(leaderboard_metric)
             metric_values.append(leaderboard_value)
+            successful_weights.append(weight)
+            successful_weight += weight
             top_scores.append(float(benchmark_summary.get("top_score", 0.0) or 0.0))
             avg_scores.append(float(benchmark_summary.get("avg_score", 0.0) or 0.0))
             recommendation_counts.append(int(benchmark_summary.get("recommendation_count", 0) or 0))
@@ -350,26 +375,39 @@ class AutoResearchPipeline:
                     "as_of": as_of,
                     "metric": leaderboard_metric,
                     "value": leaderboard_value,
+                    "weight": weight,
                 }
             )
 
-        if len(set(metric_names)) == 1:
-            leaderboard_metric = f"avg_{metric_names[0]}"
-            leaderboard_value = mean(metric_values)
-        else:
-            leaderboard_metric = "avg_top_score"
-            leaderboard_value = mean(top_scores)
+        weighted_score_mean = cls._weighted_average(metric_values, successful_weights)
+        score_dispersion = cls._weighted_stddev(metric_values, successful_weights)
+        failed_weight = max(total_weight - successful_weight, 0.0)
+        failure_weight_ratio = failed_weight / total_weight if total_weight > 0.0 else 0.0
+        dispersion_penalty_value = suite_scoring.dispersion_penalty * score_dispersion
+        failure_penalty_value = suite_scoring.failure_penalty * failure_weight_ratio
+        leaderboard_metric = "benchmark_suite_score_v2"
+        leaderboard_value = weighted_score_mean - dispersion_penalty_value - failure_penalty_value
 
         return {
             "benchmark_count": len(benchmark_results),
             "successful_benchmark_count": len(successful_results),
             "failed_benchmark_count": len(benchmark_results) - len(successful_results),
+            "total_weight": total_weight,
+            "successful_weight": successful_weight,
+            "failed_weight": failed_weight,
+            "failure_weight_ratio": failure_weight_ratio,
             "as_of": cls._summarize_benchmark_as_of(as_of_values),
             "as_of_values": sorted({value for value in as_of_values if value}),
             "leaderboard_metric": leaderboard_metric,
             "leaderboard_value": leaderboard_value,
-            "top_score": mean(top_scores),
-            "avg_score": mean(avg_scores),
+            "weighted_score_mean": weighted_score_mean,
+            "score_dispersion": score_dispersion,
+            "dispersion_penalty_factor": suite_scoring.dispersion_penalty,
+            "dispersion_penalty_value": dispersion_penalty_value,
+            "failure_penalty_factor": suite_scoring.failure_penalty,
+            "failure_penalty_value": failure_penalty_value,
+            "top_score": cls._weighted_average(top_scores, successful_weights),
+            "avg_score": cls._weighted_average(avg_scores, successful_weights),
             "recommendation_count": sum(recommendation_counts),
             "skipped_count": sum(skipped_counts),
             "component_metrics": component_metrics,
