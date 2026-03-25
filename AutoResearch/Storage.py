@@ -2,10 +2,11 @@ from __future__ import annotations
 
 import json
 import re
+import shutil
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from Research.SignalReport import write_csv, write_json
 
@@ -20,11 +21,18 @@ class RunPaths:
     root_dir: Path
     experiment_dir: Path
     run_dir: Path
+    model_artifacts_dir: Path
     spec_snapshot_json: Path
     recommendations_csv: Path
     recommendations_json: Path
     summary_json: Path
     manifest_json: Path
+
+
+@dataclass(frozen=True)
+class PublishedModelArtifacts:
+    model_path: Path
+    metadata_path: Optional[Path]
 
 
 class RunStorage:
@@ -40,6 +48,7 @@ class RunStorage:
             root_dir=self.root_dir,
             experiment_dir=experiment_dir,
             run_dir=run_dir,
+            model_artifacts_dir=run_dir / "models",
             spec_snapshot_json=run_dir / "spec.json",
             recommendations_csv=run_dir / "recommendations.csv",
             recommendations_json=run_dir / "recommendations.json",
@@ -70,3 +79,31 @@ class RunStorage:
         for path in sorted(self.root_dir.glob("experiments/*/runs/*/manifest.json")):
             manifests.append(json.loads(path.read_text(encoding="utf-8")))
         return manifests
+
+    def publish_model_artifacts(
+        self,
+        model_path: Path,
+        metadata_path: Optional[Path],
+        target_dir: Path,
+    ) -> PublishedModelArtifacts:
+        source_model_path = Path(model_path)
+        if not source_model_path.exists():
+            raise FileNotFoundError(f"Training model artifact not found: {source_model_path}")
+
+        target_root = Path(target_dir)
+        target_root.mkdir(parents=True, exist_ok=True)
+
+        published_model_path = target_root / source_model_path.name
+        shutil.copy2(source_model_path, published_model_path)
+
+        published_metadata_path = None
+        if metadata_path is not None:
+            source_metadata_path = Path(metadata_path)
+            if source_metadata_path.exists():
+                published_metadata_path = target_root / source_metadata_path.name
+                shutil.copy2(source_metadata_path, published_metadata_path)
+
+        return PublishedModelArtifacts(
+            model_path=published_model_path,
+            metadata_path=published_metadata_path,
+        )

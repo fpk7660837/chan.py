@@ -1,0 +1,30 @@
+{
+  "name": "baseline-model-training",
+  "mode": "training",
+  "description": "Baseline AutoResearch model-training run that saves artifacts into the experiment run directory by default.",
+  "tags": ["baseline", "training", "model"],
+  "training": {
+    "begin_time": "2020-01-01",
+    "end_time": "2022-12-31",
+    "codes": ["600519", "000333", "600036", "600000", "000001"],
+    "model_type": "lightgbm",
+    "training_config": {
+      "signal_direction": "buy",
+      "test_size": 0.2,
+      "early_stopping_rounds": 30,
+      "verbose_eval": 10
+    },
+    "label_config": {
+      "lookforward_bars": 20,
+      "threshold_pct": 0.05
+    }
+  },
+  "storage": {
+    "root_dir": "AutoResearch/results",
+    "leaderboard_filename": "leaderboard.md",
+    "publish_model": {
+      "enabled": false,
+      "target_dir": "./models"
+    }
+  }
+}

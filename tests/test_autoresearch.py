@@ -8,6 +8,7 @@ from AutoResearch.Pipeline import AutoResearchPipeline
 from AutoResearch.Selection import SelectionRunResult
 from AutoResearch.Spec import load_experiment_spec
 from AutoResearch.Storage import RunStorage
+from AutoResearch.Training import TrainingRunResult
 
 
 class AutoResearchSpecTests(unittest.TestCase):
@@ -35,6 +36,36 @@ class AutoResearchSpecTests(unittest.TestCase):
             self.assertEqual(spec.selection.top_k, 10)
             self.assertEqual(spec.storage.root_dir, "AutoResearch/results")
             self.assertEqual(spec.storage.leaderboard_filename, "leaderboard.md")
+
+    def test_load_training_experiment_spec_defaults_to_run_local_model_storage(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            spec_path = Path(tmp_dir) / "training.json"
+            spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "baseline-model-training",
+                        "mode": "training",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                            "model_type": "randomforest",
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            spec = load_experiment_spec(spec_path)
+
+            self.assertEqual(spec.mode, "training")
+            self.assertIsNone(spec.selection)
+            self.assertEqual(spec.training.begin_time, "2020-01-01")
+            self.assertEqual(spec.training.end_time, "2022-12-31")
+            self.assertEqual(spec.training.codes, ["600519", "000333"])
+            self.assertEqual(spec.training.model_type, "randomforest")
+            self.assertFalse(spec.storage.publish_model.enabled)
+            self.assertEqual(spec.storage.publish_model.target_dir, "./models")
 
 
 class RunStorageTests(unittest.TestCase):
@@ -67,6 +98,14 @@ class RunStorageTests(unittest.TestCase):
             self.assertTrue(run_paths.recommendations_json.exists())
             self.assertTrue(run_paths.summary_json.exists())
             self.assertTrue(run_paths.manifest_json.exists())
+
+    def test_run_storage_places_model_artifacts_under_run_directory(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            storage = RunStorage(Path(tmp_dir) / "results")
+            run_paths = storage.create_run("baseline-model-training", run_id="20260325T120000Z")
+
+            self.assertEqual(run_paths.model_artifacts_dir, run_paths.run_dir / "models")
+            self.assertEqual(run_paths.model_artifacts_dir.parent, run_paths.run_dir)
 
 
 class LeaderboardTests(unittest.TestCase):
@@ -166,6 +205,125 @@ class PipelineTests(unittest.TestCase):
             manifest = json.loads(result.run_paths.manifest_json.read_text(encoding="utf-8"))
             self.assertEqual(manifest["experiment"], "baseline-daily-selection")
             self.assertEqual(manifest["leaderboard_value"], 0.9123)
+
+    def test_training_pipeline_keeps_model_artifacts_inside_run_directory_by_default(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            spec_path = tmp_path / "training.json"
+            spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "baseline-model-training",
+                        "mode": "training",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                            "model_type": "randomforest",
+                            "model_version": "demo-v1",
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            def fake_training_runner(spec, run_paths):
+                run_paths.model_artifacts_dir.mkdir(parents=True, exist_ok=True)
+                model_path = run_paths.model_artifacts_dir / "model_demo-v1.pkl"
+                metadata_path = run_paths.model_artifacts_dir / "metadata_demo-v1.json"
+                model_path.write_text("demo-model", encoding="utf-8")
+                metadata_path.write_text(json.dumps({"version": "demo-v1"}), encoding="utf-8")
+                return TrainingRunResult(
+                    summary={
+                        "model_version": "demo-v1",
+                        "model_type": spec.training.model_type,
+                        "loaded_chan_count": 2,
+                        "skipped_count": 0,
+                    },
+                    model_version="demo-v1",
+                    model_path=model_path,
+                    metadata_path=metadata_path,
+                )
+
+            pipeline = AutoResearchPipeline(
+                results_root=tmp_path / "results",
+                training_runner=fake_training_runner,
+                global_model_dir=tmp_path / "global-models",
+            )
+
+            result = pipeline.run(spec_path)
+
+            self.assertTrue(result.run_paths.summary_json.exists())
+            self.assertTrue(result.run_paths.manifest_json.exists())
+            self.assertTrue(result.run_paths.model_artifacts_dir.joinpath("model_demo-v1.pkl").exists())
+            self.assertFalse((tmp_path / "global-models" / "model_demo-v1.pkl").exists())
+            self.assertEqual(result.manifest["workflow"], "training")
+            self.assertIsNone(result.manifest.get("published_model_path"))
+
+            manifest = json.loads(result.run_paths.manifest_json.read_text(encoding="utf-8"))
+            self.assertEqual(manifest["model_version"], "demo-v1")
+            self.assertTrue((tmp_path / "results" / manifest["model_artifact_path"]).exists())
+            self.assertEqual(
+                (tmp_path / "results" / manifest["model_artifact_path"]).parent,
+                result.run_paths.model_artifacts_dir,
+            )
+
+    def test_training_pipeline_can_publish_model_artifacts_to_global_models_directory(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            spec_path = tmp_path / "training.json"
+            spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "baseline-model-training",
+                        "mode": "training",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                            "model_type": "randomforest",
+                            "model_version": "demo-v1",
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            def fake_training_runner(spec, run_paths):
+                run_paths.model_artifacts_dir.mkdir(parents=True, exist_ok=True)
+                model_path = run_paths.model_artifacts_dir / "model_demo-v1.pkl"
+                metadata_path = run_paths.model_artifacts_dir / "metadata_demo-v1.json"
+                model_path.write_text("demo-model", encoding="utf-8")
+                metadata_path.write_text(json.dumps({"version": "demo-v1"}), encoding="utf-8")
+                return TrainingRunResult(
+                    summary={
+                        "model_version": "demo-v1",
+                        "model_type": spec.training.model_type,
+                        "loaded_chan_count": 2,
+                        "skipped_count": 0,
+                    },
+                    model_version="demo-v1",
+                    model_path=model_path,
+                    metadata_path=metadata_path,
+                )
+
+            pipeline = AutoResearchPipeline(
+                results_root=tmp_path / "results",
+                training_runner=fake_training_runner,
+                publish_model=True,
+                global_model_dir=tmp_path / "global-models",
+            )
+
+            result = pipeline.run(spec_path)
+
+            published_model_path = tmp_path / "global-models" / "model_demo-v1.pkl"
+            published_metadata_path = tmp_path / "global-models" / "metadata_demo-v1.json"
+
+            self.assertTrue(result.run_paths.model_artifacts_dir.joinpath("model_demo-v1.pkl").exists())
+            self.assertTrue(published_model_path.exists())
+            self.assertTrue(published_metadata_path.exists())
+            self.assertEqual(result.manifest["published_model_path"], str(published_model_path))
+            self.assertEqual(result.manifest["published_metadata_path"], str(published_metadata_path))
 
 
 if __name__ == "__main__":

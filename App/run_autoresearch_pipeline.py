@@ -4,6 +4,8 @@ AutoResearch experiment runner.
 Examples:
     python3.11 App/run_autoresearch_pipeline.py
     python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_daily_selection.json
+    python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_model_training.json
+    python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_model_training.json --publish-model
     python3.11 App/run_autoresearch_pipeline.py --results-root ./tmp/autoresearch
 """
 
@@ -35,6 +37,18 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Override the storage root declared in experiment specs.",
     )
+    parser.add_argument(
+        "--publish-model",
+        "--promote-model",
+        action="store_true",
+        dest="publish_model",
+        help="For training specs, also copy the chosen model artifact into the shared global model directory.",
+    )
+    parser.add_argument(
+        "--publish-model-dir",
+        default=None,
+        help="Override the publish/promote target directory used with --publish-model.",
+    )
     return parser.parse_args()
 
 
@@ -52,7 +66,9 @@ def resolve_spec_paths(args: argparse.Namespace) -> list[Path]:
 def main() -> int:
     args = parse_args()
     pipeline = AutoResearchPipeline(
-        results_root=Path(args.results_root).resolve() if args.results_root else None
+        results_root=Path(args.results_root).resolve() if args.results_root else None,
+        publish_model=(args.publish_model or bool(args.publish_model_dir)) or None,
+        global_model_dir=Path(args.publish_model_dir).resolve() if args.publish_model_dir else None,
     )
 
     failed_runs = 0
@@ -62,6 +78,8 @@ def main() -> int:
         print(f"  run: {result.run_paths.run_dir}")
         print(f"  recommendations: {result.manifest['recommendation_count']}")
         print(f"  leaderboard: {result.leaderboard_markdown}")
+        if result.manifest.get("published_model_path"):
+            print(f"  published model: {result.manifest['published_model_path']}")
         if result.manifest["status"] != "completed":
             failed_runs += 1
 

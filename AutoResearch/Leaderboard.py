@@ -38,6 +38,7 @@ def build_leaderboard_rows(manifests: Iterable[Dict[str, Any]]) -> List[Dict[str
         rows.append(
             {
                 "rank": idx,
+                "workflow": str(manifest.get("workflow", "selection")),
                 "experiment": str(manifest.get("experiment", "")),
                 "run_id": str(manifest.get("run_id", "")),
                 "as_of": str(manifest.get("as_of", "")),
@@ -58,6 +59,7 @@ def render_leaderboard_markdown(rows: List[Dict[str, Any]]) -> str:
         rows,
         [
             "rank",
+            "workflow",
             "experiment",
             "run_id",
             "as_of",
