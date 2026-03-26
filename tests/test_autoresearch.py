@@ -338,6 +338,290 @@ class AutoResearchSpecTests(unittest.TestCase):
             self.assertEqual(variants[-1].experiment.benchmark_selection.selection.as_of, "2025-01-15")
 
 
+class AutoResearchProposalTests(unittest.TestCase):
+    @staticmethod
+    def _write_sweep_run(
+        results_root: Path,
+        *,
+        sweep_slug: str,
+        run_id: str,
+        spec_payload: dict,
+        summary_payload: dict,
+    ) -> Path:
+        run_dir = results_root / "sweeps" / sweep_slug / "runs" / run_id
+        run_dir.mkdir(parents=True, exist_ok=True)
+        (run_dir / "spec.json").write_text(json.dumps(spec_payload), encoding="utf-8")
+        summary_path = run_dir / "summary.json"
+        summary_path.write_text(json.dumps(summary_payload), encoding="utf-8")
+        return summary_path
+
+    @staticmethod
+    def _build_training_sweep_payload(*, name: str, threshold_values: list[float]) -> dict:
+        return {
+            "name": name,
+            "mode": "training_sweep",
+            "training": {
+                "begin_time": "2020-01-01",
+                "end_time": "2022-12-31",
+                "codes": ["600519", "000333"],
+                "model_type": "lightgbm",
+                "label_config": {
+                    "threshold_pct": threshold_values[-1],
+                },
+            },
+            "benchmark_selection": {
+                "as_of": "2025-01-15",
+                "codes": ["600519", "000333"],
+                "top_k": 2,
+            },
+            "sweep": {
+                "variant_name_template": "{name}-{model_type}-thr{threshold_pct}",
+                "grid": [
+                    {
+                        "name": "model_type",
+                        "path": "training.model_type",
+                        "values": ["lightgbm", "randomforest"],
+                    },
+                    {
+                        "name": "threshold_pct",
+                        "path": "training.label_config.threshold_pct",
+                        "values": threshold_values,
+                    },
+                ],
+            },
+        }
+
+    def test_propose_next_sweep_uses_latest_summary_and_refines_numeric_winner(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            results_root = tmp_path / "results"
+            generated_dir = tmp_path / "generated"
+            older_spec = self._build_training_sweep_payload(
+                name="older-training-sweep",
+                threshold_values=[0.03, 0.05],
+            )
+            latest_spec = self._build_training_sweep_payload(
+                name="baseline-model-training-sweep",
+                threshold_values=[0.03, 0.05],
+            )
+
+            self._write_sweep_run(
+                results_root,
+                sweep_slug="older-training-sweep",
+                run_id="20260325T120000Z",
+                spec_payload=older_spec,
+                summary_payload={
+                    "name": "older-training-sweep",
+                    "run_id": "20260325T120000Z",
+                    "runs": [
+                        {
+                            "variant_id": "model_type=lightgbm__threshold_pct=0.05",
+                            "status": "completed",
+                            "leaderboard_value": 0.91,
+                            "config": {
+                                "training.model_type": "lightgbm",
+                                "training.label_config.threshold_pct": 0.05,
+                            },
+                        }
+                    ],
+                },
+            )
+
+            latest_summary_path = self._write_sweep_run(
+                results_root,
+                sweep_slug="baseline-model-training-sweep",
+                run_id="20260326T120000Z",
+                spec_payload=latest_spec,
+                summary_payload={
+                    "name": "baseline-model-training-sweep",
+                    "run_id": "20260326T120000Z",
+                    "runs": [
+                        {
+                            "variant_id": "model_type=randomforest__threshold_pct=0.03",
+                            "status": "completed",
+                            "leaderboard_value": 2.21,
+                            "config": {
+                                "training.model_type": "randomforest",
+                                "training.label_config.threshold_pct": 0.03,
+                            },
+                        },
+                        {
+                            "variant_id": "model_type=randomforest__threshold_pct=0.05",
+                            "status": "completed",
+                            "leaderboard_value": 2.18,
+                            "config": {
+                                "training.model_type": "randomforest",
+                                "training.label_config.threshold_pct": 0.05,
+                            },
+                        },
+                    ],
+                },
+            )
+
+            pipeline = AutoResearchPipeline(results_root=results_root)
+
+            result = pipeline.propose_next_sweep(output_dir=generated_dir, top_runs=1)
+
+            self.assertEqual(result.source_summary_path, latest_summary_path.resolve())
+            self.assertTrue(result.output_path.exists())
+            self.assertEqual(result.output_path.parent, generated_dir.resolve())
+
+            generated_spec = json.loads(result.output_path.read_text(encoding="utf-8"))
+            grid_by_path = {item["path"]: item["values"] for item in generated_spec["sweep"]["grid"]}
+            reloaded_spec = load_pipeline_spec(result.output_path)
+
+            self.assertEqual(generated_spec["mode"], "training_sweep")
+            self.assertEqual(generated_spec["training"]["model_type"], "randomforest")
+            self.assertEqual(generated_spec["training"]["label_config"]["threshold_pct"], 0.03)
+            self.assertEqual(grid_by_path["training.model_type"], ["randomforest"])
+            self.assertEqual(grid_by_path["training.label_config.threshold_pct"], [0.02, 0.03, 0.04])
+            self.assertEqual(reloaded_spec.benchmark_selection.selection.as_of, "2025-01-15")
+
+    def test_propose_next_sweep_carries_multiple_categorical_winners_from_top_runs(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            results_root = tmp_path / "results"
+            generated_dir = tmp_path / "generated"
+            spec_payload = self._build_training_sweep_payload(
+                name="baseline-model-training-sweep",
+                threshold_values=[0.01, 0.03, 0.05],
+            )
+            summary_path = self._write_sweep_run(
+                results_root,
+                sweep_slug="baseline-model-training-sweep",
+                run_id="20260326T120000Z",
+                spec_payload=spec_payload,
+                summary_payload={
+                    "name": "baseline-model-training-sweep",
+                    "run_id": "20260326T120000Z",
+                    "runs": [
+                        {
+                            "variant_id": "model_type=lightgbm__threshold_pct=0.05",
+                            "status": "completed",
+                            "leaderboard_value": 1.52,
+                            "config": {
+                                "training.model_type": "lightgbm",
+                                "training.label_config.threshold_pct": 0.05,
+                            },
+                        },
+                        {
+                            "variant_id": "model_type=randomforest__threshold_pct=0.03",
+                            "status": "completed",
+                            "leaderboard_value": 1.47,
+                            "config": {
+                                "training.model_type": "randomforest",
+                                "training.label_config.threshold_pct": 0.03,
+                            },
+                        },
+                        {
+                            "variant_id": "model_type=randomforest__threshold_pct=0.01",
+                            "status": "failed",
+                            "leaderboard_value": None,
+                            "config": {
+                                "training.model_type": "randomforest",
+                                "training.label_config.threshold_pct": 0.01,
+                            },
+                        },
+                    ],
+                },
+            )
+
+            pipeline = AutoResearchPipeline(results_root=results_root)
+
+            result = pipeline.propose_next_sweep(
+                summary_path=summary_path,
+                output_dir=generated_dir,
+                top_runs=2,
+            )
+
+            generated_spec = json.loads(result.output_path.read_text(encoding="utf-8"))
+            grid_by_path = {item["path"]: item["values"] for item in generated_spec["sweep"]["grid"]}
+
+            self.assertEqual(grid_by_path["training.model_type"], ["lightgbm", "randomforest"])
+            self.assertEqual(grid_by_path["training.label_config.threshold_pct"], [0.02, 0.03, 0.04, 0.05, 0.06])
+
+    def test_propose_next_sweep_makes_snapshot_based_benchmark_references_runnable(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            results_root = tmp_path / "results"
+            generated_dir = tmp_path / "generated"
+            spec_payload = {
+                "name": "baseline-model-training-sweep",
+                "mode": "training_sweep",
+                "training": {
+                    "begin_time": "2020-01-01",
+                    "end_time": "2022-12-31",
+                    "codes": ["600519", "000333"],
+                    "model_type": "lightgbm",
+                    "label_config": {
+                        "threshold_pct": 0.05,
+                    },
+                },
+                "benchmark_selections": [
+                    {
+                        "name": "baseline-daily-selection",
+                        "selection": {
+                            "as_of": "2025-01-15",
+                            "codes": ["600519", "000333"],
+                            "top_k": 2,
+                        },
+                        "portfolio_backtest": {
+                            "enabled": True,
+                        },
+                        "reference_path": "./baseline_daily_selection.json",
+                        "weight": 2.0,
+                    }
+                ],
+                "sweep": {
+                    "grid": [
+                        {
+                            "name": "model_type",
+                            "path": "training.model_type",
+                            "values": ["lightgbm", "randomforest"],
+                        },
+                        {
+                            "name": "threshold_pct",
+                            "path": "training.label_config.threshold_pct",
+                            "values": [0.03, 0.05],
+                        },
+                    ],
+                },
+            }
+            summary_path = self._write_sweep_run(
+                results_root,
+                sweep_slug="baseline-model-training-sweep",
+                run_id="20260326T120000Z",
+                spec_payload=spec_payload,
+                summary_payload={
+                    "name": "baseline-model-training-sweep",
+                    "run_id": "20260326T120000Z",
+                    "runs": [
+                        {
+                            "variant_id": "model_type=randomforest__threshold_pct=0.03",
+                            "status": "completed",
+                            "leaderboard_value": 2.21,
+                            "config": {
+                                "training.model_type": "randomforest",
+                                "training.label_config.threshold_pct": 0.03,
+                            },
+                        }
+                    ],
+                },
+            )
+
+            pipeline = AutoResearchPipeline(results_root=results_root)
+            result = pipeline.propose_next_sweep(
+                summary_path=summary_path,
+                output_dir=generated_dir,
+                top_runs=1,
+            )
+
+            reloaded_spec = load_pipeline_spec(result.output_path)
+
+            self.assertEqual(reloaded_spec.benchmark_selection.reference_path, None)
+            self.assertEqual(reloaded_spec.benchmark_selection.selection.as_of, "2025-01-15")
+
+
 class RunStorageTests(unittest.TestCase):
     def test_run_storage_writes_expected_artifacts(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

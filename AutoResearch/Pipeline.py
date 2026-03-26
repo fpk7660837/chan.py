@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Optional, Union
 
 from .Leaderboard import write_leaderboard, write_sweep_leaderboard
+from .Proposal import SweepProposalResult, propose_next_sweep
 from .Selection import SelectionRunResult, run_selection_experiment
 from .Spec import (
     BenchmarkSelectionSpec,
@@ -182,6 +183,22 @@ class AutoResearchPipeline:
 
     def run_many(self, spec_paths: Iterable[Path]) -> List[Union[PipelineRunResult, SweepRunResult]]:
         return [self.run(path) for path in spec_paths]
+
+    def propose_next_sweep(
+        self,
+        *,
+        summary_path: Optional[Path] = None,
+        output_dir: Optional[Path] = None,
+        top_runs: int = 2,
+    ) -> SweepProposalResult:
+        results_root = self.results_root or Path("AutoResearch/results")
+        proposal_output_dir = output_dir or Path("experiments/autoresearch/generated")
+        return propose_next_sweep(
+            results_root=results_root,
+            summary_path=summary_path,
+            output_dir=proposal_output_dir,
+            top_runs=top_runs,
+        )
 
     @staticmethod
     def _build_sweep_run_entry(variant: SweepVariantSpec, result: PipelineRunResult) -> Dict[str, object]:

@@ -1,0 +1,151 @@
+{
+  "name": "baseline-model-training-sweep-autoresearch-v1-20260326t033038z",
+  "mode": "training_sweep",
+  "training": {
+    "begin_time": "2020-01-01",
+    "end_time": "2022-12-31",
+    "model_type": "randomforest",
+    "model_version": null,
+    "codes": [
+      "600519",
+      "000333",
+      "600036",
+      "600000",
+      "000001"
+    ],
+    "codes_file": null,
+    "limit": null,
+    "feature_config": {},
+    "label_config": {
+      "lookforward_bars": 20,
+      "threshold_pct": 0.03
+    },
+    "training_config": {
+      "signal_direction": "buy",
+      "test_size": 0.2,
+      "early_stopping_rounds": 30,
+      "verbose_eval": 10
+    },
+    "model_params": {}
+  },
+  "benchmark_selections": [
+    {
+      "name": "baseline-daily-selection",
+      "selection": {
+        "as_of": "2024-12-31",
+        "direction": "buy",
+        "model_version": null,
+        "top_k": 10,
+        "min_score": 0.6,
+        "signal_lookback_bars": 20,
+        "history_days": 900,
+        "stale_days": 20,
+        "codes": [
+          "600519",
+          "000333",
+          "600036",
+          "600000",
+          "000001"
+        ],
+        "codes_file": null,
+        "limit": null
+      },
+      "portfolio_backtest": {
+        "enabled": true,
+        "top_k": 3,
+        "score_threshold": 0.55,
+        "rebalance_bars": 5,
+        "signal_lookback_bars": 20,
+        "holding_period": null,
+        "min_positions": null
+      },
+      "reference_path": null,
+      "weight": 2.0
+    },
+    {
+      "name": "high-confidence-daily-selection",
+      "selection": {
+        "as_of": "2025-01-31",
+        "direction": "buy",
+        "model_version": null,
+        "top_k": 5,
+        "min_score": 0.7,
+        "signal_lookback_bars": 20,
+        "history_days": 900,
+        "stale_days": 20,
+        "codes": [
+          "600519",
+          "000333",
+          "600036",
+          "600000",
+          "000001"
+        ],
+        "codes_file": null,
+        "limit": null
+      },
+      "portfolio_backtest": {
+        "enabled": true,
+        "top_k": 3,
+        "score_threshold": 0.55,
+        "rebalance_bars": 5,
+        "signal_lookback_bars": 20,
+        "holding_period": null,
+        "min_positions": null
+      },
+      "reference_path": null,
+      "weight": 1.0
+    }
+  ],
+  "benchmark_suite_scoring": {
+    "dispersion_penalty": 0.5,
+    "failure_penalty": 0.6
+  },
+  "description": "Auto-generated v1 refinement from sweeps/baseline-model-training-sweep/runs/20260326T033038Z/summary.json using the top 2 completed run(s).",
+  "tags": [
+    "baseline",
+    "training",
+    "sweep",
+    "autoresearch-generated",
+    "autoresearch-v1"
+  ],
+  "portfolio_backtest": {
+    "enabled": true,
+    "top_k": 3,
+    "score_threshold": 0.55,
+    "rebalance_bars": 5,
+    "signal_lookback_bars": 20,
+    "holding_period": null,
+    "min_positions": null
+  },
+  "storage": {
+    "root_dir": "AutoResearch/results",
+    "leaderboard_filename": "leaderboard.md",
+    "publish_model": {
+      "enabled": false,
+      "target_dir": "./models"
+    }
+  },
+  "sweep": {
+    "grid": [
+      {
+        "name": "model_type",
+        "path": "training.model_type",
+        "values": [
+          "randomforest"
+        ]
+      },
+      {
+        "name": "threshold_pct",
+        "path": "training.label_config.threshold_pct",
+        "values": [
+          0.02,
+          0.03,
+          0.04,
+          0.05,
+          0.06
+        ]
+      }
+    ],
+    "variant_name_template": "{name}-{model_type}-thr{threshold_pct}"
+  }
+}

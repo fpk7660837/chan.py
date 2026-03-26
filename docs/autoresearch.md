@@ -15,6 +15,7 @@ This repo now has a lightweight `AutoResearch/` scaffold for running reproducibl
 ```text
 AutoResearch/
 ├── Spec.py                  # Dataclasses + JSON spec loader
+├── Proposal.py              # Next-round sweep proposal generation from prior sweep summaries
 ├── Selection.py             # ML-backed stock selection execution
 ├── Training.py              # ML training orchestration + run-local model artifacts
 ├── Storage.py               # Per-run artifact layout and manifest persistence
@@ -71,6 +72,17 @@ tests/test_autoresearch.py
    - `leaderboard.md`
    - `leaderboard.csv`
 6. Keep the normal per-variant run artifacts and repository-wide leaderboard under `AutoResearch/results/experiments/...`
+
+### Proposal Generation Mode
+
+1. Read a prior `training_sweep` run from a chosen `summary.json`, or default to the latest summary under `AutoResearch/results/sweeps/*/runs/*/summary.json`
+2. Load the matching sweep `spec.json` snapshot from the same run directory
+3. Select the top completed run(s) from the ranked `runs` list in the summary
+4. Build a next-round `training_sweep` spec by:
+   - refining numeric grid values into a simple neighborhood around winning values
+   - carrying forward winning categorical values such as `training.model_type`
+   - updating the base training config to the best run's values for those refined paths
+5. Save the generated JSON spec under `experiments/autoresearch/generated/`
 
 ## Why This Fits The Current Repo
 
@@ -133,6 +145,24 @@ Rules:
 - `variants.json` captures the fully expanded concrete spec plus the config mapping for each variant
 - `summary.json` stores the ranked run list and best run selection using the child manifests' existing leaderboard metrics
 
+## Proposal Engine v1
+
+This repo now includes a minimal self-iteration loop for training sweeps.
+
+- Input:
+  - a prior sweep `summary.json`, usually from `AutoResearch/results/sweeps/.../runs/<run_id>/summary.json`
+  - the paired `spec.json` snapshot written by the sweep run
+- Selection:
+  - defaults to the latest available sweep summary when no summary path is provided
+  - uses the top `N` completed runs from `summary.json` (`N=2` by default)
+- Refinement behavior:
+  - numeric sweep parameters are narrowed to a local neighborhood around winner values
+  - categorical sweep parameters keep the winning values in rank order
+  - v1 intentionally only refines paths already present in the original `sweep.grid`
+- Output:
+  - a new `mode: "training_sweep"` JSON spec under `experiments/autoresearch/generated/`
+  - a generated name/tag set so proposed sweeps stay distinct from hand-authored baseline specs
+
 ## Usage
 
 Run every JSON spec in the default directory:
@@ -160,6 +190,22 @@ Run a training sweep:
 ```bash
 python3.11 App/run_autoresearch_pipeline.py \
   --spec experiments/autoresearch/baseline_model_training_sweep.json
+```
+
+Generate a next-round sweep proposal from the latest available sweep summary:
+
+```bash
+python3.11 App/run_autoresearch_pipeline.py \
+  --generate-next-sweep
+```
+
+Generate a next-round sweep proposal from a specific prior summary and use the top 1 run only:
+
+```bash
+python3.11 App/run_autoresearch_pipeline.py \
+  --generate-next-sweep \
+  --sweep-summary AutoResearch/results/sweeps/baseline-model-training-sweep/runs/20260326T033038Z/summary.json \
+  --proposal-top-runs 1
 ```
 
 Override local artifact storage:
@@ -218,6 +264,10 @@ python3.11 App/run_autoresearch_pipeline.py \
   - each child run keeps its own `experiments/<experiment>/runs/<run_id>/...` artifacts and contributes to the repository-level leaderboard
   - each sweep run also writes `sweeps/<sweep>/runs/<run_id>/summary.json` and `leaderboard.md` so you can compare only the variants from that batch
   - sweep `summary.json` stores the best run plus the full config/result mapping for every variant
+- Proposal behavior:
+  - `--generate-next-sweep` reads a prior sweep summary plus its stored `spec.json` snapshot and writes a fresh sweep JSON under `experiments/autoresearch/generated/`
+  - when `--sweep-summary` is omitted, AutoResearch uses the latest summary found under `results_root/sweeps/`
+  - numeric refinement is intentionally local and simple in v1; it is meant to tighten a search around strong regions, not perform Bayesian optimization or broader experiment planning
 - The run-local artifact is always written first; publishing is a second step, not the primary storage location
 
 ## Next Extensions

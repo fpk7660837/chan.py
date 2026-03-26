@@ -6,6 +6,8 @@ Examples:
     python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_daily_selection.json
     python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_model_training.json
     python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_model_training_sweep.json
+    python3.11 App/run_autoresearch_pipeline.py --generate-next-sweep
+    python3.11 App/run_autoresearch_pipeline.py --generate-next-sweep --sweep-summary AutoResearch/results/sweeps/.../summary.json
     python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_model_training.json --publish-model
     python3.11 App/run_autoresearch_pipeline.py --results-root ./tmp/autoresearch
 """
@@ -50,6 +52,27 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Override the publish/promote target directory used with --publish-model.",
     )
+    parser.add_argument(
+        "--generate-next-sweep",
+        action="store_true",
+        help="Generate a new training_sweep spec by refining around the strongest prior sweep runs.",
+    )
+    parser.add_argument(
+        "--sweep-summary",
+        default=None,
+        help="Optional path to a prior sweep summary.json. Defaults to the latest summary under results_root/sweeps/.",
+    )
+    parser.add_argument(
+        "--generated-spec-dir",
+        default=str(ROOT / "experiments" / "autoresearch" / "generated"),
+        help="Directory where generated training sweep specs are written.",
+    )
+    parser.add_argument(
+        "--proposal-top-runs",
+        type=int,
+        default=2,
+        help="Number of top completed runs used when generating the next-round sweep proposal.",
+    )
     return parser.parse_args()
 
 
@@ -71,6 +94,19 @@ def main() -> int:
         publish_model=(args.publish_model or bool(args.publish_model_dir)) or None,
         global_model_dir=Path(args.publish_model_dir).resolve() if args.publish_model_dir else None,
     )
+
+    if args.generate_next_sweep:
+        proposal = pipeline.propose_next_sweep(
+            summary_path=Path(args.sweep_summary).resolve() if args.sweep_summary else None,
+            output_dir=Path(args.generated_spec_dir).resolve(),
+            top_runs=args.proposal_top_runs,
+        )
+        print("[proposal] generated next-round training sweep")
+        print(f"  source summary: {proposal.source_summary_path}")
+        print(f"  source spec: {proposal.source_spec_path}")
+        print(f"  selected runs: {len(proposal.selected_runs)}")
+        print(f"  output spec: {proposal.output_path}")
+        return 0
 
     failed_runs = 0
     for spec_path in resolve_spec_paths(args):
