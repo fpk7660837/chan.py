@@ -11,4 +11,5 @@ cos_config.yaml
 outputs/
 
 .venv
+venv
 .idea
