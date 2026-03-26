@@ -1,10 +1,16 @@
+import io
 import json
+import re
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from pathlib import Path
+from types import SimpleNamespace
+from unittest import mock
 
+from App import run_autoresearch_pipeline
 from AutoResearch.Leaderboard import build_leaderboard_rows, render_leaderboard_markdown
-from AutoResearch.Pipeline import AutoResearchPipeline
+from AutoResearch.Pipeline import AutoResearchPipeline, SweepIterationResult
 from AutoResearch.Selection import SelectionRunResult
 from AutoResearch.Spec import expand_sweep_spec, load_experiment_spec, load_pipeline_spec
 from AutoResearch.Storage import RunStorage
@@ -620,6 +626,117 @@ class AutoResearchProposalTests(unittest.TestCase):
 
             self.assertEqual(reloaded_spec.benchmark_selection.reference_path, None)
             self.assertEqual(reloaded_spec.benchmark_selection.selection.as_of, "2025-01-15")
+
+    def test_iterate_next_sweep_can_generate_and_execute_next_round(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            results_root = tmp_path / "results"
+            generated_dir = tmp_path / "generated"
+            spec_payload = self._build_training_sweep_payload(
+                name="baseline-model-training-sweep",
+                threshold_values=[0.03, 0.05],
+            )
+            summary_path = self._write_sweep_run(
+                results_root,
+                sweep_slug="baseline-model-training-sweep",
+                run_id="20260326T120000Z",
+                spec_payload=spec_payload,
+                summary_payload={
+                    "name": "baseline-model-training-sweep",
+                    "run_id": "20260326T120000Z",
+                    "runs": [
+                        {
+                            "variant_id": "model_type=randomforest__threshold_pct=0.03",
+                            "status": "completed",
+                            "leaderboard_value": 2.21,
+                            "config": {
+                                "training.model_type": "randomforest",
+                                "training.label_config.threshold_pct": 0.03,
+                            },
+                        }
+                    ],
+                },
+            )
+
+            training_calls = []
+
+            def fake_training_runner(spec, run_paths):
+                threshold = float(spec.training.label_config["threshold_pct"])
+                training_calls.append((spec.training.model_type, threshold))
+                run_paths.model_artifacts_dir.mkdir(parents=True, exist_ok=True)
+                model_path = run_paths.model_artifacts_dir / f"model_{spec.name}.pkl"
+                metadata_path = run_paths.model_artifacts_dir / f"metadata_{spec.name}.json"
+                model_path.write_text("demo-model", encoding="utf-8")
+                metadata_path.write_text(json.dumps({"version": spec.name}), encoding="utf-8")
+                return TrainingRunResult(
+                    summary={
+                        "model_version": spec.name,
+                        "model_type": spec.training.model_type,
+                        "loaded_chan_count": 2,
+                        "skipped_count": 0,
+                    },
+                    model_version=spec.name,
+                    model_path=model_path,
+                    metadata_path=metadata_path,
+                )
+
+            def fake_selection_runner(spec, model_dir=None):
+                match = re.search(r"thr([0-9.]+)$", spec.selection.model_version)
+                threshold = float(match.group(1)) if match is not None else 0.0
+                sharpe_ratio = {
+                    0.02: 1.11,
+                    0.03: 1.44,
+                    0.04: 1.18,
+                }[round(threshold, 2)]
+                return SelectionRunResult(
+                    recommendations=[],
+                    summary={
+                        "as_of": spec.selection.as_of,
+                        "model_version": spec.selection.model_version,
+                        "top_score": sharpe_ratio - 0.2,
+                        "avg_score": sharpe_ratio - 0.3,
+                        "recommendation_count": 2,
+                        "skipped_count": 0,
+                        "portfolio_backtest": {
+                            "sharpe_ratio": sharpe_ratio,
+                        },
+                    },
+                )
+
+            pipeline = AutoResearchPipeline(
+                results_root=results_root,
+                selection_runner=fake_selection_runner,
+                training_runner=fake_training_runner,
+            )
+
+            result = pipeline.iterate_next_sweep(
+                summary_path=summary_path,
+                output_dir=generated_dir,
+                top_runs=1,
+                execute=True,
+            )
+
+            self.assertTrue(result.proposal.output_path.exists())
+            self.assertIsNotNone(result.execution_result)
+            self.assertEqual(result.proposal.source_summary_path, summary_path.resolve())
+            self.assertEqual(
+                training_calls,
+                [("randomforest", 0.02), ("randomforest", 0.03), ("randomforest", 0.04)],
+            )
+
+            generated_spec = json.loads(result.proposal.output_path.read_text(encoding="utf-8"))
+            grid_by_path = {item["path"]: item["values"] for item in generated_spec["sweep"]["grid"]}
+            self.assertEqual(generated_spec["training"]["model_type"], "randomforest")
+            self.assertEqual(grid_by_path["training.label_config.threshold_pct"], [0.02, 0.03, 0.04])
+
+            execution_result = result.execution_result
+            self.assertEqual(execution_result.spec.name, generated_spec["name"])
+            self.assertEqual(execution_result.summary["variant_count"], 3)
+            self.assertEqual(
+                execution_result.summary["best_run"]["config"]["training.label_config.threshold_pct"],
+                0.03,
+            )
+            self.assertTrue(execution_result.sweep_paths.summary_json.exists())
 
 
 class RunStorageTests(unittest.TestCase):
@@ -1456,6 +1573,71 @@ class PipelineTests(unittest.TestCase):
             leaderboard = result.sweep_paths.leaderboard_markdown.read_text(encoding="utf-8")
             self.assertIn("benchmark-model-training-sweep-lightgbm", leaderboard)
             self.assertIn("training.model_type=lightgbm", leaderboard)
+
+
+class AutoResearchCliTests(unittest.TestCase):
+    def test_main_can_generate_and_execute_next_round_sweep(self):
+        proposal = SimpleNamespace(
+            source_summary_path=Path("/tmp/source-summary.json"),
+            source_spec_path=Path("/tmp/source-spec.json"),
+            selected_runs=[{"variant_id": "winner"}],
+            output_path=Path("/tmp/generated-spec.json"),
+        )
+        execution_result = SimpleNamespace(
+            sweep_paths=SimpleNamespace(run_dir=Path("/tmp/results/sweeps/generated/run-1")),
+            summary={
+                "variant_count": 3,
+                "completed_variant_count": 3,
+                "failed_variant_count": 0,
+                "best_run": {
+                    "experiment": "generated-sweep-randomforest-thr0.03",
+                    "leaderboard_metric": "portfolio_sharpe",
+                    "leaderboard_value": 1.44,
+                },
+            },
+            leaderboard_markdown=Path("/tmp/results/sweeps/generated/run-1/leaderboard.md"),
+        )
+        iteration_result = SweepIterationResult(
+            proposal=proposal,
+            execution_result=execution_result,
+        )
+
+        stdout = io.StringIO()
+        with mock.patch.object(
+            run_autoresearch_pipeline.AutoResearchPipeline,
+            "iterate_next_sweep",
+            return_value=iteration_result,
+        ) as iterate_mock:
+            with mock.patch(
+                "sys.argv",
+                [
+                    "run_autoresearch_pipeline.py",
+                    "--generate-next-sweep",
+                    "--execute-generated-sweep",
+                    "--sweep-summary",
+                    "/tmp/source-summary.json",
+                    "--generated-spec-dir",
+                    "/tmp/generated",
+                    "--proposal-top-runs",
+                    "1",
+                    "--results-root",
+                    "/tmp/results",
+                ],
+            ):
+                with redirect_stdout(stdout):
+                    exit_code = run_autoresearch_pipeline.main()
+
+        self.assertEqual(exit_code, 0)
+        iterate_mock.assert_called_once()
+        self.assertEqual(iterate_mock.call_args.kwargs["execute"], True)
+        self.assertEqual(iterate_mock.call_args.kwargs["top_runs"], 1)
+        self.assertEqual(iterate_mock.call_args.kwargs["output_dir"], Path("/tmp/generated").resolve())
+        self.assertEqual(iterate_mock.call_args.kwargs["summary_path"], Path("/tmp/source-summary.json").resolve())
+
+        output = stdout.getvalue()
+        self.assertIn("[proposal] generated next-round training sweep", output)
+        self.assertIn("[sweep] executed generated next-round training sweep", output)
+        self.assertIn("best: generated-sweep-randomforest-thr0.03 (portfolio_sharpe=1.44)", output)
 
 
 if __name__ == "__main__":

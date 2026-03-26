@@ -83,6 +83,7 @@ tests/test_autoresearch.py
    - carrying forward winning categorical values such as `training.model_type`
    - updating the base training config to the best run's values for those refined paths
 5. Save the generated JSON spec under `experiments/autoresearch/generated/`
+6. Optionally execute that generated `training_sweep` immediately through the existing sweep pipeline
 
 ## Why This Fits The Current Repo
 
@@ -162,6 +163,10 @@ This repo now includes a minimal self-iteration loop for training sweeps.
 - Output:
   - a new `mode: "training_sweep"` JSON spec under `experiments/autoresearch/generated/`
   - a generated name/tag set so proposed sweeps stay distinct from hand-authored baseline specs
+- Optional execution:
+  - `--execute-generated-sweep` immediately runs the generated spec through the normal sweep pipeline
+  - execution writes a fresh sweep run under `AutoResearch/results/sweeps/<generated-sweep>/runs/<run_id>/`
+  - the CLI prints both proposal metadata and the executed sweep summary in one pass
 
 ## Usage
 
@@ -206,6 +211,15 @@ python3.11 App/run_autoresearch_pipeline.py \
   --generate-next-sweep \
   --sweep-summary AutoResearch/results/sweeps/baseline-model-training-sweep/runs/20260326T033038Z/summary.json \
   --proposal-top-runs 1
+```
+
+Generate a next-round sweep proposal and execute it immediately:
+
+```bash
+python3.11 App/run_autoresearch_pipeline.py \
+  --generate-next-sweep \
+  --execute-generated-sweep \
+  --sweep-summary AutoResearch/results/sweeps/baseline-model-training-sweep/runs/20260326T033038Z/summary.json
 ```
 
 Override local artifact storage:

@@ -41,6 +41,12 @@ class SweepRunResult:
     leaderboard_csv: Path
 
 
+@dataclass(frozen=True)
+class SweepIterationResult:
+    proposal: SweepProposalResult
+    execution_result: Optional[SweepRunResult] = None
+
+
 class AutoResearchPipeline:
     def __init__(
         self,
@@ -198,6 +204,30 @@ class AutoResearchPipeline:
             summary_path=summary_path,
             output_dir=proposal_output_dir,
             top_runs=top_runs,
+        )
+
+    def iterate_next_sweep(
+        self,
+        *,
+        summary_path: Optional[Path] = None,
+        output_dir: Optional[Path] = None,
+        top_runs: int = 2,
+        execute: bool = False,
+    ) -> SweepIterationResult:
+        proposal = self.propose_next_sweep(
+            summary_path=summary_path,
+            output_dir=output_dir,
+            top_runs=top_runs,
+        )
+        execution_result: Optional[SweepRunResult] = None
+        if execute:
+            run_result = self.run(proposal.output_path)
+            if not isinstance(run_result, SweepRunResult):
+                raise RuntimeError(f"Generated proposal did not resolve to a sweep run: {proposal.output_path}")
+            execution_result = run_result
+        return SweepIterationResult(
+            proposal=proposal,
+            execution_result=execution_result,
         )
 
     @staticmethod
