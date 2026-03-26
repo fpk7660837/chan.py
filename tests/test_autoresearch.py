@@ -6,7 +6,7 @@ from pathlib import Path
 from AutoResearch.Leaderboard import build_leaderboard_rows, render_leaderboard_markdown
 from AutoResearch.Pipeline import AutoResearchPipeline
 from AutoResearch.Selection import SelectionRunResult
-from AutoResearch.Spec import load_experiment_spec
+from AutoResearch.Spec import expand_sweep_spec, load_experiment_spec, load_pipeline_spec
 from AutoResearch.Storage import RunStorage
 from AutoResearch.Training import TrainingRunResult
 
@@ -280,6 +280,62 @@ class AutoResearchSpecTests(unittest.TestCase):
             self.assertEqual(spec.benchmark_selections[0].reference_path, "./baseline_daily_selection.json")
             self.assertEqual(spec.benchmark_selections[0].weight, 2.0)
             self.assertEqual(spec.benchmark_selections[1].weight, 0.5)
+
+    def test_load_training_sweep_spec_expands_grid_into_concrete_training_variants(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            spec_path = Path(tmp_dir) / "training_sweep.json"
+            spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "baseline-model-training-sweep",
+                        "mode": "training_sweep",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                            "model_type": "lightgbm",
+                            "label_config": {
+                                "threshold_pct": 0.05,
+                            },
+                        },
+                        "benchmark_selection": {
+                            "as_of": "2025-01-15",
+                            "codes": ["600519", "000333"],
+                            "top_k": 2,
+                        },
+                        "sweep": {
+                            "variant_name_template": "{name}-{model_type}-thr{threshold_pct}",
+                            "grid": [
+                                {
+                                    "name": "model_type",
+                                    "path": "training.model_type",
+                                    "values": ["lightgbm", "randomforest"],
+                                },
+                                {
+                                    "name": "threshold_pct",
+                                    "path": "training.label_config.threshold_pct",
+                                    "values": [0.03, 0.05],
+                                },
+                            ],
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            spec = load_pipeline_spec(spec_path)
+            variants = expand_sweep_spec(spec)
+
+            self.assertEqual(spec.mode, "training_sweep")
+            self.assertEqual(len(variants), 4)
+            self.assertEqual(variants[0].variant_id, "model_type=lightgbm__threshold_pct=0.03")
+            self.assertEqual(variants[0].experiment.name, "baseline-model-training-sweep-lightgbm-thr0.03")
+            self.assertEqual(variants[0].experiment.mode, "training")
+            self.assertEqual(variants[0].experiment.training.model_type, "lightgbm")
+            self.assertEqual(variants[0].experiment.training.label_config["threshold_pct"], 0.03)
+            self.assertEqual(variants[-1].experiment.training.model_type, "randomforest")
+            self.assertEqual(variants[-1].experiment.training.label_config["threshold_pct"], 0.05)
+            self.assertEqual(variants[-1].experiment.benchmark_selection.selection.as_of, "2025-01-15")
 
 
 class RunStorageTests(unittest.TestCase):
@@ -1016,6 +1072,106 @@ class PipelineTests(unittest.TestCase):
             self.assertEqual(manifest["downstream_benchmark_error"], "benchmark failed")
             self.assertEqual(manifest["leaderboard_metric"], "benchmark_suite_score_v2")
             self.assertAlmostEqual(manifest["leaderboard_value"], 0.28)
+
+    def test_training_sweep_pipeline_runs_all_variants_and_writes_sweep_summary(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            spec_path = tmp_path / "training_sweep.json"
+            spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "benchmark-model-training-sweep",
+                        "mode": "training_sweep",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "codes": ["600519", "000333"],
+                            "model_type": "lightgbm",
+                        },
+                        "benchmark_selection": {
+                            "as_of": "2025-01-15",
+                            "codes": ["600519", "000333"],
+                            "top_k": 2,
+                        },
+                        "sweep": {
+                            "variant_name_template": "{name}-{model_type}",
+                            "grid": [
+                                {
+                                    "name": "model_type",
+                                    "path": "training.model_type",
+                                    "values": ["lightgbm", "randomforest"],
+                                }
+                            ],
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            training_calls = []
+
+            def fake_training_runner(spec, run_paths):
+                training_calls.append(spec.training.model_type)
+                run_paths.model_artifacts_dir.mkdir(parents=True, exist_ok=True)
+                model_path = run_paths.model_artifacts_dir / f"model_{spec.training.model_type}.pkl"
+                metadata_path = run_paths.model_artifacts_dir / f"metadata_{spec.training.model_type}.json"
+                model_path.write_text("demo-model", encoding="utf-8")
+                metadata_path.write_text(json.dumps({"version": spec.name}), encoding="utf-8")
+                return TrainingRunResult(
+                    summary={
+                        "model_version": spec.name,
+                        "model_type": spec.training.model_type,
+                        "loaded_chan_count": 2,
+                        "skipped_count": 0,
+                    },
+                    model_version=spec.name,
+                    model_path=model_path,
+                    metadata_path=metadata_path,
+                )
+
+            def fake_selection_runner(spec, model_dir=None):
+                sharpe_ratio = 1.42 if spec.selection.model_version.endswith("lightgbm") else 0.97
+                top_score = 0.91 if spec.selection.model_version.endswith("lightgbm") else 0.74
+                return SelectionRunResult(
+                    recommendations=[],
+                    summary={
+                        "as_of": spec.selection.as_of,
+                        "model_version": spec.selection.model_version,
+                        "top_score": top_score,
+                        "avg_score": top_score - 0.05,
+                        "recommendation_count": 2,
+                        "skipped_count": 0,
+                        "portfolio_backtest": {
+                            "sharpe_ratio": sharpe_ratio,
+                        },
+                    },
+                )
+
+            pipeline = AutoResearchPipeline(
+                results_root=tmp_path / "results",
+                selection_runner=fake_selection_runner,
+                training_runner=fake_training_runner,
+            )
+
+            result = pipeline.run(spec_path)
+
+            self.assertEqual(training_calls, ["lightgbm", "randomforest"])
+            self.assertEqual(len(result.variant_results), 2)
+            self.assertTrue(result.sweep_paths.summary_json.exists())
+            self.assertTrue(result.sweep_paths.leaderboard_markdown.exists())
+
+            summary = json.loads(result.sweep_paths.summary_json.read_text(encoding="utf-8"))
+            self.assertEqual(summary["variant_count"], 2)
+            self.assertEqual(summary["best_run"]["experiment"], "benchmark-model-training-sweep-lightgbm")
+            self.assertEqual(summary["best_run"]["leaderboard_metric"], "portfolio_sharpe")
+            self.assertAlmostEqual(summary["best_run"]["leaderboard_value"], 1.42)
+            self.assertEqual(summary["runs"][0]["config"]["training.model_type"], "lightgbm")
+            self.assertEqual(summary["runs"][0]["status"], "completed")
+            self.assertTrue((tmp_path / "results" / summary["runs"][0]["manifest_path"]).exists())
+
+            leaderboard = result.sweep_paths.leaderboard_markdown.read_text(encoding="utf-8")
+            self.assertIn("benchmark-model-training-sweep-lightgbm", leaderboard)
+            self.assertIn("training.model_type=lightgbm", leaderboard)
 
 
 if __name__ == "__main__":

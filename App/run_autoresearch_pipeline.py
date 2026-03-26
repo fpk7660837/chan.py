@@ -5,6 +5,7 @@ Examples:
     python3.11 App/run_autoresearch_pipeline.py
     python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_daily_selection.json
     python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_model_training.json
+    python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_model_training_sweep.json
     python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_model_training.json --publish-model
     python3.11 App/run_autoresearch_pipeline.py --results-root ./tmp/autoresearch
 """
@@ -16,7 +17,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
-from AutoResearch.Pipeline import AutoResearchPipeline
+from AutoResearch.Pipeline import AutoResearchPipeline, SweepRunResult
 
 
 def parse_args() -> argparse.Namespace:
@@ -74,6 +75,20 @@ def main() -> int:
     failed_runs = 0
     for spec_path in resolve_spec_paths(args):
         result = pipeline.run(spec_path)
+        if isinstance(result, SweepRunResult):
+            print(f"[sweep] {spec_path}")
+            print(f"  run: {result.sweep_paths.run_dir}")
+            print(f"  variants: {result.summary['variant_count']}")
+            print(f"  completed: {result.summary['completed_variant_count']}")
+            print(f"  failed: {result.summary['failed_variant_count']}")
+            best_run = result.summary.get("best_run")
+            if isinstance(best_run, dict):
+                print(f"  best: {best_run.get('experiment')} ({best_run.get('leaderboard_metric')}={best_run.get('leaderboard_value')})")
+            print(f"  leaderboard: {result.leaderboard_markdown}")
+            if int(result.summary.get("failed_variant_count", 0) or 0) > 0:
+                failed_runs += 1
+            continue
+
         print(f"[{result.manifest['status']}] {spec_path}")
         print(f"  run: {result.run_paths.run_dir}")
         print(f"  recommendations: {result.manifest['recommendation_count']}")

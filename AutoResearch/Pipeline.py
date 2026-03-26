@@ -4,12 +4,20 @@ from dataclasses import dataclass, replace
 from datetime import datetime
 import math
 from pathlib import Path
-from typing import Callable, Dict, Iterable, List, Optional
+from typing import Callable, Dict, Iterable, List, Optional, Union
 
-from .Leaderboard import write_leaderboard
+from .Leaderboard import write_leaderboard, write_sweep_leaderboard
 from .Selection import SelectionRunResult, run_selection_experiment
-from .Spec import BenchmarkSelectionSpec, BenchmarkSuiteScoringSpec, ExperimentSpec, load_experiment_spec
-from .Storage import PublishedModelArtifacts, RunPaths, RunStorage
+from .Spec import (
+    BenchmarkSelectionSpec,
+    BenchmarkSuiteScoringSpec,
+    ExperimentSpec,
+    SweepVariantSpec,
+    TrainingSweepSpec,
+    expand_sweep_spec,
+    load_pipeline_spec,
+)
+from .Storage import PublishedModelArtifacts, RunPaths, RunStorage, SweepPaths
 from .Training import TrainingRunResult, run_training_experiment
 
 
@@ -18,6 +26,16 @@ class PipelineRunResult:
     spec: ExperimentSpec
     run_paths: RunPaths
     manifest: Dict[str, object]
+    leaderboard_markdown: Path
+    leaderboard_csv: Path
+
+
+@dataclass(frozen=True)
+class SweepRunResult:
+    spec: TrainingSweepSpec
+    sweep_paths: SweepPaths
+    summary: Dict[str, object]
+    variant_results: List[PipelineRunResult]
     leaderboard_markdown: Path
     leaderboard_csv: Path
 
@@ -37,8 +55,13 @@ class AutoResearchPipeline:
         self.publish_model = publish_model
         self.global_model_dir = Path(global_model_dir) if global_model_dir is not None else None
 
-    def run(self, spec_path: Path) -> PipelineRunResult:
-        spec = load_experiment_spec(Path(spec_path))
+    def run(self, spec_path: Path) -> Union[PipelineRunResult, SweepRunResult]:
+        spec = load_pipeline_spec(Path(spec_path))
+        if isinstance(spec, TrainingSweepSpec):
+            return self.run_sweep(spec, spec_path=Path(spec_path))
+        return self.run_spec(spec)
+
+    def run_spec(self, spec: ExperimentSpec) -> PipelineRunResult:
         root_dir = self.results_root or Path(spec.storage.root_dir)
         storage = RunStorage(root_dir)
         run_paths = storage.create_run(spec.name)
@@ -108,8 +131,119 @@ class AutoResearchPipeline:
             leaderboard_csv=leaderboard_csv,
         )
 
-    def run_many(self, spec_paths: Iterable[Path]) -> List[PipelineRunResult]:
+    def run_sweep(self, spec: TrainingSweepSpec, *, spec_path: Path) -> SweepRunResult:
+        root_dir = self.results_root or Path(spec.storage.root_dir)
+        storage = RunStorage(root_dir)
+        sweep_paths = storage.create_sweep_run(spec.name)
+        storage.write_sweep_spec_snapshot(sweep_paths, spec.to_dict())
+
+        variants = expand_sweep_spec(spec, spec_path=spec_path)
+        variant_results: List[PipelineRunResult] = []
+        sweep_variant_payloads: List[Dict[str, object]] = []
+        run_entries: List[Dict[str, object]] = []
+
+        for variant in variants:
+            result = self.run_spec(variant.experiment)
+            variant_results.append(result)
+            run_entry = self._build_sweep_run_entry(variant, result)
+            run_entries.append(run_entry)
+            sweep_variant_payloads.append(
+                {
+                    "variant_id": variant.variant_id,
+                    "config": variant.overrides,
+                    "experiment": variant.experiment.name,
+                    "spec": variant.experiment.to_dict(),
+                    "run_id": result.manifest["run_id"],
+                    "run_path": run_entry["run_path"],
+                    "manifest_path": run_entry["manifest_path"],
+                    "summary_path": run_entry["summary_path"],
+                }
+            )
+
+        ordered_run_entries = self._order_sweep_runs(run_entries)
+        summary = self._build_sweep_summary(spec, sweep_paths, ordered_run_entries)
+
+        storage.write_sweep_variants(sweep_paths, sweep_variant_payloads)
+        storage.write_sweep_summary(sweep_paths, summary)
+        leaderboard_markdown, leaderboard_csv = write_sweep_leaderboard(
+            sweep_paths.leaderboard_markdown,
+            sweep_paths.leaderboard_csv,
+            ordered_run_entries,
+        )
+
+        return SweepRunResult(
+            spec=spec,
+            sweep_paths=sweep_paths,
+            summary=summary,
+            variant_results=variant_results,
+            leaderboard_markdown=leaderboard_markdown,
+            leaderboard_csv=leaderboard_csv,
+        )
+
+    def run_many(self, spec_paths: Iterable[Path]) -> List[Union[PipelineRunResult, SweepRunResult]]:
         return [self.run(path) for path in spec_paths]
+
+    @staticmethod
+    def _build_sweep_run_entry(variant: SweepVariantSpec, result: PipelineRunResult) -> Dict[str, object]:
+        manifest = result.manifest
+        return {
+            "variant_id": variant.variant_id,
+            "experiment": str(manifest.get("experiment", result.spec.name)),
+            "status": str(manifest.get("status", "")),
+            "run_id": str(manifest.get("run_id", "")),
+            "run_path": str(result.run_paths.run_dir.relative_to(result.run_paths.root_dir)),
+            "manifest_path": str(result.run_paths.manifest_json.relative_to(result.run_paths.root_dir)),
+            "summary_path": str(result.run_paths.summary_json.relative_to(result.run_paths.root_dir)),
+            "leaderboard_metric": str(manifest.get("leaderboard_metric", "")),
+            "leaderboard_value": manifest.get("leaderboard_value"),
+            "top_score": manifest.get("top_score"),
+            "avg_score": manifest.get("avg_score"),
+            "recommendation_count": manifest.get("recommendation_count"),
+            "model_version": manifest.get("model_version"),
+            "config": dict(variant.overrides),
+            "manifest": manifest,
+        }
+
+    @staticmethod
+    def _order_sweep_runs(runs: List[Dict[str, object]]) -> List[Dict[str, object]]:
+        return sorted(
+            runs,
+            key=lambda item: (
+                1 if item.get("status") == "completed" else 0,
+                float(item.get("leaderboard_value", 0.0) or 0.0),
+                float(item.get("top_score", 0.0) or 0.0),
+                float(item.get("avg_score", 0.0) or 0.0),
+                str(item.get("variant_id", "")),
+            ),
+            reverse=True,
+        )
+
+    @classmethod
+    def _build_sweep_summary(
+        cls,
+        spec: TrainingSweepSpec,
+        sweep_paths: SweepPaths,
+        ordered_runs: List[Dict[str, object]],
+    ) -> Dict[str, object]:
+        completed_runs = [run for run in ordered_runs if run.get("status") == "completed"]
+        failed_runs = [run for run in ordered_runs if run.get("status") != "completed"]
+        best_run = completed_runs[0] if completed_runs else None
+        return {
+            "name": spec.name,
+            "mode": spec.mode,
+            "description": spec.description,
+            "tags": spec.tags,
+            "run_id": sweep_paths.run_dir.name,
+            "variant_count": len(ordered_runs),
+            "completed_variant_count": len(completed_runs),
+            "failed_variant_count": len(failed_runs),
+            "best_run": cls._strip_manifest_from_sweep_entry(best_run) if best_run is not None else None,
+            "runs": [cls._strip_manifest_from_sweep_entry(run) for run in ordered_runs],
+        }
+
+    @staticmethod
+    def _strip_manifest_from_sweep_entry(entry: Dict[str, object]) -> Dict[str, object]:
+        return {key: value for key, value in entry.items() if key != "manifest"}
 
     def _should_publish_model(self, spec: ExperimentSpec) -> bool:
         if spec.mode != "training":

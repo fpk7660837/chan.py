@@ -35,6 +35,18 @@ class PublishedModelArtifacts:
     metadata_path: Optional[Path]
 
 
+@dataclass(frozen=True)
+class SweepPaths:
+    root_dir: Path
+    sweep_dir: Path
+    run_dir: Path
+    spec_snapshot_json: Path
+    variants_json: Path
+    summary_json: Path
+    leaderboard_markdown: Path
+    leaderboard_csv: Path
+
+
 class RunStorage:
     def __init__(self, root_dir: Path):
         self.root_dir = Path(root_dir)
@@ -71,6 +83,34 @@ class RunStorage:
 
     def write_manifest(self, run_paths: RunPaths, manifest: Dict[str, Any]) -> None:
         write_json(run_paths.manifest_json, manifest)
+
+    def create_sweep_run(self, sweep_name: str, run_id: str = None) -> SweepPaths:
+        resolved_run_id = run_id or datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+        sweep_dir = self.root_dir / "sweeps" / _slugify(sweep_name)
+        run_dir = sweep_dir / "runs" / resolved_run_id
+        run_dir.mkdir(parents=True, exist_ok=False)
+        return SweepPaths(
+            root_dir=self.root_dir,
+            sweep_dir=sweep_dir,
+            run_dir=run_dir,
+            spec_snapshot_json=run_dir / "spec.json",
+            variants_json=run_dir / "variants.json",
+            summary_json=run_dir / "summary.json",
+            leaderboard_markdown=run_dir / "leaderboard.md",
+            leaderboard_csv=run_dir / "leaderboard.csv",
+        )
+
+    def write_sweep_spec_snapshot(self, sweep_paths: SweepPaths, spec_payload: Dict[str, Any]) -> None:
+        write_json(sweep_paths.spec_snapshot_json, spec_payload)
+
+    def write_sweep_variants(self, sweep_paths: SweepPaths, payload: List[Dict[str, Any]]) -> None:
+        sweep_paths.variants_json.write_text(
+            json.dumps(payload, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+    def write_sweep_summary(self, sweep_paths: SweepPaths, summary: Dict[str, Any]) -> None:
+        write_json(sweep_paths.summary_json, summary)
 
     def load_manifests(self) -> List[Dict[str, Any]]:
         manifests: List[Dict[str, Any]] = []

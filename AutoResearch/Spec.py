@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass, field
+from itertools import product
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 
 
 def _normalize_codes(raw_codes: Any) -> List[str]:
@@ -107,6 +108,50 @@ class ExperimentSpec:
     @property
     def benchmark_selection(self) -> Optional[BenchmarkSelectionSpec]:
         return self.benchmark_selections[0] if self.benchmark_selections else None
+
+
+@dataclass(frozen=True)
+class SweepGridSpec:
+    name: str
+    path: str
+    values: List[Any] = field(default_factory=list)
+
+
+@dataclass(frozen=True)
+class SweepSpec:
+    grid: List[SweepGridSpec] = field(default_factory=list)
+    variant_name_template: Optional[str] = None
+
+
+@dataclass(frozen=True)
+class TrainingSweepSpec:
+    name: str
+    mode: str = "training_sweep"
+    training: Optional[TrainingSpec] = None
+    benchmark_selections: List[BenchmarkSelectionSpec] = field(default_factory=list)
+    benchmark_suite_scoring: BenchmarkSuiteScoringSpec = field(default_factory=BenchmarkSuiteScoringSpec)
+    description: str = ""
+    tags: List[str] = field(default_factory=list)
+    portfolio_backtest: PortfolioBacktestSpec = field(default_factory=PortfolioBacktestSpec)
+    storage: StorageSpec = field(default_factory=StorageSpec)
+    sweep: SweepSpec = field(default_factory=SweepSpec)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+
+    @property
+    def benchmark_selection(self) -> Optional[BenchmarkSelectionSpec]:
+        return self.benchmark_selections[0] if self.benchmark_selections else None
+
+
+@dataclass(frozen=True)
+class SweepVariantSpec:
+    variant_id: str
+    experiment: ExperimentSpec
+    overrides: Dict[str, Any]
+
+
+AutoResearchSpec = Union[ExperimentSpec, TrainingSweepSpec]
 
 
 def _load_selection_spec_from_payload(selection_payload: Dict[str, Any], spec_path: Path) -> SelectionSpec:
@@ -315,28 +360,7 @@ def _load_benchmark_selection_specs(
     ]
 
 
-def load_experiment_spec(path: Path) -> ExperimentSpec:
-    spec_path = Path(path)
-    payload = json.loads(spec_path.read_text(encoding="utf-8"))
-
-    if "name" not in payload:
-        raise ValueError(f"Experiment spec is missing required field 'name': {spec_path}")
-
-    portfolio_backtest = _load_portfolio_backtest_spec(payload.get("portfolio_backtest", {}))
-    benchmark_suite_scoring = _load_benchmark_suite_scoring_spec(payload)
-
-    mode = str(payload.get("mode", "selection"))
-    if mode == "selection":
-        selection = _load_selection_spec(payload, spec_path)
-        training = None
-        benchmark_selections: List[BenchmarkSelectionSpec] = []
-    elif mode == "training":
-        selection = None
-        training = _load_training_spec(payload, spec_path)
-        benchmark_selections = _load_benchmark_selection_specs(payload, spec_path, portfolio_backtest)
-    else:
-        raise ValueError(f"Unsupported experiment mode '{mode}': {spec_path}")
-
+def _build_storage_spec(payload: Dict[str, Any]) -> StorageSpec:
     storage_payload = dict(payload.get("storage", {}))
     publish_payload = storage_payload.get("publish_model", {})
     if isinstance(publish_payload, bool):
@@ -353,6 +377,89 @@ def load_experiment_spec(path: Path) -> ExperimentSpec:
         leaderboard_filename=str(storage_payload.get("leaderboard_filename", "leaderboard.md")),
         publish_model=publish_model,
     )
+    return storage
+
+
+def _load_sweep_spec(payload: Dict[str, Any], spec_path: Path) -> SweepSpec:
+    if "sweep" not in payload:
+        raise ValueError(f"Training sweep spec must define sweep.grid: {spec_path}")
+
+    sweep_payload = dict(payload.get("sweep", {}))
+    raw_grid = sweep_payload.get("grid")
+    if not isinstance(raw_grid, list) or not raw_grid:
+        raise ValueError(f"Training sweep spec must define a non-empty sweep.grid: {spec_path}")
+
+    grid: List[SweepGridSpec] = []
+    seen_names = set()
+    for index, raw_item in enumerate(raw_grid, 1):
+        if not isinstance(raw_item, dict):
+            raise ValueError(f"sweep.grid entries must be objects: {spec_path}")
+
+        path = str(raw_item.get("path", "")).strip()
+        if not path:
+            raise ValueError(f"sweep.grid[{index}] is missing required field 'path': {spec_path}")
+
+        raw_values = raw_item.get("values")
+        if not isinstance(raw_values, list) or not raw_values:
+            raise ValueError(f"sweep.grid[{index}] must define a non-empty 'values' list: {spec_path}")
+
+        name = str(raw_item.get("name") or path.split(".")[-1]).strip()
+        if not name:
+            raise ValueError(f"sweep.grid[{index}] resolved to an empty name: {spec_path}")
+        if name in seen_names:
+            raise ValueError(f"sweep.grid names must be unique ('{name}'): {spec_path}")
+        seen_names.add(name)
+
+        grid.append(
+            SweepGridSpec(
+                name=name,
+                path=path,
+                values=list(raw_values),
+            )
+        )
+
+    return SweepSpec(
+        grid=grid,
+        variant_name_template=(
+            str(sweep_payload["variant_name_template"])
+            if sweep_payload.get("variant_name_template") is not None
+            else None
+        ),
+    )
+
+
+def _load_training_sweep_spec(payload: Dict[str, Any], spec_path: Path) -> TrainingSweepSpec:
+    portfolio_backtest = _load_portfolio_backtest_spec(payload.get("portfolio_backtest", {}))
+    training = _load_training_spec(payload, spec_path)
+    benchmark_selections = _load_benchmark_selection_specs(payload, spec_path, portfolio_backtest)
+    return TrainingSweepSpec(
+        name=str(payload["name"]),
+        description=str(payload.get("description", "")),
+        tags=[str(tag) for tag in payload.get("tags", [])],
+        training=training,
+        benchmark_selections=benchmark_selections,
+        benchmark_suite_scoring=_load_benchmark_suite_scoring_spec(payload),
+        portfolio_backtest=portfolio_backtest,
+        storage=_build_storage_spec(payload),
+        sweep=_load_sweep_spec(payload, spec_path),
+    )
+
+
+def _load_experiment_spec_from_payload(payload: Dict[str, Any], spec_path: Path) -> ExperimentSpec:
+    portfolio_backtest = _load_portfolio_backtest_spec(payload.get("portfolio_backtest", {}))
+    benchmark_suite_scoring = _load_benchmark_suite_scoring_spec(payload)
+
+    mode = str(payload.get("mode", "selection"))
+    if mode == "selection":
+        selection = _load_selection_spec(payload, spec_path)
+        training = None
+        benchmark_selections: List[BenchmarkSelectionSpec] = []
+    elif mode == "training":
+        selection = None
+        training = _load_training_spec(payload, spec_path)
+        benchmark_selections = _load_benchmark_selection_specs(payload, spec_path, portfolio_backtest)
+    else:
+        raise ValueError(f"Unsupported experiment mode '{mode}': {spec_path}")
 
     return ExperimentSpec(
         name=str(payload["name"]),
@@ -364,5 +471,100 @@ def load_experiment_spec(path: Path) -> ExperimentSpec:
         benchmark_selections=benchmark_selections,
         benchmark_suite_scoring=benchmark_suite_scoring,
         portfolio_backtest=portfolio_backtest,
-        storage=storage,
+        storage=_build_storage_spec(payload),
     )
+
+
+def load_experiment_spec(path: Path) -> ExperimentSpec:
+    spec_path = Path(path)
+    payload = json.loads(spec_path.read_text(encoding="utf-8"))
+    if "name" not in payload:
+        raise ValueError(f"Experiment spec is missing required field 'name': {spec_path}")
+    return _load_experiment_spec_from_payload(payload, spec_path)
+
+
+def load_pipeline_spec(path: Path) -> AutoResearchSpec:
+    spec_path = Path(path)
+    payload = json.loads(spec_path.read_text(encoding="utf-8"))
+    if "name" not in payload:
+        raise ValueError(f"Experiment spec is missing required field 'name': {spec_path}")
+
+    mode = str(payload.get("mode", "selection"))
+    if mode == "training_sweep":
+        return _load_training_sweep_spec(payload, spec_path)
+    return _load_experiment_spec_from_payload(payload, spec_path)
+
+
+def _set_nested_value(payload: Dict[str, Any], path: str, value: Any) -> None:
+    parts = [part.strip() for part in path.split(".") if part.strip()]
+    if not parts:
+        raise ValueError(f"Invalid sweep override path '{path}'")
+
+    cursor: Dict[str, Any] = payload
+    for part in parts[:-1]:
+        next_value = cursor.get(part)
+        if next_value is None:
+            next_value = {}
+            cursor[part] = next_value
+        if not isinstance(next_value, dict):
+            raise ValueError(f"Cannot set sweep override path '{path}' because '{part}' is not an object")
+        cursor = next_value
+    cursor[parts[-1]] = value
+
+
+def _format_sweep_value(value: Any) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if value is None:
+        return "none"
+    return str(value)
+
+
+def expand_sweep_spec(spec: TrainingSweepSpec, spec_path: Optional[Path] = None) -> List[SweepVariantSpec]:
+    if spec.mode != "training_sweep":
+        raise ValueError(f"expand_sweep_spec requires mode=training_sweep, got {spec.mode}")
+
+    base_payload = spec.to_dict()
+    base_payload["mode"] = "training"
+    base_payload.pop("sweep", None)
+    resolve_path = Path(spec_path) if spec_path is not None else Path(spec.name)
+
+    expanded: List[SweepVariantSpec] = []
+    seen_names = set()
+    for index, values in enumerate(product(*(grid.values for grid in spec.sweep.grid)), 1):
+        overrides = {
+            grid.path: value
+            for grid, value in zip(spec.sweep.grid, values)
+        }
+        variant_context = {
+            grid.name: _format_sweep_value(value)
+            for grid, value in zip(spec.sweep.grid, values)
+        }
+        variant_id = "__".join(
+            f"{grid.name}={_format_sweep_value(value)}"
+            for grid, value in zip(spec.sweep.grid, values)
+        )
+
+        concrete_payload = json.loads(json.dumps(base_payload))
+        for path, value in overrides.items():
+            _set_nested_value(concrete_payload, path, value)
+
+        if spec.sweep.variant_name_template:
+            variant_name = spec.sweep.variant_name_template.format(name=spec.name, **variant_context)
+        else:
+            variant_name = f"{spec.name}-variant-{index:03d}"
+
+        if variant_name in seen_names:
+            raise ValueError(f"Sweep variant names must be unique, duplicate '{variant_name}'")
+        seen_names.add(variant_name)
+        concrete_payload["name"] = variant_name
+
+        expanded.append(
+            SweepVariantSpec(
+                variant_id=variant_id,
+                overrides=overrides,
+                experiment=_load_experiment_spec_from_payload(concrete_payload, resolve_path),
+            )
+        )
+
+    return expanded

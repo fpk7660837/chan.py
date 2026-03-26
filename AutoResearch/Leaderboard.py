@@ -84,3 +84,75 @@ def write_leaderboard(root_dir: Path, manifests: Iterable[Dict[str, Any]], filen
     markdown_path.write_text(render_leaderboard_markdown(rows), encoding="utf-8")
     write_csv(csv_path, rows)
     return markdown_path, csv_path
+
+
+def _format_config_mapping(config: Dict[str, Any]) -> str:
+    if not config:
+        return "-"
+    return ", ".join(f"{key}={config[key]}" for key in sorted(config.keys()))
+
+
+def build_sweep_leaderboard_rows(runs: Iterable[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    run_items = list(runs)
+    rank_rows = build_leaderboard_rows([item["manifest"] for item in run_items if isinstance(item.get("manifest"), dict)])
+    rank_by_run_id = {row["run_id"]: row["rank"] for row in rank_rows}
+
+    ordered = sorted(
+        run_items,
+        key=lambda item: (
+            1 if item.get("status") == "completed" else 0,
+            _as_float(item.get("leaderboard_value")),
+            _as_float(item.get("top_score")),
+            _as_float(item.get("avg_score")),
+            str(item.get("variant_id", "")),
+        ),
+        reverse=True,
+    )
+
+    rows: List[Dict[str, Any]] = []
+    for item in ordered:
+        run_id = str(item.get("run_id", ""))
+        rows.append(
+            {
+                "rank": rank_by_run_id.get(run_id, "-"),
+                "status": str(item.get("status", "")),
+                "variant": str(item.get("variant_id", "")),
+                "experiment": str(item.get("experiment", "")),
+                "run_id": run_id,
+                "metric": str(item.get("leaderboard_metric", "")),
+                "metric_value": _format_metric_value(item.get("leaderboard_value")),
+                "top_score": _format_metric_value(item.get("top_score")),
+                "avg_score": _format_metric_value(item.get("avg_score")),
+                "model_version": str(item.get("model_version", "")),
+                "config": _format_config_mapping(item.get("config", {})),
+            }
+        )
+    return rows
+
+
+def render_sweep_leaderboard_markdown(rows: List[Dict[str, Any]]) -> str:
+    body = markdown_table(
+        rows,
+        [
+            "rank",
+            "status",
+            "variant",
+            "experiment",
+            "run_id",
+            "metric",
+            "metric_value",
+            "top_score",
+            "avg_score",
+            "model_version",
+            "config",
+        ],
+    )
+    return "# AutoResearch Sweep Leaderboard\n\n" + body
+
+
+def write_sweep_leaderboard(markdown_path: Path, csv_path: Path, runs: Iterable[Dict[str, Any]]) -> Tuple[Path, Path]:
+    rows = build_sweep_leaderboard_rows(runs)
+    markdown_path.parent.mkdir(parents=True, exist_ok=True)
+    markdown_path.write_text(render_sweep_leaderboard_markdown(rows), encoding="utf-8")
+    write_csv(csv_path, rows)
+    return markdown_path, csv_path

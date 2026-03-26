@@ -1,0 +1,76 @@
+{
+  "name": "baseline-model-training-sweep",
+  "mode": "training_sweep",
+  "description": "Minimal AutoResearch training sweep that expands a small grid of training variants and ranks them with the existing downstream benchmark suite.",
+  "tags": ["baseline", "training", "sweep"],
+  "training": {
+    "begin_time": "2020-01-01",
+    "end_time": "2022-12-31",
+    "codes": ["600519", "000333", "600036", "600000", "000001"],
+    "model_type": "lightgbm",
+    "training_config": {
+      "signal_direction": "buy",
+      "test_size": 0.2,
+      "early_stopping_rounds": 30,
+      "verbose_eval": 10
+    },
+    "label_config": {
+      "lookforward_bars": 20,
+      "threshold_pct": 0.05
+    }
+  },
+  "benchmark_selections": [
+    {
+      "reference_path": "./baseline_daily_selection.json",
+      "weight": 2.0
+    },
+    {
+      "name": "high-confidence-daily-selection",
+      "weight": 1.0,
+      "selection": {
+        "as_of": "2025-01-31",
+        "direction": "buy",
+        "top_k": 5,
+        "min_score": 0.7,
+        "signal_lookback_bars": 20,
+        "history_days": 900,
+        "stale_days": 20,
+        "codes": ["600519", "000333", "600036", "600000", "000001"]
+      }
+    }
+  ],
+  "benchmark_suite_scoring": {
+    "dispersion_penalty": 0.5,
+    "failure_penalty": 0.6
+  },
+  "portfolio_backtest": {
+    "enabled": true,
+    "top_k": 3,
+    "score_threshold": 0.55,
+    "rebalance_bars": 5,
+    "signal_lookback_bars": 20
+  },
+  "sweep": {
+    "variant_name_template": "{name}-{model_type}-thr{threshold_pct}",
+    "grid": [
+      {
+        "name": "model_type",
+        "path": "training.model_type",
+        "values": ["lightgbm", "randomforest"]
+      },
+      {
+        "name": "threshold_pct",
+        "path": "training.label_config.threshold_pct",
+        "values": [0.03, 0.05]
+      }
+    ]
+  },
+  "storage": {
+    "root_dir": "AutoResearch/results",
+    "leaderboard_filename": "leaderboard.md",
+    "publish_model": {
+      "enabled": false,
+      "target_dir": "./models"
+    }
+  }
+}

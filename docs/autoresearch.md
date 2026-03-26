@@ -19,7 +19,7 @@ AutoResearch/
 ├── Training.py              # ML training orchestration + run-local model artifacts
 ├── Storage.py               # Per-run artifact layout and manifest persistence
 ├── Leaderboard.py           # Leaderboard synthesis from run manifests
-├── Pipeline.py              # End-to-end orchestration
+├── Pipeline.py              # Single-run + sweep orchestration
 └── results/                 # Default local artifact root (ignored)
 
 App/run_autoresearch_pipeline.py
@@ -58,6 +58,20 @@ tests/test_autoresearch.py
    - `models/model_<version>.pkl`
    - `models/metadata_<version>.json`
 
+### Training Sweep Mode
+
+1. Load a `mode: "training_sweep"` spec
+2. Expand `sweep.grid` into a concrete cross-product of training experiment variants
+3. Materialize each variant as a normal `mode: "training"` `ExperimentSpec`
+4. Run each variant through the existing training pipeline, including downstream benchmark selections when configured
+5. Persist a sweep run under `AutoResearch/results/sweeps/<sweep>/runs/<run_id>/` with:
+   - `spec.json`
+   - `variants.json`
+   - `summary.json`
+   - `leaderboard.md`
+   - `leaderboard.csv`
+6. Keep the normal per-variant run artifacts and repository-wide leaderboard under `AutoResearch/results/experiments/...`
+
 ## Why This Fits The Current Repo
 
 - `Research/` remains responsible for reporting utilities and experiment-style output formatting.
@@ -66,6 +80,58 @@ tests/test_autoresearch.py
 - `AutoResearch/` is only orchestration, storage, and experiment bookkeeping.
 
 That keeps the new layer thin and makes it a practical place to add future loops such as spec sweeps, model ablations, or signal-research prefilters without moving core logic again.
+
+## Sweep Spec Format
+
+Training sweeps reuse the normal training spec shape and add a `sweep` block:
+
+```json
+{
+  "name": "baseline-model-training-sweep",
+  "mode": "training_sweep",
+  "training": {
+    "begin_time": "2020-01-01",
+    "end_time": "2022-12-31",
+    "codes": ["600519", "000333"],
+    "model_type": "lightgbm",
+    "label_config": {
+      "threshold_pct": 0.05
+    }
+  },
+  "benchmark_selection": {
+    "as_of": "2025-01-15",
+    "codes": ["600519", "000333"],
+    "top_k": 2
+  },
+  "sweep": {
+    "variant_name_template": "{name}-{model_type}-thr{threshold_pct}",
+    "grid": [
+      {
+        "name": "model_type",
+        "path": "training.model_type",
+        "values": ["lightgbm", "randomforest"]
+      },
+      {
+        "name": "threshold_pct",
+        "path": "training.label_config.threshold_pct",
+        "values": [0.03, 0.05]
+      }
+    ]
+  }
+}
+```
+
+Rules:
+
+- `mode` must be `training_sweep`
+- the top level still uses the current training + benchmark fields, so every expanded variant is a real training experiment
+- `sweep.grid` is a cross-product; each entry defines:
+  - `name`: token exposed to `variant_name_template`
+  - `path`: dot-path override applied to the concrete experiment payload
+  - `values`: list of values used for expansion
+- `variant_name_template` is optional; default names are `name-variant-001`, `name-variant-002`, ...
+- `variants.json` captures the fully expanded concrete spec plus the config mapping for each variant
+- `summary.json` stores the ranked run list and best run selection using the child manifests' existing leaderboard metrics
 
 ## Usage
 
@@ -87,6 +153,13 @@ Run a training spec and keep the trained model local to the run directory:
 ```bash
 python3.11 App/run_autoresearch_pipeline.py \
   --spec experiments/autoresearch/baseline_model_training.json
+```
+
+Run a training sweep:
+
+```bash
+python3.11 App/run_autoresearch_pipeline.py \
+  --spec experiments/autoresearch/baseline_model_training_sweep.json
 ```
 
 Override local artifact storage:
@@ -140,11 +213,16 @@ python3.11 App/run_autoresearch_pipeline.py \
   - `component_score` is each benchmark's resolved leaderboard value (`portfolio_sharpe` when a portfolio backtest produces Sharpe, otherwise `top_score`)
   - `top_score` and `avg_score` in the aggregate view are weight-aware means across successful benchmarks; recommendation and skipped counts remain summed
   - `downstream_benchmark_results` records each benchmark's `weight`, and `downstream_benchmark_aggregate` records the weighted mean, dispersion, penalty factors, and penalty contributions used to produce the suite score
+- Sweep behavior:
+  - `mode: "training_sweep"` expands a grid of concrete training variants and runs them one by one through the same training + benchmark code path used by standalone training specs
+  - each child run keeps its own `experiments/<experiment>/runs/<run_id>/...` artifacts and contributes to the repository-level leaderboard
+  - each sweep run also writes `sweeps/<sweep>/runs/<run_id>/summary.json` and `leaderboard.md` so you can compare only the variants from that batch
+  - sweep `summary.json` stores the best run plus the full config/result mapping for every variant
 - The run-local artifact is always written first; publishing is a second step, not the primary storage location
 
 ## Next Extensions
 
 - Add more experiment specs for top-k, threshold, and universe ablations
 - Plug in `Research/SignalEvaluator` summaries before ranking to filter weak signal regimes
-- Add model-version sweeps once multiple saved models are available
+- Add selection-model sweeps once multiple saved models are available
 - Add optional metric normalization if benchmark suites start mixing materially different score scales
