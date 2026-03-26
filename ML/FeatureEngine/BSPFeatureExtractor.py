@@ -15,6 +15,15 @@ from Common.CEnum import BSP_TYPE, DATA_FIELD
 class BSPFeatureExtractor:
     """买卖点特征提取器"""
 
+    @staticmethod
+    def _safe_float(value: Any, default: float = 0.0) -> float:
+        try:
+            if value is None:
+                return float(default)
+            return float(value)
+        except Exception:
+            return float(default)
+
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
         self.use_bi_features = self.config.get('use_bi_features', True)
@@ -74,15 +83,19 @@ class BSPFeatureExtractor:
     def _extract_bi_features(self, bi) -> Dict[str, float]:
         begin_val = bi.get_begin_val()
         amplitude = bi.amp()
+        try:
+            bi_rsi = self._safe_float(bi.Cal_Rsi(), 50.0)
+        except Exception:
+            bi_rsi = 50.0
         return {
             'bi_amp': amplitude / abs(begin_val) if begin_val else 0.0,
-            'bi_macd_area': float(bi.Cal_MACD_area()),
-            'bi_macd_peak': float(bi.Cal_MACD_peak()),
-            'bi_macd_slope': float(bi.Cal_MACD_slope()),
-            'bi_volume': float(bi.Cal_MACD_trade_metric(DATA_FIELD.FIELD_VOLUME)),
-            'bi_klu_cnt': float(bi.get_klu_cnt()),
+            'bi_macd_area': self._safe_float(bi.Cal_MACD_area()),
+            'bi_macd_peak': self._safe_float(bi.Cal_MACD_peak()),
+            'bi_macd_slope': self._safe_float(bi.Cal_MACD_slope()),
+            'bi_volume': self._safe_float(bi.Cal_MACD_trade_metric(DATA_FIELD.FIELD_VOLUME)),
+            'bi_klu_cnt': self._safe_float(bi.get_klu_cnt()),
             'bi_dir': 1.0 if bi.is_up() else -1.0,
-            'bi_rsi': float(bi.Cal_Rsi()),
+            'bi_rsi': bi_rsi,
         }
 
     def _extract_seg_features(self, seg) -> Dict[str, float]:

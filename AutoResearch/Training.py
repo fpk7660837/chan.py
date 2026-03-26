@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import asdict, dataclass
 from pathlib import Path
+import time
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from .Spec import ExperimentSpec, TrainingSpec
@@ -43,6 +44,8 @@ def _load_training_chan_pool(
     *,
     begin_time: str,
     end_time: str,
+    max_retries: int = 3,
+    retry_delay_seconds: float = 1.0,
 ) -> Tuple[List[Any], List[Tuple[str, str]]]:
     from Chan import CChan
     from Common.CEnum import AUTYPE, DATA_SRC, KL_TYPE
@@ -52,22 +55,33 @@ def _load_training_chan_pool(
 
     for idx, (code, name) in enumerate(universe, 1):
         print(f"[{idx}/{len(universe)}] loading training data for {code} {name}".rstrip())
-        try:
-            chan = CChan(
-                code=code,
-                begin_time=begin_time,
-                end_time=end_time,
-                data_src=DATA_SRC.AKSHARE,
-                lv_list=[KL_TYPE.K_DAY],
-                autype=AUTYPE.QFQ,
-            )
-            bars = list(chan[0].klu_iter())
-            if not bars:
-                skipped.append((code, "no_data"))
-                continue
-            chan_list.append(chan)
-        except Exception as exc:
-            skipped.append((code, str(exc)))
+        last_error: Optional[str] = None
+        for attempt in range(1, max_retries + 1):
+            try:
+                chan = CChan(
+                    code=code,
+                    begin_time=begin_time,
+                    end_time=end_time,
+                    data_src=DATA_SRC.BAO_STOCK,
+                    lv_list=[KL_TYPE.K_DAY],
+                    autype=AUTYPE.QFQ,
+                )
+                bars = list(chan[0].klu_iter())
+                if not bars:
+                    last_error = "no_data"
+                else:
+                    chan_list.append(chan)
+                    last_error = None
+                    break
+            except Exception as exc:
+                last_error = str(exc)
+
+            if attempt < max_retries:
+                print(f"  retry {attempt}/{max_retries - 1} for {code}: {last_error}")
+                time.sleep(retry_delay_seconds * attempt)
+
+        if last_error is not None:
+            skipped.append((code, last_error))
 
     return chan_list, skipped
 
