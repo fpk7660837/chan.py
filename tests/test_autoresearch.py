@@ -43,6 +43,14 @@ class AutoResearchSpecTests(unittest.TestCase):
             self.assertEqual(spec.storage.root_dir, "AutoResearch/results")
             self.assertEqual(spec.storage.leaderboard_filename, "leaderboard.md")
 
+    def test_load_hs300_daily_selection_spec(self):
+        spec_path = Path("experiments/autoresearch/hs300_daily_selection.json")
+        spec = load_experiment_spec(spec_path)
+
+        self.assertEqual(spec.name, "hs300-daily-selection")
+        self.assertEqual(spec.selection.universe, "hs300")
+        self.assertEqual(spec.selection.codes, [])
+
     def test_load_experiment_spec_parses_named_universe_and_keeps_backward_compatible_codes_fields(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             spec_path = Path(tmp_dir) / "selection.json"
@@ -116,6 +124,70 @@ class AutoResearchSpecTests(unittest.TestCase):
         self.assertEqual(runtime_args.universe, "hs300")
         self.assertEqual(runtime_args.codes, "600519,000333")
         self.assertEqual(runtime_args.codes_file, "./codes.csv")
+
+    def test_run_selection_experiment_supports_hs300_universe(self):
+        from AutoResearch.Spec import ExperimentSpec, SelectionSpec
+        from AutoResearch.Selection import run_selection_experiment
+
+        spec = ExperimentSpec(
+            name="hs300-daily-selection",
+            selection=SelectionSpec(
+                as_of="2024-12-31",
+                universe="hs300",
+                codes=[],
+            ),
+        )
+
+        fake_model = object()
+        fake_metadata = {
+            "version": "demo-v1",
+            "feature_config": {},
+            "config": {},
+        }
+        fake_runtime = {
+            "feature_config": {},
+            "top_k": 10,
+            "min_score": 0.6,
+            "signal_lookback_bars": 20,
+        }
+        fake_universe = ["600519", "000333", "600036"]
+        fake_chan_list = [SimpleNamespace(code="600519"), SimpleNamespace(code="000333")]
+        fake_code_name_map = {"600519": "Kweichow Moutai", "000333": "Midea"}
+        fake_rows = [
+            {
+                "rank": 1,
+                "code": "600519",
+                "name": "Kweichow Moutai",
+                "score": 0.91,
+                "signal_time": "2024-12-30",
+                "signal_type": "1",
+                "signal_price": 1788.0,
+                "signal_idx": 123,
+                "model_version": "demo-v1",
+            }
+        ]
+
+        with mock.patch("App.generate_stock_recommendations.load_model", return_value=(fake_model, fake_metadata)) as load_model, \
+            mock.patch("App.generate_stock_recommendations.resolve_runtime_config", return_value=fake_runtime) as resolve_runtime_config, \
+            mock.patch("App.generate_stock_recommendations.load_universe", return_value=fake_universe) as load_universe, \
+            mock.patch("App.generate_stock_recommendations.load_chan_pool", return_value=(fake_chan_list, fake_code_name_map, [])) as load_chan_pool, \
+            mock.patch("App.generate_stock_recommendations.build_output_rows", return_value=fake_rows) as build_output_rows, \
+            mock.patch("ML.FeatureEngine.BSPFeatureExtractor.BSPFeatureExtractor") as bsp_feature_extractor, \
+            mock.patch("ML.Prediction.Predictor.Predictor") as predictor_cls:
+            predictor = mock.Mock()
+            predictor.rank_stock_pool.return_value = fake_rows
+            predictor_cls.return_value = predictor
+            bsp_feature_extractor.return_value = mock.Mock()
+
+            result = run_selection_experiment(spec)
+
+        self.assertEqual(load_model.call_count, 1)
+        self.assertEqual(resolve_runtime_config.call_count, 1)
+        self.assertEqual(load_universe.call_count, 1)
+        self.assertEqual(load_universe.call_args.args[0].universe, "hs300")
+        self.assertEqual(load_chan_pool.call_count, 1)
+        self.assertEqual(result.summary["universe_size"], len(fake_universe))
+        self.assertEqual(result.summary["recommendation_count"], len(fake_rows))
 
     def test_load_training_experiment_spec_supports_inline_benchmark_selection(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

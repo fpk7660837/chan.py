@@ -1,0 +1,26 @@
+{
+  "name": "hs300-daily-selection",
+  "description": "AutoResearch stock-selection run over the current HS300 universe using the existing ML predictor.",
+  "tags": ["hs300", "daily", "stock-selection"],
+  "selection": {
+    "as_of": "2024-12-31",
+    "direction": "buy",
+    "top_k": 10,
+    "min_score": 0.6,
+    "signal_lookback_bars": 20,
+    "history_days": 900,
+    "stale_days": 20,
+    "universe": "hs300"
+  },
+  "portfolio_backtest": {
+    "enabled": true,
+    "top_k": 3,
+    "score_threshold": 0.55,
+    "rebalance_bars": 5,
+    "signal_lookback_bars": 20
+  },
+  "storage": {
+    "root_dir": "AutoResearch/results",
+    "leaderboard_filename": "leaderboard.md"
+  }
+}
