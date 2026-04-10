@@ -45,6 +45,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--limit", type=int, default=None, help="仅扫描前 N 只股票，便于试跑")
     parser.add_argument("--codes", default=None, help="逗号分隔的股票代码列表")
     parser.add_argument("--codes-file", default=None, help="股票代码文件，支持 txt/csv/json")
+    parser.add_argument("--universe", default=None, help="命名股票池，目前支持 hs300")
     parser.add_argument("--output", default=None, help="输出文件路径，支持 csv/json")
     return parser.parse_args()
 
@@ -86,7 +87,21 @@ def load_universe(args: argparse.Namespace) -> List[Tuple[str, str]]:
         return [(normalize_code(code), "") for code in args.codes.split(",") if code.strip()]
     if args.codes_file:
         return load_codes_from_file(Path(args.codes_file))
+    universe = getattr(args, "universe", None)
+    if universe is not None and str(universe).strip():
+        return load_named_universe(str(universe))
     return get_tradable_stocks(limit=args.limit)
+
+
+def load_named_universe(universe: str) -> List[Tuple[str, str]]:
+    normalized = normalize_universe_name(universe)
+    if normalized == "hs300":
+        return get_hs300_stocks()
+    raise ValueError(f"Unsupported universe: {universe}")
+
+
+def normalize_universe_name(universe: str) -> str:
+    return str(universe).strip().lower()
 
 
 def normalize_code(code: str) -> str:
@@ -154,6 +169,24 @@ def get_tradable_stocks(limit: Optional[int] = None) -> List[Tuple[str, str]]:
         df = df.head(limit)
 
     return [(str(row["代码"]), str(row["名称"])) for _, row in df.iterrows()]
+
+
+def get_hs300_stocks() -> List[Tuple[str, str]]:
+    if ak is None:
+        raise RuntimeError("akshare is required when using universe=hs300")
+
+    df = ak.index_stock_cons_csindex(symbol="000300")
+    rows: List[Tuple[str, str]] = []
+    for _, row in df.iterrows():
+        code = normalize_code(str(row.get("成分券代码", "")))
+        name = str(row.get("成分券名称", "")).strip()
+        if code:
+            rows.append((code, name))
+
+    if not rows:
+        raise RuntimeError("Universe hs300 resolved to zero constituents")
+
+    return rows
 
 
 def load_chan_pool(
