@@ -89,7 +89,10 @@ def load_universe(args: argparse.Namespace) -> List[Tuple[str, str]]:
         return load_codes_from_file(Path(args.codes_file))
     universe = getattr(args, "universe", None)
     if universe is not None and str(universe).strip():
-        return load_named_universe(str(universe))
+        named_universe = load_named_universe(str(universe))
+        if args.limit is not None:
+            return named_universe[: args.limit]
+        return named_universe
     return get_tradable_stocks(limit=args.limit)
 
 
