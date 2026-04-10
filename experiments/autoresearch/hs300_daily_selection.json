@@ -3,7 +3,7 @@
   "description": "AutoResearch stock-selection run over the current HS300 universe using the existing ML predictor.",
   "tags": ["hs300", "daily", "stock-selection"],
   "selection": {
-    "as_of": "2024-12-31",
+    "as_of": "2026-04-10",
     "direction": "buy",
     "top_k": 10,
     "min_score": 0.6,

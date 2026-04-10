@@ -48,6 +48,7 @@ class AutoResearchSpecTests(unittest.TestCase):
         spec = load_experiment_spec(spec_path)
 
         self.assertEqual(spec.name, "hs300-daily-selection")
+        self.assertEqual(spec.selection.as_of, "2026-04-10")
         self.assertEqual(spec.selection.universe, "hs300")
         self.assertEqual(spec.selection.codes, [])
 
@@ -185,6 +186,8 @@ class AutoResearchSpecTests(unittest.TestCase):
         self.assertEqual(resolve_runtime_config.call_count, 1)
         self.assertEqual(load_universe.call_count, 1)
         self.assertEqual(load_universe.call_args.args[0].universe, "hs300")
+        self.assertIsNone(load_universe.call_args.args[0].codes)
+        self.assertIsNone(load_universe.call_args.args[0].codes_file)
         self.assertEqual(load_chan_pool.call_count, 1)
         self.assertEqual(result.summary["universe_size"], len(fake_universe))
         self.assertEqual(result.summary["recommendation_count"], len(fake_rows))
