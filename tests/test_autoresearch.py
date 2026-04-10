@@ -43,6 +43,30 @@ class AutoResearchSpecTests(unittest.TestCase):
             self.assertEqual(spec.storage.root_dir, "AutoResearch/results")
             self.assertEqual(spec.storage.leaderboard_filename, "leaderboard.md")
 
+    def test_load_experiment_spec_parses_named_universe_and_keeps_backward_compatible_codes_fields(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            spec_path = Path(tmp_dir) / "selection.json"
+            spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "named-universe-selection",
+                        "selection": {
+                            "as_of": "2024-12-31",
+                            "universe": "  HS300  ",
+                            "codes": ["600519", "000333"],
+                            "codes_file": "./codes.csv",
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            spec = load_experiment_spec(spec_path)
+
+            self.assertEqual(spec.selection.universe, "hs300")
+            self.assertEqual(spec.selection.codes, ["600519", "000333"])
+            self.assertEqual(spec.selection.codes_file, "./codes.csv")
+
     def test_load_training_experiment_spec_defaults_to_run_local_model_storage(self):
         with tempfile.TemporaryDirectory() as tmp_dir:
             spec_path = Path(tmp_dir) / "training.json"
@@ -72,6 +96,26 @@ class AutoResearchSpecTests(unittest.TestCase):
             self.assertEqual(spec.training.model_type, "randomforest")
             self.assertFalse(spec.storage.publish_model.enabled)
             self.assertEqual(spec.storage.publish_model.target_dir, "./models")
+
+    def test_runtime_args_passes_universe_and_keeps_backward_compatible_codes_fields(self):
+        from AutoResearch.Selection import _make_runtime_args
+        from AutoResearch.Spec import ExperimentSpec, SelectionSpec
+
+        spec = ExperimentSpec(
+            name="runtime-args-selection",
+            selection=SelectionSpec(
+                as_of="2024-12-31",
+                universe="hs300",
+                codes=["600519", "000333"],
+                codes_file="./codes.csv",
+            ),
+        )
+
+        runtime_args = _make_runtime_args(spec)
+
+        self.assertEqual(runtime_args.universe, "hs300")
+        self.assertEqual(runtime_args.codes, "600519,000333")
+        self.assertEqual(runtime_args.codes_file, "./codes.csv")
 
     def test_load_training_experiment_spec_supports_inline_benchmark_selection(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

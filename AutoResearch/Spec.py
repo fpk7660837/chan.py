@@ -22,6 +22,7 @@ class SelectionSpec:
     as_of: str
     direction: str = "buy"
     model_version: Optional[str] = None
+    universe: Optional[str] = None
     top_k: int = 10
     min_score: Optional[float] = 0.6
     signal_lookback_bars: int = 20
@@ -162,6 +163,7 @@ def _load_selection_spec_from_payload(selection_payload: Dict[str, Any], spec_pa
         as_of=str(selection_payload["as_of"]),
         direction=str(selection_payload.get("direction", "buy")),
         model_version=selection_payload.get("model_version"),
+        universe=str(selection_payload["universe"]).strip().lower() if selection_payload.get("universe") is not None else None,
         top_k=int(selection_payload.get("top_k", 10)),
         min_score=selection_payload.get("min_score", 0.6),
         signal_lookback_bars=int(selection_payload.get("signal_lookback_bars", 20)),

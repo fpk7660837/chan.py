@@ -20,6 +20,7 @@ def _make_runtime_args(spec: ExperimentSpec) -> SimpleNamespace:
     selection = spec.selection
     return SimpleNamespace(
         model_version=selection.model_version,
+        universe=selection.universe,
         top_k=selection.top_k,
         min_score=selection.min_score,
         signal_lookback_bars=selection.signal_lookback_bars,
