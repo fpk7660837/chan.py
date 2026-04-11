@@ -4,11 +4,14 @@ __pycache__
 *.vscode
 *.log
 *.db
+*.sqlite
+*.sqlite3
 config.yaml
 OpenConfig.yaml
 gotify_push.py
 cos_config.yaml
 outputs/
+models/
 
 .venv
 venv
