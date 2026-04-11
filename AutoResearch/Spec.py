@@ -68,6 +68,7 @@ class TrainingSpec:
     end_time: str
     model_type: str = "lightgbm"
     model_version: Optional[str] = None
+    universe: Optional[str] = None
     codes: List[str] = field(default_factory=list)
     codes_file: Optional[str] = None
     limit: Optional[int] = None
@@ -196,6 +197,11 @@ def _load_training_spec(payload: Dict[str, Any], spec_path: Path) -> TrainingSpe
         end_time=str(training_payload["end_time"]),
         model_type=str(training_payload.get("model_type", "lightgbm")),
         model_version=training_payload.get("model_version"),
+        universe=(
+            str(training_payload["universe"]).strip().lower()
+            if training_payload.get("universe") is not None
+            else None
+        ),
         codes=_normalize_codes(training_payload.get("codes")),
         codes_file=training_payload.get("codes_file"),
         limit=int(training_payload["limit"]) if training_payload.get("limit") is not None else None,

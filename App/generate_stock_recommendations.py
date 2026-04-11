@@ -28,6 +28,7 @@ except ImportError:
 from Chan import CChan
 from Common.CEnum import AUTYPE, DATA_SRC, KL_TYPE
 from Config.MLConfig import MLConfig
+from DataAPI.SQLiteDailyBarAPI import LOCAL_SQLITE_DATA_SRC, local_db_exists as local_market_data_exists
 from ML.FeatureEngine.BSPFeatureExtractor import BSPFeatureExtractor
 from ML.Prediction.Predictor import Predictor
 from ML.Utils.ModelIO import ModelIO
@@ -178,18 +179,47 @@ def get_hs300_stocks() -> List[Tuple[str, str]]:
     if ak is None:
         raise RuntimeError("akshare is required when using universe=hs300")
 
-    df = ak.index_stock_cons_csindex(symbol="000300")
+    providers = []
+    sina_provider = getattr(ak, "index_stock_cons_sina", None)
+    if callable(sina_provider):
+        providers.append(("sina", lambda: sina_provider(symbol="000300")))
+    csindex_provider = getattr(ak, "index_stock_cons_csindex", None)
+    if callable(csindex_provider):
+        providers.append(("csindex", lambda: csindex_provider(symbol="000300")))
+
+    if not providers:
+        raise RuntimeError("akshare does not expose an hs300 constituent provider")
+
+    provider_errors = []
+    for provider_name, provider in providers:
+        try:
+            rows = _extract_hs300_rows(provider())
+        except Exception as exc:
+            provider_errors.append(f"{provider_name}: {exc}")
+            continue
+        if rows:
+            return rows
+        provider_errors.append(f"{provider_name}: resolved to zero constituents")
+
+    raise RuntimeError(f"Universe hs300 resolved to zero constituents ({'; '.join(provider_errors)})")
+
+
+def _extract_hs300_rows(df) -> List[Tuple[str, str]]:
     rows: List[Tuple[str, str]] = []
     for _, row in df.iterrows():
-        code = normalize_code(str(row.get("成分券代码", "")))
-        name = str(row.get("成分券名称", "")).strip()
+        code = normalize_code(str(row.get("成分券代码") or row.get("code") or ""))
+        name = str(row.get("成分券名称") or row.get("name") or "").strip()
         if code:
             rows.append((code, name))
-
-    if not rows:
-        raise RuntimeError("Universe hs300 resolved to zero constituents")
-
     return rows
+
+
+def resolve_market_data_src(universe: Optional[str]) -> DATA_SRC | str:
+    if local_market_data_exists():
+        return LOCAL_SQLITE_DATA_SRC
+    if universe is not None and normalize_universe_name(universe) == "hs300":
+        return DATA_SRC.BAO_STOCK
+    return DATA_SRC.AKSHARE
 
 
 def load_chan_pool(
@@ -197,9 +227,11 @@ def load_chan_pool(
     as_of: datetime,
     history_days: int,
     stale_days: int,
+    universe_name: Optional[str] = None,
 ) -> Tuple[List[CChan], Dict[str, str], List[Tuple[str, str]]]:
     begin_time = (as_of - timedelta(days=history_days)).strftime("%Y-%m-%d")
     end_time = as_of.strftime("%Y-%m-%d")
+    data_src = resolve_market_data_src(universe_name)
 
     chan_list: List[CChan] = []
     code_name_map: Dict[str, str] = {}
@@ -212,7 +244,7 @@ def load_chan_pool(
                 code=code,
                 begin_time=begin_time,
                 end_time=end_time,
-                data_src=DATA_SRC.AKSHARE,
+                data_src=data_src,
                 lv_list=[KL_TYPE.K_DAY],
                 autype=AUTYPE.QFQ,
             )
@@ -321,6 +353,7 @@ def main() -> None:
         as_of=as_of,
         history_days=args.history_days,
         stale_days=args.stale_days,
+        universe_name=getattr(args, "universe", None),
     )
 
     ranked = predictor.rank_stock_pool(

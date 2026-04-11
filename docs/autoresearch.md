@@ -1,236 +1,61 @@
-# AutoResearch For Stock Selection And Training
+# AutoResearch
 
-This repo now has a lightweight `AutoResearch/` scaffold for running reproducible stock-selection and model-training experiments in the same codebase that already owns signal research and ML ranking.
+`AutoResearch/` 是当前仓库里统一的实验层，用来把训练、选股、sweep 和结果落盘组织成可复现流程。
 
-## Goals
+它不负责重新实现底层模型或特征，而是复用现有模块：
 
-- Keep experiment setup declarative through JSON specs under `experiments/autoresearch/`
-- Reuse the existing `ML/` predictor and cross-sectional backtest stack instead of creating another ranking path
-- Reuse the existing `ML/Training/Trainer.py` and `ML/Utils/ModelIO.py` stack instead of inventing another training path
-- Reuse `Research/SignalReport.py` for artifact writing and leaderboard markdown generation
-- Store run artifacts under `AutoResearch/results/` instead of `outputs/`
+- `ML/Training/Trainer.py`
+- `ML/Prediction/Predictor.py`
+- `ML/Utils/ModelIO.py`
+- `Research/SignalReport.py`
 
-## Structure
+## 1. 入口
+
+统一入口脚本：
+
+```bash
+python3.11 App/run_autoresearch_pipeline.py --spec <json-spec>
+```
+
+实验 spec 默认放在：
 
 ```text
-AutoResearch/
-├── Spec.py                  # Dataclasses + JSON spec loader
-├── Proposal.py              # Next-round sweep proposal generation from prior sweep summaries
-├── Selection.py             # ML-backed stock selection execution
-├── Training.py              # ML training orchestration + run-local model artifacts
-├── Storage.py               # Per-run artifact layout and manifest persistence
-├── Leaderboard.py           # Leaderboard synthesis from run manifests
-├── Pipeline.py              # Single-run + sweep orchestration
-└── results/                 # Default local artifact root (ignored)
-
-App/run_autoresearch_pipeline.py
-experiments/autoresearch/baseline_daily_selection.json
-tests/test_autoresearch.py
+experiments/autoresearch/
 ```
 
-## Execution Model
+## 2. 支持的模式
 
-### Selection Mode
+### 2.1 `selection`
 
-1. Load a selection spec from `experiments/autoresearch/*.json`
-2. Resolve model/runtime settings through the existing recommendation helpers in `App/generate_stock_recommendations.py`
-3. Rank the stock pool with `ML.Prediction.Predictor`
-4. Optionally run `ML.Backtest.CrossSectionBacktest`
-5. Persist:
-   - `spec.json`
-   - `recommendations.csv`
-   - `recommendations.json`
-   - `summary.json`
-   - `manifest.json`
-6. Rebuild a repository-local leaderboard from all successful manifests
+用途：
 
-### Training Mode
+- 加载现有模型
+- 对指定股票池做横截面排序
+- 输出某个 `as_of` 日期下的推荐名单
 
-1. Load a training spec from `experiments/autoresearch/*.json`
-2. Build the training universe from `codes`, `codes_file`, or the existing tradable-stock helper
-3. Train through `ML.Training.Trainer`
-4. Save the model and metadata into `AutoResearch/results/.../runs/<id>/models/`
-5. Optionally publish/promote the chosen artifact into the shared global `./models` directory
-6. If downstream benchmark selections are configured, run each fixed downstream selection benchmark against the trained model context
-7. Persist:
-   - `spec.json`
-   - `summary.json`
-   - `manifest.json`
-   - `models/model_<version>.pkl`
-   - `models/metadata_<version>.json`
-
-### Training Sweep Mode
-
-1. Load a `mode: "training_sweep"` spec
-2. Expand `sweep.grid` into a concrete cross-product of training experiment variants
-3. Materialize each variant as a normal `mode: "training"` `ExperimentSpec`
-4. Run each variant through the existing training pipeline, including downstream benchmark selections when configured
-5. Persist a sweep run under `AutoResearch/results/sweeps/<sweep>/runs/<run_id>/` with:
-   - `spec.json`
-   - `variants.json`
-   - `summary.json`
-   - `leaderboard.md`
-   - `leaderboard.csv`
-6. Keep the normal per-variant run artifacts and repository-wide leaderboard under `AutoResearch/results/experiments/...`
-
-### Proposal Generation Mode
-
-1. Read a prior `training_sweep` run from a chosen `summary.json`, or default to the latest summary under `AutoResearch/results/sweeps/*/runs/*/summary.json`
-2. Load the matching sweep `spec.json` snapshot from the same run directory
-3. Select the top completed run(s) from the ranked `runs` list in the summary
-4. Build a next-round `training_sweep` spec by:
-   - refining numeric grid values into a simple neighborhood around winning values
-   - carrying forward winning categorical values such as `training.model_type`
-   - updating the base training config to the best run's values for those refined paths
-5. Save the generated JSON spec under `experiments/autoresearch/generated/`
-6. Optionally execute that generated `training_sweep` immediately through the existing sweep pipeline
-
-## Why This Fits The Current Repo
-
-- `Research/` remains responsible for reporting utilities and experiment-style output formatting.
-- `ML/` remains responsible for prediction and backtesting logic.
-- `ML/` remains responsible for training and model serialization logic.
-- `AutoResearch/` is only orchestration, storage, and experiment bookkeeping.
-
-That keeps the new layer thin and makes it a practical place to add future loops such as spec sweeps, model ablations, or signal-research prefilters without moving core logic again.
-
-## Sweep Spec Format
-
-Training sweeps reuse the normal training spec shape and add a `sweep` block:
-
-```json
-{
-  "name": "baseline-model-training-sweep",
-  "mode": "training_sweep",
-  "training": {
-    "begin_time": "2020-01-01",
-    "end_time": "2022-12-31",
-    "codes": ["600519", "000333"],
-    "model_type": "lightgbm",
-    "label_config": {
-      "threshold_pct": 0.05
-    }
-  },
-  "benchmark_selection": {
-    "as_of": "2025-01-15",
-    "codes": ["600519", "000333"],
-    "top_k": 2
-  },
-  "sweep": {
-    "variant_name_template": "{name}-{model_type}-thr{threshold_pct}",
-    "grid": [
-      {
-        "name": "model_type",
-        "path": "training.model_type",
-        "values": ["lightgbm", "randomforest"]
-      },
-      {
-        "name": "threshold_pct",
-        "path": "training.label_config.threshold_pct",
-        "values": [0.03, 0.05]
-      }
-    ]
-  }
-}
-```
-
-Rules:
-
-- `mode` must be `training_sweep`
-- the top level still uses the current training + benchmark fields, so every expanded variant is a real training experiment
-- `sweep.grid` is a cross-product; each entry defines:
-  - `name`: token exposed to `variant_name_template`
-  - `path`: dot-path override applied to the concrete experiment payload
-  - `values`: list of values used for expansion
-- `variant_name_template` is optional; default names are `name-variant-001`, `name-variant-002`, ...
-- `variants.json` captures the fully expanded concrete spec plus the config mapping for each variant
-- `summary.json` stores the ranked run list and best run selection using the child manifests' existing leaderboard metrics
-
-## Proposal Engine v1
-
-This repo now includes a minimal self-iteration loop for training sweeps.
-
-- Input:
-  - a prior sweep `summary.json`, usually from `AutoResearch/results/sweeps/.../runs/<run_id>/summary.json`
-  - the paired `spec.json` snapshot written by the sweep run
-- Selection:
-  - defaults to the latest available sweep summary when no summary path is provided
-  - uses the top `N` completed runs from `summary.json` (`N=2` by default)
-- Refinement behavior:
-  - numeric sweep parameters are narrowed to a local neighborhood around winner values
-  - categorical sweep parameters keep the winning values in rank order
-  - v1 intentionally only refines paths already present in the original `sweep.grid`
-- Output:
-  - a new `mode: "training_sweep"` JSON spec under `experiments/autoresearch/generated/`
-  - a generated name/tag set so proposed sweeps stay distinct from hand-authored baseline specs
-- Optional execution:
-  - `--execute-generated-sweep` immediately runs the generated spec through the normal sweep pipeline
-  - execution writes a fresh sweep run under `AutoResearch/results/sweeps/<generated-sweep>/runs/<run_id>/`
-  - the CLI prints both proposal metadata and the executed sweep summary in one pass
-
-## Usage
-
-Run every JSON spec in the default directory:
+示例：
 
 ```bash
-python3.11 App/run_autoresearch_pipeline.py
+python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/hs300_daily_selection.json
 ```
 
-Run a specific spec:
+### 2.2 `training`
+
+用途：
+
+- 加载训练 spec
+- 组装训练股票池
+- 训练模型
+- 写出 `summary / manifest / model / metadata`
+- 可选执行 downstream benchmark selection
+
+示例：
 
 ```bash
-python3.11 App/run_autoresearch_pipeline.py \
-  --spec experiments/autoresearch/baseline_daily_selection.json
+python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_model_training.json
 ```
 
-Run a training spec and keep the trained model local to the run directory:
-
-```bash
-python3.11 App/run_autoresearch_pipeline.py \
-  --spec experiments/autoresearch/baseline_model_training.json
-```
-
-Run a training sweep:
-
-```bash
-python3.11 App/run_autoresearch_pipeline.py \
-  --spec experiments/autoresearch/baseline_model_training_sweep.json
-```
-
-Generate a next-round sweep proposal from the latest available sweep summary:
-
-```bash
-python3.11 App/run_autoresearch_pipeline.py \
-  --generate-next-sweep
-```
-
-Generate a next-round sweep proposal from a specific prior summary and use the top 1 run only:
-
-```bash
-python3.11 App/run_autoresearch_pipeline.py \
-  --generate-next-sweep \
-  --sweep-summary AutoResearch/results/sweeps/baseline-model-training-sweep/runs/20260326T033038Z/summary.json \
-  --proposal-top-runs 1
-```
-
-Generate a next-round sweep proposal and execute it immediately:
-
-```bash
-python3.11 App/run_autoresearch_pipeline.py \
-  --generate-next-sweep \
-  --execute-generated-sweep \
-  --sweep-summary AutoResearch/results/sweeps/baseline-model-training-sweep/runs/20260326T033038Z/summary.json
-```
-
-Override local artifact storage:
-
-```bash
-python3.11 App/run_autoresearch_pipeline.py \
-  --spec experiments/autoresearch/baseline_daily_selection.json \
-  --results-root ./tmp/autoresearch
-```
-
-Publish/promote a training artifact into the shared global model directory:
+发布到全局模型目录：
 
 ```bash
 python3.11 App/run_autoresearch_pipeline.py \
@@ -238,55 +63,148 @@ python3.11 App/run_autoresearch_pipeline.py \
   --publish-model
 ```
 
-Override the publish target:
+### 2.3 `training_sweep`
+
+用途：
+
+- 用 grid 展开多个训练实验
+- 排名各个变体
+- 写 sweep summary 和 leaderboard
+
+示例：
+
+```bash
+python3.11 App/run_autoresearch_pipeline.py --spec experiments/autoresearch/baseline_model_training_sweep.json
+```
+
+## 3. 数据源行为
+
+当前分支已经接入本地 SQLite 日线库。
+
+规则是：
+
+1. 如果本地 SQLite 数据库存在，训练和选股优先读本地库
+2. 如果本地库不存在，再回退到在线 provider
+
+默认数据库路径：
+
+```text
+./data/market_data.sqlite3
+```
+
+也可以通过环境变量覆盖：
+
+```bash
+export CHAN_LOCAL_DB_PATH=/your/path/market_data.sqlite3
+```
+
+同步脚本：
+
+```bash
+python3.11 App/sync_a_share_daily_to_sqlite.py --universe hs300 --begin 2018-01-01
+```
+
+## 4. 训练自动扩容
+
+训练时如果样本数量不足，当前实现不会直接失败，而是按固定梯度自动重试。
+
+当前 phase-1 扩容顺序：
+
+1. 原始训练 spec
+2. `begin_time - 2 years`
+3. `begin_time - 4 years`
+4. `hs300 + 原始 begin_time`
+5. `hs300 + begin_time - 2 years`
+
+训练 summary 会记录：
+
+- `training_attempts`
+- `original_training_spec`
+- `effective_training_spec`
+- `auto_expansion`
+- `dataset_profile`
+- `classification_metrics`
+- `overfit_risk`
+
+## 5. 常用 spec
+
+当前仓库里直接可用的几个 spec：
+
+- `experiments/autoresearch/hs300_daily_selection.json`
+- `experiments/autoresearch/baseline_model_training.json`
+- `experiments/autoresearch/baseline_model_training_sweep.json`
+
+生成的新 sweep 会写到：
+
+```text
+experiments/autoresearch/generated/
+```
+
+## 6. 常用命令
+
+跑默认目录下所有 spec：
+
+```bash
+python3.11 App/run_autoresearch_pipeline.py
+```
+
+只跑一个 spec：
 
 ```bash
 python3.11 App/run_autoresearch_pipeline.py \
-  --spec experiments/autoresearch/baseline_model_training.json \
-  --publish-model-dir ./tmp/models
+  --spec experiments/autoresearch/hs300_daily_selection.json
 ```
 
-## Storage Boundary
+生成下一轮 sweep：
 
-- Default behavior: training artifacts stay inside the run directory under `AutoResearch/results/experiments/<experiment>/runs/<run_id>/models/`
-- Optional publish/promote behavior: enable `storage.publish_model.enabled` in the spec, or pass `--publish-model`, to also copy the chosen model artifact into the global `./models` directory
-- Optional benchmark behavior:
-  - preferred: set `benchmark_selections` in a training spec to a list of inline selection configs and/or paths to existing selection spec JSON files
-  - backward compatible: `benchmark_selection` still works for a single downstream benchmark
-  - each inline benchmark may define an optional `name`; referenced JSON specs default to their spec `name` field, or their filename stem when no name is present
-  - each benchmark may define an optional `weight` (default `1.0`)
-  - referenced benchmark specs may also be expressed as objects with `reference_path` so weight and future suite-local overrides can live next to the reference
-  - a training spec may define `benchmark_suite_scoring` with:
-    - `dispersion_penalty` to subtract `dispersion_penalty * weighted_stddev(component_score)`
-    - `failure_penalty` to subtract `failure_penalty * failed_weight_ratio`
-- When downstream benchmarks are configured, the training run executes every configured benchmark immediately after training:
-  - it uses the run-local model artifacts by default
-  - it uses the published model directory when publish/promote is enabled
-  - `summary.json` stores the full benchmark run list under `downstream_benchmark_results`
-  - `summary.json` stores aggregate cross-benchmark metrics under `downstream_benchmark_aggregate`
-  - `manifest.json` stores the full benchmark run list under `downstream_benchmark_results`
-  - `manifest.json` stores the aggregate benchmark view under `downstream_benchmark_aggregate`
-  - legacy single-benchmark fields (`downstream_benchmark` in `summary.json`, `downstream_benchmark_summary` in `manifest.json`) remain populated when only one benchmark is configured
-  - top-level manifest leaderboard fields (`as_of`, `leaderboard_metric`, `leaderboard_value`, `top_score`, `avg_score`, `recommendation_count`) reflect the aggregate downstream benchmark view so training runs can be ranked across multiple post-training checks
-  - when multiple downstream benchmarks are configured, the manifest uses `benchmark_suite_score_v2` for leaderboard ranking instead of a simple mean
-  - the suite score is `weighted_mean(component_score) - dispersion_penalty * weighted_stddev(component_score) - failure_penalty * failed_weight_ratio`
-  - `component_score` is each benchmark's resolved leaderboard value (`portfolio_sharpe` when a portfolio backtest produces Sharpe, otherwise `top_score`)
-  - `top_score` and `avg_score` in the aggregate view are weight-aware means across successful benchmarks; recommendation and skipped counts remain summed
-  - `downstream_benchmark_results` records each benchmark's `weight`, and `downstream_benchmark_aggregate` records the weighted mean, dispersion, penalty factors, and penalty contributions used to produce the suite score
-- Sweep behavior:
-  - `mode: "training_sweep"` expands a grid of concrete training variants and runs them one by one through the same training + benchmark code path used by standalone training specs
-  - each child run keeps its own `experiments/<experiment>/runs/<run_id>/...` artifacts and contributes to the repository-level leaderboard
-  - each sweep run also writes `sweeps/<sweep>/runs/<run_id>/summary.json` and `leaderboard.md` so you can compare only the variants from that batch
-  - sweep `summary.json` stores the best run plus the full config/result mapping for every variant
-- Proposal behavior:
-  - `--generate-next-sweep` reads a prior sweep summary plus its stored `spec.json` snapshot and writes a fresh sweep JSON under `experiments/autoresearch/generated/`
-  - when `--sweep-summary` is omitted, AutoResearch uses the latest summary found under `results_root/sweeps/`
-  - numeric refinement is intentionally local and simple in v1; it is meant to tighten a search around strong regions, not perform Bayesian optimization or broader experiment planning
-- The run-local artifact is always written first; publishing is a second step, not the primary storage location
+```bash
+python3.11 App/run_autoresearch_pipeline.py --generate-next-sweep
+```
 
-## Next Extensions
+生成并立刻执行：
 
-- Add more experiment specs for top-k, threshold, and universe ablations
-- Plug in `Research/SignalEvaluator` summaries before ranking to filter weak signal regimes
-- Add selection-model sweeps once multiple saved models are available
-- Add optional metric normalization if benchmark suites start mixing materially different score scales
+```bash
+python3.11 App/run_autoresearch_pipeline.py --generate-next-sweep --execute-generated-sweep
+```
+
+改结果目录：
+
+```bash
+python3.11 App/run_autoresearch_pipeline.py \
+  --spec experiments/autoresearch/hs300_daily_selection.json \
+  --results-root ./tmp/autoresearch
+```
+
+## 7. 输出结构
+
+单次实验结果默认写到：
+
+```text
+AutoResearch/results/experiments/<experiment>/runs/<run_id>/
+```
+
+常见文件：
+
+- `spec.json`
+- `summary.json`
+- `manifest.json`
+- `recommendations.csv`
+- `recommendations.json`
+- `models/model_<version>.pkl`
+- `models/metadata_<version>.json`
+
+sweep 结果写到：
+
+```text
+AutoResearch/results/sweeps/<sweep>/runs/<run_id>/
+```
+
+## 8. 建议
+
+如果你希望训练和选股稳定可复现，建议固定成这个流程：
+
+1. 先同步本地 SQLite 行情库
+2. 再跑训练 spec
+3. 最后跑选股 spec
+
+这样不会把研究链路绑死在在线 provider 上。

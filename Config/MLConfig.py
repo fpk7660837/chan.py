@@ -80,6 +80,13 @@ class MLConfig:
         'signal_direction': 'buy',        # buy/sell/all
         'early_stopping_rounds': 50,      # 早停轮数
         'verbose_eval': 10,               # 训练日志频率
+        'enforce_min_samples': True,      # 样本太少时直接拒绝训练
+        'min_total_samples': 100,         # 训练所需最少总样本
+        'min_train_samples': 80,          # 训练集所需最少样本
+        'min_test_samples': 20,           # 测试集所需最少样本
+        'max_auc_gap': 0.10,              # 训练/测试 AUC 差距超过该值视为高风险
+        'max_f1_gap': 0.15,               # 训练/测试 F1 差距超过该值视为高风险
+        'min_test_auc': 0.55,             # 测试 AUC 低于该值视为泛化偏弱
     })
 
     # 预测配置

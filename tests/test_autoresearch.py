@@ -189,6 +189,7 @@ class AutoResearchSpecTests(unittest.TestCase):
         self.assertIsNone(load_universe.call_args.args[0].codes)
         self.assertIsNone(load_universe.call_args.args[0].codes_file)
         self.assertEqual(load_chan_pool.call_count, 1)
+        self.assertEqual(load_chan_pool.call_args.kwargs["universe_name"], "hs300")
         self.assertEqual(result.summary["universe_size"], len(fake_universe))
         self.assertEqual(result.summary["recommendation_count"], len(fake_rows))
 
@@ -461,6 +462,193 @@ class AutoResearchSpecTests(unittest.TestCase):
             self.assertEqual(variants[-1].experiment.training.model_type, "randomforest")
             self.assertEqual(variants[-1].experiment.training.label_config["threshold_pct"], 0.05)
             self.assertEqual(variants[-1].experiment.benchmark_selection.selection.as_of, "2025-01-15")
+
+
+class AutoResearchTrainingExpansionTests(unittest.TestCase):
+    @staticmethod
+    def _build_training_spec() -> object:
+        from AutoResearch.Spec import ExperimentSpec, TrainingSpec
+
+        return ExperimentSpec(
+            name="auto-expanding-training",
+            mode="training",
+            training=TrainingSpec(
+                begin_time="2020-01-01",
+                end_time="2022-12-31",
+                codes=["600519", "000333"],
+                model_type="lightgbm",
+                model_version="demo-v1",
+            ),
+        )
+
+    @staticmethod
+    def _make_trainer(*, train_side_effect=None, train_result=None, test_auc=0.71) -> mock.Mock:
+        trainer = mock.Mock()
+        trainer.last_split_info = {
+            "mode": "walk_forward_last_fold",
+            "train_size": 120,
+            "test_size": 30,
+            "n_splits": 5,
+        }
+        trainer.last_dataset_profile = {
+            "total_samples": 150,
+            "train_samples": 120,
+            "test_samples": 30,
+            "positive_samples": 54,
+            "negative_samples": 96,
+            "positive_ratio": 0.36,
+        }
+        trainer.last_classification_metrics = {
+            "train": {"auc": 0.91, "f1": 0.82},
+            "test": {"auc": test_auc, "f1": 0.58},
+            "generalization_gap": {"auc": 0.20, "f1": 0.24},
+        }
+        trainer.last_overfit_risk = {
+            "level": "high",
+            "reasons": ["auc gap 0.20 exceeds limit 0.10"],
+            "sample_guard": {
+                "enforced": True,
+                "min_total_samples": 100,
+                "min_train_samples": 80,
+                "min_test_samples": 20,
+                "max_auc_gap": 0.1,
+                "max_f1_gap": 0.15,
+            },
+        }
+        if train_side_effect is not None:
+            trainer.train.side_effect = train_side_effect
+        else:
+            trainer.train.return_value = train_result if train_result is not None else object()
+        return trainer
+
+    @staticmethod
+    def _fake_model_io_factory():
+        class FakeModelIO:
+            def __init__(self, model_dir):
+                self.model_dir = Path(model_dir)
+                self.model_dir.mkdir(parents=True, exist_ok=True)
+
+            def save(self, model, version=None, metadata=None):
+                model_path = self.model_dir / f"model_{version}.pkl"
+                metadata_path = self.model_dir / f"metadata_{version}.json"
+                model_path.write_text("demo-model", encoding="utf-8")
+                metadata_path.write_text(json.dumps(metadata or {}, ensure_ascii=False, indent=2), encoding="utf-8")
+                return str(model_path)
+
+        return FakeModelIO
+
+    def test_run_training_experiment_retries_with_expanded_begin_time_after_sample_guard_failure(self):
+        from AutoResearch.Training import run_training_experiment
+
+        spec = self._build_training_spec()
+        first_trainer = self._make_trainer(
+            train_side_effect=ValueError("Insufficient samples for reliable training: total=23 < 100")
+        )
+        second_trainer = self._make_trainer(test_auc=0.73)
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            run_paths = RunStorage(Path(tmp_dir)).create_run(spec.name)
+
+            with mock.patch(
+                "AutoResearch.Training._resolve_training_universe",
+                return_value=[("600519", ""), ("000333", "")],
+            ), mock.patch(
+                "AutoResearch.Training._load_training_chan_pool",
+                return_value=([object(), object()], []),
+            ), mock.patch(
+                "ML.Training.Trainer.Trainer",
+                side_effect=[first_trainer, second_trainer],
+            ), mock.patch(
+                "ML.Utils.ModelIO.ModelIO",
+                self._fake_model_io_factory(),
+            ):
+                result = run_training_experiment(spec, run_paths)
+
+        self.assertEqual([attempt["status"] for attempt in result.summary["training_attempts"]], ["failed", "completed"])
+        self.assertEqual(result.summary["training_attempts"][0]["begin_time"], "2020-01-01")
+        self.assertEqual(result.summary["training_attempts"][1]["begin_time"], "2018-01-01")
+        self.assertEqual(result.summary["effective_training_spec"]["begin_time"], "2018-01-01")
+        self.assertEqual(result.summary["original_training_spec"]["begin_time"], "2020-01-01")
+        self.assertEqual(result.summary["auto_expansion"]["stopped_reason"], "recovered")
+
+    def test_run_training_experiment_can_expand_from_explicit_codes_to_hs300(self):
+        from AutoResearch.Training import run_training_experiment
+
+        spec = self._build_training_spec()
+        trainers = [
+            self._make_trainer(train_side_effect=ValueError("Insufficient samples for reliable training: total=23 < 100")),
+            self._make_trainer(train_side_effect=ValueError("Insufficient samples for reliable training: total=31 < 100")),
+            self._make_trainer(train_side_effect=ValueError("Insufficient samples for reliable training: total=44 < 100")),
+            self._make_trainer(test_auc=0.76),
+        ]
+
+        def resolve_universe(training):
+            if getattr(training, "universe", None) == "hs300":
+                return [("600519", "Kweichow Moutai"), ("000333", "Midea"), ("600036", "招商银行")]
+            return [(code, "") for code in training.codes]
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            run_paths = RunStorage(Path(tmp_dir)).create_run(spec.name)
+
+            with mock.patch(
+                "AutoResearch.Training._resolve_training_universe",
+                side_effect=resolve_universe,
+            ), mock.patch(
+                "AutoResearch.Training._load_training_chan_pool",
+                return_value=([object(), object(), object()], []),
+            ), mock.patch(
+                "ML.Training.Trainer.Trainer",
+                side_effect=trainers,
+            ), mock.patch(
+                "ML.Utils.ModelIO.ModelIO",
+                self._fake_model_io_factory(),
+            ):
+                result = run_training_experiment(spec, run_paths)
+
+        self.assertEqual(len(result.summary["training_attempts"]), 4)
+        self.assertEqual(result.summary["training_attempts"][-1]["status"], "completed")
+        self.assertEqual(result.summary["training_attempts"][-1]["universe_source"], "hs300")
+        self.assertEqual(result.summary["effective_training_spec"]["universe"], "hs300")
+        self.assertEqual(result.summary["effective_training_spec"]["codes"], [])
+        self.assertEqual(result.summary["auto_expansion"]["stopped_reason"], "recovered")
+
+    def test_training_pipeline_records_all_attempts_when_auto_expansion_exhausts(self):
+        spec = self._build_training_spec()
+        pipeline = AutoResearchPipeline(results_root=Path(tempfile.mkdtemp()))
+        trainers = [
+            self._make_trainer(train_side_effect=ValueError("Insufficient samples for reliable training: total=23 < 100")),
+            self._make_trainer(train_side_effect=ValueError("Insufficient samples for reliable training: total=31 < 100")),
+            self._make_trainer(train_side_effect=ValueError("Insufficient samples for reliable training: total=44 < 100")),
+            self._make_trainer(train_side_effect=ValueError("Insufficient samples for reliable training: total=52 < 100")),
+            self._make_trainer(train_side_effect=ValueError("Insufficient samples for reliable training: total=60 < 100")),
+        ]
+
+        def resolve_universe(training):
+            if getattr(training, "universe", None) == "hs300":
+                return [("600519", "Kweichow Moutai"), ("000333", "Midea"), ("600036", "招商银行")]
+            return [(code, "") for code in training.codes]
+
+        with mock.patch(
+            "AutoResearch.Training._resolve_training_universe",
+            side_effect=resolve_universe,
+        ), mock.patch(
+            "AutoResearch.Training._load_training_chan_pool",
+            return_value=([object(), object(), object()], []),
+        ), mock.patch(
+            "ML.Training.Trainer.Trainer",
+            side_effect=trainers,
+        ):
+            result = pipeline.run_spec(spec)
+
+        summary = json.loads(result.run_paths.summary_json.read_text(encoding="utf-8"))
+
+        self.assertEqual(result.manifest["status"], "failed")
+        self.assertEqual(summary["auto_expansion"]["stopped_reason"], "attempts_exhausted")
+        self.assertEqual(len(summary["training_attempts"]), 5)
+        self.assertEqual(summary["training_attempts"][-1]["universe_source"], "hs300")
+        self.assertEqual(summary["effective_training_spec"]["universe"], "hs300")
+        self.assertEqual(summary["effective_training_spec"]["begin_time"], "2018-01-01")
+        self.assertEqual(summary["original_training_spec"]["codes"], ["600519", "000333"])
 
 
 class AutoResearchProposalTests(unittest.TestCase):

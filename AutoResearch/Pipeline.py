@@ -389,6 +389,10 @@ class AutoResearchPipeline:
         run_paths: RunPaths,
         exc: Exception,
     ) -> Dict[str, object]:
+        structured_summary = getattr(exc, "summary", None)
+        if isinstance(structured_summary, dict):
+            return structured_summary
+
         if spec.mode == "training":
             model_version = (
                 spec.training.model_version

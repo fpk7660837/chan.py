@@ -89,6 +89,7 @@ def run_selection_experiment(spec: ExperimentSpec, model_dir: Optional[Path] = N
         as_of=as_of,
         history_days=spec.selection.history_days,
         stale_days=spec.selection.stale_days,
+        universe_name=spec.selection.universe,
     )
 
     ranked = predictor.rank_stock_pool(
