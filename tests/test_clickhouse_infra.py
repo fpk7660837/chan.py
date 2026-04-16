@@ -36,6 +36,18 @@ class ClickHouseInfraTests(unittest.TestCase):
         for column in ("ts_code", "level", "trade_time", "open", "high", "low", "close", "volume", "amount"):
             self.assertIn(column, sql)
 
+    def test_init_sql_creates_adj_factors_table_without_query_views(self):
+        sql = (INFRA / "init" / "001_create_market.sql").read_text(encoding="utf-8")
+
+        self.assertIn("CREATE TABLE IF NOT EXISTS market.adj_factors", sql)
+        self.assertIn("adj_factor Float64", sql)
+        self.assertIn("trade_date Date", sql)
+        self.assertIn("ENGINE = ReplacingMergeTree(updated_at)", sql)
+        self.assertIn("PARTITION BY toYYYYMM(trade_date)", sql)
+        self.assertIn("ORDER BY (ts_code, trade_date)", sql)
+        self.assertNotIn("CREATE VIEW", sql)
+        self.assertNotIn("CREATE MATERIALIZED VIEW", sql)
+
 
 if __name__ == "__main__":
     unittest.main()
