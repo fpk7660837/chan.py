@@ -16,3 +16,5 @@ models/
 .venv
 venv
 .idea
+
+infra/clickhouse/.env
