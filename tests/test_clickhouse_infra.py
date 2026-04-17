@@ -32,8 +32,9 @@ class ClickHouseInfraTests(unittest.TestCase):
         self.assertIn("CREATE TABLE IF NOT EXISTS market.bars", sql)
         self.assertIn("MergeTree", sql)
         self.assertIn("PARTITION BY (level, toYYYYMM(trade_time))", sql)
-        self.assertIn("ORDER BY (ts_code, level, trade_time)", sql)
-        for column in ("ts_code", "level", "trade_time", "open", "high", "low", "close", "volume", "amount"):
+        self.assertIn("ORDER BY (symbol, level, trade_time)", sql)
+        self.assertNotIn("ts_code", sql)
+        for column in ("symbol", "level", "trade_time", "open", "high", "low", "close", "volume", "amount"):
             self.assertIn(column, sql)
 
     def test_init_sql_creates_adj_factors_table_without_query_views(self):
@@ -44,9 +45,19 @@ class ClickHouseInfraTests(unittest.TestCase):
         self.assertIn("trade_date Date", sql)
         self.assertIn("ENGINE = ReplacingMergeTree(updated_at)", sql)
         self.assertIn("PARTITION BY toYYYYMM(trade_date)", sql)
-        self.assertIn("ORDER BY (ts_code, trade_date)", sql)
+        self.assertIn("ORDER BY (symbol, trade_date)", sql)
         self.assertNotIn("CREATE VIEW", sql)
         self.assertNotIn("CREATE MATERIALIZED VIEW", sql)
+
+    def test_management_script_keeps_schema_management_to_create_sql(self):
+        script = (ROOT / "scripts" / "clickhouse_market.sh").read_text(encoding="utf-8")
+
+        self.assertIn("001_create_market.sql", script)
+        self.assertNotIn("ALTER TABLE", script)
+        self.assertNotIn("has_legacy_column", script)
+        self.assertNotIn("recreate_empty_legacy_ts_code_tables", script)
+        self.assertNotIn("DROP TABLE IF EXISTS market.bars", script)
+        self.assertNotIn("DROP TABLE IF EXISTS market.adj_factors", script)
 
 
 if __name__ == "__main__":
