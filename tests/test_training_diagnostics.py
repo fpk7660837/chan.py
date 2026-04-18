@@ -127,6 +127,50 @@ class TrainerDiagnosticsTests(unittest.TestCase):
         self.assertEqual(trainer.last_overfit_risk["level"], "high")
         self.assertTrue(any("auc gap" in reason for reason in trainer.last_overfit_risk["reasons"]))
 
+    def test_train_multilevel_buy_entry_records_grouped_walk_forward_split(self):
+        trainer = Trainer(
+            {
+                "feature_config": {
+                    "level_list": ["day", "30m", "5m"],
+                },
+                "training_config": {
+                    "task_name": "buy_entry",
+                    "decision_level": "30m",
+                    "context_levels": ["day", "5m"],
+                    "execution_level": "5m",
+                    "min_total_samples": 1,
+                    "min_train_samples": 1,
+                    "min_test_samples": 1,
+                    "enforce_min_samples": False,
+                    "time_series_splits": 2,
+                },
+            }
+        )
+        events = [mock.Mock(position_id=f"pos-{idx}", context={}, entry_klu=mock.Mock(time=mock.Mock(ts=idx))) for idx in range(6)]
+        X = np.arange(6, dtype=float).reshape(-1, 1)
+        y = np.array([0, 1, 0, 1, 0, 1], dtype=int)
+
+        with mock.patch.object(
+            trainer.sample_builder,
+            "build_buy_entry_events",
+            return_value=events,
+        ), mock.patch.object(
+            trainer.label_builder,
+            "build_event_labels",
+            return_value=(events, y, np.array([0.0, 0.02, -0.01, 0.03, -0.02, 0.04], dtype=float)),
+        ), mock.patch.object(
+            trainer,
+            "_extract_multilevel_features",
+            return_value=(X, ["f1"]),
+        ), mock.patch.object(
+            trainer, "_train_model", return_value=FakeDiagnosticsModel()
+        ):
+            trainer.train([object()])
+
+        self.assertEqual(trainer.last_split_info["mode"], "grouped_walk_forward")
+        self.assertEqual(trainer.last_dataset_profile["task_name"], "buy_entry")
+        self.assertEqual(trainer.last_dataset_profile["total_samples"], 6)
+
 
 class TrainingExperimentSummaryTests(unittest.TestCase):
     def test_run_training_experiment_writes_diagnostics_into_summary(self):

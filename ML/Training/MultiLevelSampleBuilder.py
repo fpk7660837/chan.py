@@ -33,6 +33,7 @@ class ExitWarningEvent:
     name: str
     warning_bsp: Any
     confirm_bsp: Optional[Any]
+    confirm_delay_bars_30m: Optional[int]
     warning_klu: Any
     context: Dict[str, Any]
     entry_event: BuyEntryEvent
@@ -107,25 +108,32 @@ class MultiLevelSampleBuilder:
 
     def build_exit_warning_events(self, instruments: Sequence[InstrumentMultiLevelData]) -> List[ExitWarningEvent]:
         warnings: List[ExitWarningEvent] = []
-        for entry_event in self.build_buy_entry_events(instruments):
-            if entry_event.exit_warning_bsp is None:
-                continue
-            warnings.append(
-                ExitWarningEvent(
-                    position_id=entry_event.position_id,
-                    code=entry_event.code,
-                    name=entry_event.name,
-                    warning_bsp=entry_event.exit_warning_bsp,
-                    confirm_bsp=entry_event.exit_confirm_bsp,
-                    warning_klu=getattr(entry_event.exit_warning_bsp, "klu", None),
-                    context={
-                        self.day_level: entry_event.context.get(self.day_level),
-                        self.decision_level: entry_event.entry_bsp,
-                        self.execution_level: entry_event.exit_warning_bsp,
-                    },
-                    entry_event=entry_event,
+        for instrument in instruments:
+            decision_bars = self._sort_bars(instrument.level_bars.get(self.decision_level, []))
+            for entry_event in self.build_buy_entry_events([instrument]):
+                if entry_event.exit_warning_bsp is None:
+                    continue
+                warnings.append(
+                    ExitWarningEvent(
+                        position_id=entry_event.position_id,
+                        code=entry_event.code,
+                        name=entry_event.name,
+                        warning_bsp=entry_event.exit_warning_bsp,
+                        confirm_bsp=entry_event.exit_confirm_bsp,
+                        confirm_delay_bars_30m=self._count_bars_between(
+                            decision_bars,
+                            start_time=self._time_value(entry_event.exit_warning_bsp),
+                            end_time=self._time_value(entry_event.exit_confirm_bsp),
+                        ),
+                        warning_klu=getattr(entry_event.exit_warning_bsp, "klu", None),
+                        context={
+                            self.day_level: entry_event.context.get(self.day_level),
+                            self.decision_level: entry_event.entry_bsp,
+                            self.execution_level: entry_event.exit_warning_bsp,
+                        },
+                        entry_event=entry_event,
+                    )
                 )
-            )
         return warnings
 
     @staticmethod
@@ -221,3 +229,22 @@ class MultiLevelSampleBuilder:
             if getattr(point, "is_buy", None) == reverse_is_buy:
                 return point
         return None
+
+    @staticmethod
+    def _count_bars_between(
+        bars: Sequence[Any],
+        *,
+        start_time: Optional[int],
+        end_time: Optional[int],
+    ) -> Optional[int]:
+        if start_time is None or start_time < 0 or end_time is None or end_time < 0:
+            return None
+        count = 0
+        for bar in bars:
+            bar_time = MultiLevelSampleBuilder._time_value(bar)
+            if bar_time <= start_time:
+                continue
+            if bar_time > end_time:
+                break
+            count += 1
+        return count

@@ -444,6 +444,7 @@ def run_training_experiment(spec: ExperimentSpec, run_paths: RunPaths) -> Traini
     metadata_path = run_paths.model_artifacts_dir / f"metadata_{model_version}.json"
 
     summary: Dict[str, Any] = {
+        "task_name": str(config.training_config.get("task_name", "") or ""),
         "model_version": model_version,
         "model_type": effective_training.model_type,
         "begin_time": effective_training.begin_time,

@@ -21,11 +21,15 @@ class LabelBuilder:
         self.lookforward_bars = int(self.config.get('lookforward_bars', 20))
         self.min_future_bars = int(self.config.get('min_future_bars', self.lookforward_bars))
         self.threshold_pct = float(self.config.get('threshold_pct', 0.05))
+        self.round_trip_cost_pct = float(self.config.get('round_trip_cost_pct', 0.0))
         self.entry_price = self.config.get('entry_price', 'next_open')
         self.exit_price = self.config.get('exit_price', 'close')
         self.allow_partial_window = bool(self.config.get('allow_partial_window', False))
         self.use_highest_for_buy = bool(self.config.get('use_highest_for_buy', False))
         self.use_lowest_for_sell = bool(self.config.get('use_lowest_for_sell', False))
+        self.exit_warning_confirmation_horizon_30m = int(
+            self.config.get('exit_warning_confirmation_horizon_30m', 8)
+        )
 
     def build_labels(self, bsp_list: List[CBS_Point]) -> Tuple[np.ndarray, np.ndarray]:
         if self.strategy == 'forward_return':
@@ -171,3 +175,57 @@ class LabelBuilder:
             'positive_ratio': positive / total if total > 0 else 0.0,
             'negative_ratio': negative / total if total > 0 else 0.0,
         }
+
+    def label_buy_entry(self, event: Any) -> Optional[Tuple[int, float]]:
+        entry_klu = getattr(event, 'entry_klu', None)
+        exit_confirm_bsp = getattr(event, 'exit_confirm_bsp', None)
+        exit_klu = getattr(event, 'exit_klu', None)
+
+        if entry_klu is None or exit_confirm_bsp is None or exit_klu is None:
+            return None
+
+        entry_price = getattr(entry_klu, 'open', None)
+        exit_price = getattr(exit_klu, 'open', None)
+        if entry_price is None or exit_price is None or float(entry_price) == 0.0:
+            return None
+
+        gross_return = (float(exit_price) - float(entry_price)) / float(entry_price)
+        net_return = gross_return - self.round_trip_cost_pct
+        return (1 if net_return > 0.0 else 0), float(net_return)
+
+    def label_exit_warning(self, event: Any) -> Optional[int]:
+        confirm_delay_bars_30m = getattr(event, 'confirm_delay_bars_30m', None)
+        confirm_bsp = getattr(event, 'confirm_bsp', None)
+
+        if confirm_bsp is None or confirm_delay_bars_30m is None:
+            return 0
+        return 1 if int(confirm_delay_bars_30m) <= self.exit_warning_confirmation_horizon_30m else 0
+
+    def build_event_labels(self, events: List[Any], *, task_name: str) -> Tuple[List[Any], np.ndarray, np.ndarray]:
+        kept_events: List[Any] = []
+        labels: List[int] = []
+        aux_values: List[float] = []
+
+        if task_name == 'buy_entry':
+            for event in events:
+                labeled = self.label_buy_entry(event)
+                if labeled is None:
+                    continue
+                label, net_return = labeled
+                kept_events.append(event)
+                labels.append(label)
+                aux_values.append(net_return)
+            return kept_events, np.array(labels, dtype=int), np.array(aux_values, dtype=float)
+
+        if task_name == 'exit_warning':
+            for event in events:
+                label = self.label_exit_warning(event)
+                if label is None:
+                    continue
+                kept_events.append(event)
+                labels.append(int(label))
+                confirm_delay = getattr(event, 'confirm_delay_bars_30m', None)
+                aux_values.append(float(confirm_delay) if confirm_delay is not None else -1.0)
+            return kept_events, np.array(labels, dtype=int), np.array(aux_values, dtype=float)
+
+        raise ValueError(f"Unsupported event labeling task: {task_name}")

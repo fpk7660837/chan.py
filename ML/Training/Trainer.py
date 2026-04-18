@@ -12,9 +12,11 @@ from sklearn.model_selection import TimeSeriesSplit, train_test_split
 from Chan import CChan
 from ..Evaluation.Metrics import Metrics
 from ..FeatureEngine.BSPFeatureExtractor import BSPFeatureExtractor
+from ..FeatureEngine.MultiLevelExtractor import MultiLevelExtractor
 from ..Models.BaseModel import BaseModel
 from ..Models.ModelFactory import ModelFactory
 from .LabelBuilder import LabelBuilder
+from .MultiLevelSampleBuilder import MultiLevelSampleBuilder
 
 
 class Trainer:
@@ -28,7 +30,13 @@ class Trainer:
         self.training_config = self.config.get('training_config', {})
 
         self.feature_extractor = BSPFeatureExtractor(self.feature_config)
+        self.multi_level_extractor = MultiLevelExtractor(self.feature_config)
         self.label_builder = LabelBuilder(self.label_config)
+        self.sample_builder = MultiLevelSampleBuilder(
+            day_level=self._resolve_day_level(),
+            decision_level=self.training_config.get('decision_level', '30m'),
+            execution_level=self.training_config.get('execution_level', '5m'),
+        )
         self.last_split_info: Dict[str, Any] = {}
         self.last_dataset_profile: Dict[str, Any] = {}
         self.last_classification_metrics: Dict[str, Any] = {}
@@ -39,6 +47,9 @@ class Trainer:
         self.last_dataset_profile = {}
         self.last_classification_metrics = {}
         self.last_overfit_risk = {}
+
+        if self._is_multilevel_task():
+            return self._train_multilevel(chan_list, model_type=model_type)
 
         print("Step 1: Collecting buy/sell points...")
         bsp_list = self._extract_bsp_from_chan_list(chan_list)
@@ -66,6 +77,77 @@ class Trainer:
 
         print("\nStep 4: Splitting train/test sets...")
         X_train, X_test, y_train, y_test = self._split_data(X, y)
+        print(f"Train set: {X_train.shape[0]} samples, Test set: {X_test.shape[0]} samples")
+        self.last_dataset_profile.update({
+            'train_samples': int(X_train.shape[0]),
+            'test_samples': int(X_test.shape[0]),
+        })
+        self._enforce_min_sample_guard()
+
+        print("\nStep 5: Training model...")
+        model = self._train_model(X_train, y_train, X_test, y_test, feature_names, model_type)
+        print("Model training completed!")
+        self.last_classification_metrics = self._evaluate_classification_metrics(model, X_train, y_train, X_test, y_test)
+        self.last_overfit_risk = self._assess_overfit_risk()
+
+        print("\nTop 10 important features:")
+        top_features = model.get_top_features(top_k=10)
+        for i, (feature_name, importance) in enumerate(top_features, 1):
+            print(f"  {i}. {feature_name}: {importance:.4f}")
+
+        return model
+
+    def _is_multilevel_task(self) -> bool:
+        task_name = str(self.training_config.get('task_name', '') or '').strip().lower()
+        return task_name in {'buy_entry', 'exit_warning'}
+
+    def _resolve_day_level(self) -> str:
+        context_levels = self.training_config.get('context_levels', []) or []
+        for level in context_levels:
+            normalized = str(level or '').strip().lower()
+            if normalized not in {'', self.training_config.get('decision_level', '30m'), self.training_config.get('execution_level', '5m')}:
+                return normalized
+        return 'day'
+
+    def _train_multilevel(self, contexts: List[Any], model_type: str = None) -> BaseModel:
+        task_name = str(self.training_config.get('task_name', 'buy_entry'))
+
+        print("Step 1: Collecting multi-level training events...")
+        if task_name == 'buy_entry':
+            events = self.sample_builder.build_buy_entry_events(contexts)
+        elif task_name == 'exit_warning':
+            events = self.sample_builder.build_exit_warning_events(contexts)
+        else:
+            raise ValueError(f"Unsupported multi-level training task: {task_name}")
+        if not events:
+            raise ValueError("No eligible multi-level events found for training.")
+        print(f"Collected {len(events)} events")
+
+        print("\nStep 2: Building labels...")
+        labeled_events, y, aux_values = self.label_builder.build_event_labels(events, task_name=task_name)
+        if not labeled_events:
+            raise ValueError("No labeled multi-level events found for training.")
+        label_dist = self.label_builder.get_label_distribution(y)
+        print(
+            f"Label distribution: {label_dist['positive']} positive ({label_dist['positive_ratio']:.2%}), "
+            f"{label_dist['negative']} negative ({label_dist['negative_ratio']:.2%})"
+        )
+        self.last_dataset_profile = {
+            'task_name': task_name,
+            'total_samples': int(len(y)),
+            'positive_samples': int(label_dist['positive']),
+            'negative_samples': int(label_dist['negative']),
+            'positive_ratio': float(label_dist['positive_ratio']),
+        }
+        if task_name == 'buy_entry':
+            self.last_dataset_profile['avg_net_return'] = float(np.mean(aux_values)) if len(aux_values) > 0 else 0.0
+
+        print("\nStep 3: Extracting multi-level features...")
+        X, feature_names = self._extract_multilevel_features(labeled_events)
+        print(f"Extracted {X.shape[1]} features from {X.shape[0]} samples")
+
+        print("\nStep 4: Splitting train/test sets...")
+        X_train, X_test, y_train, y_test = self._split_multilevel_data(X, y, labeled_events)
         print(f"Train set: {X_train.shape[0]} samples, Test set: {X_test.shape[0]} samples")
         self.last_dataset_profile.update({
             'train_samples': int(X_train.shape[0]),
@@ -124,6 +206,69 @@ class Trainer:
             dtype=float,
         )
         return X, feature_names
+
+    def _extract_multilevel_features(self, events: List[Any]) -> Tuple[np.ndarray, List[str]]:
+        feature_names = self.multi_level_extractor.get_feature_names()
+        X = np.array(
+            [self.multi_level_extractor.get_feature_vector(getattr(event, 'context', {})) for event in events],
+            dtype=float,
+        )
+        return X, feature_names
+
+    def _split_multilevel_data(
+        self,
+        X: np.ndarray,
+        y: np.ndarray,
+        events: List[Any],
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        if len(X) < 2:
+            raise ValueError("Need at least 2 samples to split train/test data.")
+
+        test_size = self.training_config.get('test_size', 0.2)
+        use_time_series_split = self.training_config.get('use_time_series_split', True)
+        position_ids = [str(getattr(event, 'position_id', idx)) for idx, event in enumerate(events)]
+        unique_position_ids: List[str] = []
+        for position_id in position_ids:
+            if position_id not in unique_position_ids:
+                unique_position_ids.append(position_id)
+
+        if use_time_series_split:
+            n_splits = int(self.training_config.get('time_series_splits', 5))
+            max_valid_splits = max(2, min(n_splits, len(unique_position_ids) - 1))
+
+            if len(unique_position_ids) >= max_valid_splits + 1:
+                splitter = TimeSeriesSplit(n_splits=max_valid_splits)
+                train_group_idx, test_group_idx = None, None
+                for train_group_idx, test_group_idx in splitter.split(np.arange(len(unique_position_ids))):
+                    ...
+                assert train_group_idx is not None and test_group_idx is not None
+                train_groups = {unique_position_ids[idx] for idx in train_group_idx}
+                test_groups = {unique_position_ids[idx] for idx in test_group_idx}
+                train_idx = np.array([idx for idx, position_id in enumerate(position_ids) if position_id in train_groups], dtype=int)
+                test_idx = np.array([idx for idx, position_id in enumerate(position_ids) if position_id in test_groups], dtype=int)
+                self.last_split_info = {
+                    'mode': 'grouped_walk_forward',
+                    'train_size': len(train_idx),
+                    'test_size': len(test_idx),
+                    'n_splits': max_valid_splits,
+                }
+                return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+            split_idx = int(len(unique_position_ids) * (1 - test_size))
+            split_idx = min(max(split_idx, 1), len(unique_position_ids) - 1)
+            train_groups = set(unique_position_ids[:split_idx])
+            test_groups = set(unique_position_ids[split_idx:])
+            train_idx = np.array([idx for idx, position_id in enumerate(position_ids) if position_id in train_groups], dtype=int)
+            test_idx = np.array([idx for idx, position_id in enumerate(position_ids) if position_id in test_groups], dtype=int)
+            self.last_split_info = {
+                'mode': 'grouped_time_holdout',
+                'train_size': len(train_idx),
+                'test_size': len(test_idx),
+                'n_splits': 1,
+            }
+            return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+        return self._split_data(X, y)
 
     def _split_data(self, X: np.ndarray, y: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         if len(X) < 2:

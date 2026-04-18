@@ -705,6 +705,7 @@ class AutoResearchTrainingExpansionTests(unittest.TestCase):
             fake_loader.load_training_contexts.call_args.kwargs["levels"],
             ["day", "30m", "5m"],
         )
+        self.assertEqual(result.summary["task_name"], "buy_entry")
         trainer_cls.return_value.train.assert_called_once()
         self.assertIs(trainer_cls.return_value.train.call_args.args[0], fake_contexts)
 
