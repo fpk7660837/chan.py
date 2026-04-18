@@ -7,7 +7,16 @@
 
 from __future__ import annotations
 
-from typing import Any, List, Optional, Sequence, Tuple
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Sequence, Tuple
+
+
+@dataclass(frozen=True)
+class InstrumentMultiLevelData:
+    code: str
+    name: str = ""
+    level_bars: Dict[str, Sequence[Any]] = field(default_factory=dict)
+    level_bsps: Dict[str, Sequence[Any]] = field(default_factory=dict)
 
 
 class MultiLevelDataLoader:

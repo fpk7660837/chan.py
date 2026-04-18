@@ -5,6 +5,9 @@
 """
 
 from typing import Dict, List, Any, Optional
+
+import numpy as np
+
 from BuySellPoint.BS_Point import CBS_Point
 from .BSPFeatureExtractor import BSPFeatureExtractor
 
@@ -63,7 +66,7 @@ class MultiLevelExtractor:
         Returns:
             整合后的特征字典
         """
-        all_features = {}
+        all_features = {name: 0.0 for name in self.get_feature_names()}
 
         for level_name, bsp in bsp_dict.items():
             if bsp is not None and level_name in self.level_list:
@@ -116,3 +119,7 @@ class MultiLevelExtractor:
                 feature_names.extend(prefixed_names)
 
         return feature_names
+
+    def get_feature_vector(self, bsp_dict: Dict[str, CBS_Point]) -> np.ndarray:
+        features = self.extract_multi_level(bsp_dict)
+        return np.array([features[name] for name in self.get_feature_names()], dtype=float)
