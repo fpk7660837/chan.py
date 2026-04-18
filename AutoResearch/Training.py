@@ -177,6 +177,44 @@ def _build_training_attempts(training: TrainingSpec) -> List[TrainingSpec]:
     return attempts
 
 
+def _is_explicit_multilevel_task(training: TrainingSpec) -> bool:
+    task_name = str(training.training_config.get("task_name", "") or "").strip().lower()
+    if task_name not in {"buy_entry", "exit_warning"}:
+        return False
+    return any(
+        key in training.training_config
+        for key in ("decision_level", "context_levels", "execution_level")
+    )
+
+
+def _resolve_multilevel_levels(config: Any) -> List[str]:
+    requested = set()
+
+    decision_level = str(config.training_config.get("decision_level", "") or "").strip().lower()
+    if decision_level:
+        requested.add(decision_level)
+
+    for level in config.training_config.get("context_levels", []) or []:
+        normalized = str(level or "").strip().lower()
+        if normalized:
+            requested.add(normalized)
+
+    execution_level = str(config.training_config.get("execution_level", "") or "").strip().lower()
+    if execution_level:
+        requested.add(execution_level)
+
+    configured_levels = [
+        str(level).strip().lower()
+        for level in (config.feature_config.get("level_list", []) or [])
+        if str(level).strip()
+    ]
+    ordered = [level for level in configured_levels if level in requested]
+    for level in requested:
+        if level not in ordered:
+            ordered.append(level)
+    return ordered
+
+
 def _is_insufficient_samples_error(exc: Exception) -> bool:
     return "Insufficient samples for reliable training" in str(exc)
 
@@ -261,6 +299,7 @@ def run_training_experiment(spec: ExperimentSpec, run_paths: RunPaths) -> Traini
         raise ValueError("Training experiments require spec.training.")
 
     from Config.MLConfig import MLConfig
+    from ML.Training.MultiLevelDataLoader import MultiLevelDataLoader
     from ML.Training.Trainer import Trainer
     from ML.Utils.ModelIO import ModelIO
 
@@ -288,12 +327,22 @@ def run_training_experiment(spec: ExperimentSpec, run_paths: RunPaths) -> Traini
             if not attempt_universe:
                 raise RuntimeError("Training universe is empty.")
 
-            attempt_chan_list, attempt_skipped = _load_training_chan_pool(
-                attempt_universe,
-                begin_time=attempt_training.begin_time,
-                end_time=attempt_training.end_time,
-                universe_name=attempt_training.universe,
-            )
+            if _is_explicit_multilevel_task(attempt_training):
+                data_loader = MultiLevelDataLoader()
+                attempt_chan_list, attempt_skipped = data_loader.load_training_contexts(
+                    attempt_universe,
+                    begin_time=attempt_training.begin_time,
+                    end_time=attempt_training.end_time,
+                    levels=_resolve_multilevel_levels(config),
+                    universe_name=attempt_training.universe,
+                )
+            else:
+                attempt_chan_list, attempt_skipped = _load_training_chan_pool(
+                    attempt_universe,
+                    begin_time=attempt_training.begin_time,
+                    end_time=attempt_training.end_time,
+                    universe_name=attempt_training.universe,
+                )
             if not attempt_chan_list:
                 raise RuntimeError("No training data could be loaded.")
 

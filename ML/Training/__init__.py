@@ -5,6 +5,7 @@
 """
 
 from .LabelBuilder import LabelBuilder
+from .MultiLevelDataLoader import MultiLevelDataLoader
 try:
     from .Trainer import Trainer
 except ModuleNotFoundError:
@@ -12,5 +13,6 @@ except ModuleNotFoundError:
 
 __all__ = [
     'LabelBuilder',
+    'MultiLevelDataLoader',
     'Trainer',
 ]

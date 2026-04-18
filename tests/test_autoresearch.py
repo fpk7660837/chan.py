@@ -4,6 +4,7 @@ import re
 import tempfile
 import unittest
 from contextlib import redirect_stdout
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
@@ -656,6 +657,56 @@ class AutoResearchTrainingExpansionTests(unittest.TestCase):
         self.assertEqual(result.summary["effective_training_spec"]["universe"], "hs300")
         self.assertEqual(result.summary["effective_training_spec"]["codes"], [])
         self.assertEqual(result.summary["auto_expansion"]["stopped_reason"], "recovered")
+
+    def test_run_training_experiment_uses_multilevel_loader_for_explicit_multilevel_task(self):
+        from AutoResearch.Training import run_training_experiment
+
+        base_spec = self._build_training_spec()
+        spec = replace(
+            base_spec,
+            training=replace(
+                base_spec.training,
+                training_config={
+                    "task_name": "buy_entry",
+                    "decision_level": "30m",
+                    "context_levels": ["day", "5m"],
+                    "execution_level": "5m",
+                },
+            ),
+        )
+        fake_contexts = [object(), object()]
+        fake_loader = mock.Mock()
+        fake_loader.load_training_contexts.return_value = (fake_contexts, [])
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            run_paths = RunStorage(Path(tmp_dir)).create_run(spec.name)
+
+            with mock.patch(
+                "AutoResearch.Training._resolve_training_universe",
+                return_value=[("600519", ""), ("000333", "")],
+            ), mock.patch(
+                "AutoResearch.Training._load_training_chan_pool",
+                side_effect=AssertionError("daily-only loader should not be used"),
+            ), mock.patch(
+                "ML.Training.MultiLevelDataLoader.MultiLevelDataLoader",
+                return_value=fake_loader,
+            ), mock.patch(
+                "ML.Training.Trainer.Trainer",
+                return_value=self._make_trainer(),
+            ) as trainer_cls, mock.patch(
+                "ML.Utils.ModelIO.ModelIO",
+                self._fake_model_io_factory(),
+            ):
+                result = run_training_experiment(spec, run_paths)
+
+        self.assertEqual(result.summary["loaded_chan_count"], len(fake_contexts))
+        self.assertEqual(fake_loader.load_training_contexts.call_count, 1)
+        self.assertEqual(
+            fake_loader.load_training_contexts.call_args.kwargs["levels"],
+            ["day", "30m", "5m"],
+        )
+        trainer_cls.return_value.train.assert_called_once()
+        self.assertIs(trainer_cls.return_value.train.call_args.args[0], fake_contexts)
 
     def test_training_pipeline_records_all_attempts_when_auto_expansion_exhausts(self):
         spec = self._build_training_spec()
