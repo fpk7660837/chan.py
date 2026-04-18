@@ -106,6 +106,51 @@ class AutoResearchSpecTests(unittest.TestCase):
             self.assertFalse(spec.storage.publish_model.enabled)
             self.assertEqual(spec.storage.publish_model.target_dir, "./models")
 
+    def test_load_training_experiment_spec_preserves_multilevel_training_fields(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            spec_path = Path(tmp_dir) / "training.json"
+            spec_path.write_text(
+                json.dumps(
+                    {
+                        "name": "multilevel-buy-training",
+                        "mode": "training",
+                        "training": {
+                            "begin_time": "2020-01-01",
+                            "end_time": "2022-12-31",
+                            "universe": "hs300",
+                            "training_config": {
+                                "task_name": "buy_entry",
+                                "decision_level": "30m",
+                                "context_levels": ["day", "5m"],
+                                "execution_level": "5m",
+                                "exit_warning_confirmation_horizon_30m": 8,
+                            },
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            spec = load_experiment_spec(spec_path)
+
+            self.assertEqual(spec.training.training_config["task_name"], "buy_entry")
+            self.assertEqual(spec.training.training_config["decision_level"], "30m")
+            self.assertEqual(spec.training.training_config["context_levels"], ["day", "5m"])
+            self.assertEqual(spec.training.training_config["execution_level"], "5m")
+            self.assertEqual(spec.training.training_config["exit_warning_confirmation_horizon_30m"], 8)
+
+    def test_ml_config_defaults_include_multilevel_training_defaults(self):
+        from Config.MLConfig import MLConfig
+
+        config = MLConfig()
+
+        self.assertEqual(config.feature_config["level_list"], ["day", "30m", "5m"])
+        self.assertEqual(config.training_config["task_name"], "buy_entry")
+        self.assertEqual(config.training_config["decision_level"], "30m")
+        self.assertEqual(config.training_config["context_levels"], ["day", "5m"])
+        self.assertEqual(config.training_config["execution_level"], "5m")
+        self.assertEqual(config.training_config["exit_warning_confirmation_horizon_30m"], 8)
+
     def test_runtime_args_passes_universe_and_keeps_backward_compatible_codes_fields(self):
         from AutoResearch.Selection import _make_runtime_args
         from AutoResearch.Spec import ExperimentSpec, SelectionSpec

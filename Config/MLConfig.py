@@ -19,7 +19,7 @@ class MLConfig:
         'use_zs_features': True,        # 使用中枢特征
         'use_klu_features': True,       # 使用K线技术指标特征
         'use_multi_level': True,        # 使用多级别特征
-        'level_list': ['day', 'week'],  # 使用的级别列表（日线+周线）
+        'level_list': ['day', '30m', '5m'],  # 使用的级别列表（日线+30分钟+5分钟）
     })
 
     # 标签构建配置（基于未来收益率策略）
@@ -73,6 +73,11 @@ class MLConfig:
 
     # 训练配置
     training_config: Dict[str, Any] = field(default_factory=lambda: {
+        'task_name': 'buy_entry',       # buy_entry/exit_warning
+        'decision_level': '30m',        # 决策级别
+        'context_levels': ['day', '5m'],  # 上下文级别
+        'execution_level': '5m',        # 执行级别
+        'exit_warning_confirmation_horizon_30m': 8,  # 5m预警升级为30m确认的观察窗口
         'test_size': 0.2,                 # 测试集比例
         'cv_folds': 5,                    # 交叉验证折数
         'use_time_series_split': True,    # 使用时间序列分割
