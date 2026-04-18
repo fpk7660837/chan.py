@@ -16,5 +16,6 @@ models/
 .venv
 venv
 .idea
+.worktrees/
 
 infra/clickhouse/.env
