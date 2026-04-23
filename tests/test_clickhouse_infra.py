@@ -37,7 +37,7 @@ class ClickHouseInfraTests(unittest.TestCase):
         for column in ("symbol", "level", "trade_time", "open", "high", "low", "close", "volume", "amount"):
             self.assertIn(column, sql)
 
-    def test_init_sql_creates_adj_factors_table_without_query_views(self):
+    def test_init_sql_creates_adj_factors_table(self):
         sql = (INFRA / "init" / "001_create_market.sql").read_text(encoding="utf-8")
 
         self.assertIn("CREATE TABLE IF NOT EXISTS market.adj_factors", sql)
@@ -46,7 +46,15 @@ class ClickHouseInfraTests(unittest.TestCase):
         self.assertIn("ENGINE = ReplacingMergeTree(updated_at)", sql)
         self.assertIn("PARTITION BY toYYYYMM(trade_date)", sql)
         self.assertIn("ORDER BY (symbol, trade_date)", sql)
-        self.assertNotIn("CREATE VIEW", sql)
+
+    def test_init_sql_creates_bar_anomalies_table_and_clean_view(self):
+        sql = (INFRA / "init" / "001_create_market.sql").read_text(encoding="utf-8")
+
+        self.assertIn("CREATE TABLE IF NOT EXISTS market.bar_anomalies", sql)
+        self.assertIn("rule LowCardinality(String)", sql)
+        self.assertIn("ORDER BY (level, symbol, trade_time, rule)", sql)
+        self.assertIn("CREATE VIEW IF NOT EXISTS market.bars_1m_clean", sql)
+        self.assertIn("market.bar_anomalies", sql)
         self.assertNotIn("CREATE MATERIALIZED VIEW", sql)
 
     def test_management_script_keeps_schema_management_to_create_sql(self):
