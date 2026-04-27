@@ -94,8 +94,8 @@ arrayFilter(rule -> rule != '', [
     if(volume < 0 OR amount < 0, 'negative_volume_amount', ''),
     if(isNaN(open) OR isNaN(high) OR isNaN(low) OR isNaN(close) OR isNaN(volume) OR isNaN(amount), 'nan_value', ''),
     if(open > 10000 OR high > 10000 OR low > 10000 OR close > 10000, 'stock_price_gt_10000', ''),
-    if(volume > 0 AND amount > 0 AND close > 0 AND (amount / (volume * close * 100) < 0.01 OR amount / (volume * close * 100) > 100), 'amount_price_volume_mismatch', ''),
-    if(volume = 0 AND amount > 0, 'zero_volume_positive_amount', ''),
+    if(volume > 0 AND amount >= close * 100 AND close > 0 AND (amount / (volume * close * 100) < 0.01 OR amount / (volume * close * 100) > 100), 'amount_price_volume_mismatch', ''),
+    if(volume = 0 AND amount >= greatest(open, high, low, close) * 100, 'zero_volume_positive_amount', ''),
     if(volume > 0 AND amount = 0, 'positive_volume_zero_amount', '')
 ])
 """.strip()
@@ -168,6 +168,15 @@ def list_months(*, level: str, years: Optional[Set[str]], env_file: Path, compos
     return months
 
 
+def delete_month_anomalies_query(*, level: str, year_month: str) -> str:
+    return f"""
+ALTER TABLE market.bar_anomalies DELETE
+WHERE level = {_sql_literal(level)}
+  AND toYYYYMM(trade_time) = {int(year_month)}
+SETTINGS mutations_sync = 2
+""".strip()
+
+
 def apply_schema(*, env_file: Path, compose_file: Path) -> None:
     run_clickhouse_query(schema_sql(), env_file=env_file, compose_file=compose_file)
 
@@ -180,6 +189,7 @@ def scan_anomalies(
     compose_file: Path,
     truncate: bool,
     month_limit: Optional[int] = None,
+    replace_existing_months: bool = False,
 ) -> Dict[str, int | float]:
     apply_schema(env_file=env_file, compose_file=compose_file)
     if truncate:
@@ -192,6 +202,12 @@ def scan_anomalies(
     stats: Dict[str, int | float] = {"months": len(months), "scanned": 0, "seconds": 0.0}
     for month in months:
         month_start = time.monotonic()
+        if replace_existing_months and not truncate:
+            run_clickhouse_query(
+                delete_month_anomalies_query(level=level, year_month=month),
+                env_file=env_file,
+                compose_file=compose_file,
+            )
         run_clickhouse_query(insert_anomalies_query(level=level, year_month=month), env_file=env_file, compose_file=compose_file)
         stats["scanned"] = int(stats["scanned"]) + 1
         elapsed = time.monotonic() - month_start
@@ -297,6 +313,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--report-dir", default=str(DEFAULT_REPORT_DIR), help="Quality report directory")
     parser.add_argument("--schema-only", action="store_true", help="Only create table/view")
     parser.add_argument("--reports-only", action="store_true", help="Only write reports from existing anomaly table")
+    parser.add_argument(
+        "--replace-existing-months",
+        action="store_true",
+        help="Delete anomaly rows for each scanned month before re-inserting them",
+    )
     return parser.parse_args(argv)
 
 
@@ -318,6 +339,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             compose_file=compose_file,
             truncate=args.truncate,
             month_limit=args.month_limit,
+            replace_existing_months=args.replace_existing_months,
         )
         print(f"scan_summary: {stats}", flush=True)
     paths = write_reports(report_dir=report_dir, env_file=env_file, compose_file=compose_file)

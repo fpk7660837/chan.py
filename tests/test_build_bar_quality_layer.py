@@ -27,6 +27,27 @@ class BuildBarQualityLayerTests(unittest.TestCase):
         self.assertIn("stock_price_gt_10000", query)
         self.assertIn("amount_price_volume_mismatch", query)
 
+    def test_zero_volume_positive_amount_rule_requires_at_least_one_lot_notional(self):
+        rules = quality.anomaly_rules_expression()
+
+        self.assertIn(
+            "if(volume = 0 AND amount >= greatest(open, high, low, close) * 100, 'zero_volume_positive_amount', '')",
+            rules,
+        )
+        self.assertNotIn("if(volume = 0 AND amount > 0, 'zero_volume_positive_amount', '')", rules)
+
+    def test_amount_price_volume_mismatch_rule_ignores_sub_lot_notional_rows(self):
+        rules = quality.anomaly_rules_expression()
+
+        self.assertIn(
+            "if(volume > 0 AND amount >= close * 100 AND close > 0 AND (amount / (volume * close * 100) < 0.01 OR amount / (volume * close * 100) > 100), 'amount_price_volume_mismatch', '')",
+            rules,
+        )
+        self.assertNotIn(
+            "if(volume > 0 AND amount > 0 AND close > 0 AND (amount / (volume * close * 100) < 0.01 OR amount / (volume * close * 100) > 100), 'amount_price_volume_mismatch', '')",
+            rules,
+        )
+
     def test_schema_sql_creates_anomaly_table_and_clean_view(self):
         sql = quality.schema_sql()
 
@@ -42,6 +63,14 @@ class BuildBarQualityLayerTests(unittest.TestCase):
         self.assertEqual(paths["summary"].name, "bars_1m_quality_summary.json")
         self.assertEqual(paths["by_rule"].name, "bars_1m_anomalies_by_rule.csv")
         self.assertEqual(paths["samples"].name, "bars_1m_anomaly_samples.csv")
+
+    def test_delete_month_anomalies_query_scopes_level_and_partition_month(self):
+        query = quality.delete_month_anomalies_query(level="1m", year_month="202512")
+
+        self.assertIn("ALTER TABLE market.bar_anomalies DELETE", query)
+        self.assertIn("level = '1m'", query)
+        self.assertIn("toYYYYMM(trade_time) = 202512", query)
+        self.assertIn("SETTINGS mutations_sync = 2", query)
 
 
 if __name__ == "__main__":
