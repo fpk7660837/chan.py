@@ -57,6 +57,15 @@ class ClickHouseInfraTests(unittest.TestCase):
         self.assertIn("market.bar_anomalies", sql)
         self.assertNotIn("CREATE MATERIALIZED VIEW", sql)
 
+    def test_init_sql_creates_bar_status_flags_table(self):
+        sql = (INFRA / "init" / "001_create_market.sql").read_text(encoding="utf-8")
+
+        self.assertIn("CREATE TABLE IF NOT EXISTS market.bar_status_flags", sql)
+        self.assertIn("status LowCardinality(String)", sql)
+        self.assertIn("trade_date Date", sql)
+        self.assertIn("note String", sql)
+        self.assertIn("ORDER BY (level, symbol, trade_date, status)", sql)
+
     def test_management_script_keeps_schema_management_to_create_sql(self):
         script = (ROOT / "scripts" / "clickhouse_market.sh").read_text(encoding="utf-8")
 

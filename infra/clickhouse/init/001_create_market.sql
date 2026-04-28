@@ -54,6 +54,21 @@ PARTITION BY (level, toYYYYMM(trade_time))
 ORDER BY (level, symbol, trade_time, rule)
 SETTINGS index_granularity = 8192;
 
+CREATE TABLE IF NOT EXISTS market.bar_status_flags
+(
+    symbol LowCardinality(String),
+    level LowCardinality(String),
+    trade_date Date,
+    status LowCardinality(String),
+    note String,
+    source LowCardinality(String) DEFAULT '',
+    updated_at DateTime64(3, 'Asia/Shanghai') DEFAULT now64(3)
+)
+ENGINE = ReplacingMergeTree(updated_at)
+PARTITION BY (level, toYYYYMM(trade_date))
+ORDER BY (level, symbol, trade_date, status)
+SETTINGS index_granularity = 8192;
+
 CREATE VIEW IF NOT EXISTS market.bars_1m_clean AS
 SELECT *
 FROM market.bars
